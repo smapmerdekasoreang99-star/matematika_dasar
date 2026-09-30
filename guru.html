@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Matdas — Guru</title>
+<title>Matematika Dasar — Guru</title>
 <link rel="icon" href="assets/logo.png">
 <link rel="stylesheet" href="assets/dasar.css?v=1">
 <link rel="stylesheet" href="assets/matdas.css?v=1">
@@ -54,7 +54,7 @@ body.lihat .ubah { display: none !important; }
 <body>
 <header class="atas">
   <img src="assets/logo.png" alt="Logo SMA Plus Merdeka Soreang">
-  <div class="isi"><div class="judul">Matdas · Guru</div><div class="sub" id="hd-sub">Kemajuan latihan Matematika Dasar</div></div>
+  <div class="isi"><div class="judul">Matematika Dasar · Guru</div><div class="sub" id="hd-sub">Kemajuan latihan siswa</div></div>
   <div class="kanan"><button id="btn-keluar" class="hidden">Keluar</button></div>
 </header>
 
@@ -231,7 +231,7 @@ $("btn-csv").onclick = () => {
   const csv = "﻿" + [h, ...rows].map((a) => a.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(";")).join("\r\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-  a.download = `Rekap_Matdas_${$("pil-kelas").value || "semua"}.csv`;
+  a.download = `Rekap_Matematika_Dasar_${$("pil-kelas").value || "semua"}.csv`;
   a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
 
@@ -321,7 +321,7 @@ async function bukaSiswa(nisn) {
 
 function catatanOtomatis(D) {
   const c = [], p = D.posisi;
-  if (!p) return ["Siswa ini belum pernah masuk Matdas."];
+  if (!p) return ["Siswa ini belum pernah masuk Matematika Dasar."];
   const nJ = D.per_tingkat.reduce((a, x) => a + x.n_jawab, 0), nB = D.per_tingkat.reduce((a, x) => a + x.n_benar, 0);
   if (p.selesai) c.push("Sudah menuntaskan semua level yang tersedia.");
   else c.push(`Sedang di <b>${esc(p.nama_tingkat)} level ${p.level}</b> (${esc(p.ket || "")}), percobaan ke-${Math.max(1, p.percobaan)}. Sudah ${p.lewat} dari ${p.total} level terlewati.`);
@@ -443,7 +443,7 @@ function gambarTingkat() {
 
 /* ----------------------------------------------------------- pengaturan */
 const ATUR = [
-  { k: "aktif", jenis: "ya", l: "Matdas dibuka untuk siswa", s: "Bila ditutup, siswa tidak bisa masuk." },
+  { k: "aktif", jenis: "ya", l: "Matematika Dasar dibuka untuk siswa", s: "Bila ditutup, siswa tidak bisa masuk." },
   { k: "durasi_menit", jenis: "angka", l: "Lama satu sesi (menit)", s: "Setelah waktu habis, siswa keluar dan saat masuk lagi mulai dari nomor 1 di levelnya. 5–180." },
   { k: "n_benar", jenis: "angka", l: "Soal benar untuk tuntas satu level", s: "Bawaan 10. 1–50." },
   { k: "batas_salah", jenis: "angka", l: "Batas salah per level", s: "Lebih dari batas ini, level diulang dari nomor 1. 0 = tanpa batas." },

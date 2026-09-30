@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Matdas — Matematika Dasar</title>
+<title>Matematika Dasar</title>
 <link rel="icon" href="assets/logo.png">
 <link rel="stylesheet" href="assets/dasar.css?v=1">
 <link rel="stylesheet" href="assets/matdas.css?v=1">
@@ -91,7 +91,7 @@ details.peta summary { cursor: pointer; font-weight: 700; color: var(--gelap); }
 <body>
 <header class="atas">
   <img src="assets/logo.png" alt="Logo SMA Plus Merdeka Soreang">
-  <div class="isi"><div class="judul">Matdas</div><div class="sub" id="hd-sub">Matematika Dasar · SMA Plus Merdeka Soreang</div></div>
+  <div class="isi"><div class="judul">Matematika Dasar</div><div class="sub" id="hd-sub">SMA Plus Merdeka Soreang</div></div>
   <div class="kanan"><span class="jam hidden" id="jam" title="Sisa waktu latihan">30:00</span><button id="btn-keluar" class="hidden">Keluar</button></div>
 </header>
 
@@ -100,7 +100,7 @@ details.peta summary { cursor: pointer; font-weight: 700; color: var(--gelap); }
   <section id="v-masuk">
     <div class="sambut">
       <div class="sek">SMA Plus Merdeka Soreang</div>
-      <h1>Matdas</h1>
+      <h1>Matematika Dasar</h1>
       <p>Latihan hitung bertahap: selesaikan 10 soal dengan benar untuk naik level.</p>
     </div>
     <div class="kartu">
@@ -333,7 +333,7 @@ function naik(h) {
   $("k-soal").classList.add("hidden");
   if (h.tamat) {
     $("n-judul").textContent = "Semua tingkat tuntas!";
-    $("n-isi").textContent = "Luar biasa! Kamu sudah menuntaskan seluruh level Matdas yang tersedia.";
+    $("n-isi").textContent = "Luar biasa! Kamu sudah menuntaskan seluruh level Matematika Dasar yang tersedia.";
   } else if (h.ganti_tingkat) {
     $("n-judul").textContent = "Tingkat tuntas!";
     $("n-isi").textContent = `Selamat! Kamu naik ke tingkat ${S.posisi.nama}, level ${S.posisi.level}.`;
