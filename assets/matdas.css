@@ -1,0 +1,85 @@
+/* Matdas — komponen bersama halaman siswa & guru. Warna, jarak, sudut, dan
+   lapisan diambil dari dasar.css (salinan yang sama dengan aplikasi lain). */
+
+html, body { margin: 0; background: var(--kertas); color: var(--tinta); }
+body { font-family: "Public Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: var(--h-b); line-height: 1.5; -webkit-text-size-adjust: 100%; }
+h1, h2, h3 { font-family: "Fraunces", Georgia, serif; font-weight: 700; color: var(--gelap); margin: 0 0 var(--j2); text-wrap: balance; }
+h1 { font-size: var(--h-judul); } h2 { font-size: var(--h-judul-s); } h3 { font-size: var(--h-n); font-family: inherit; }
+p { margin: var(--j2) 0; }
+.hidden { display: none !important; }
+.redup { color: var(--tinta-2); }
+.kecil { font-size: var(--h-s); }
+
+/* ---- Bilah atas ---- */
+.atas { position: sticky; top: 0; z-index: var(--lapis-topbar); background: var(--gelap); color: var(--tinta-terang);
+  border-bottom: 4px solid var(--emas); padding: var(--j3) var(--j4); display: flex; align-items: center; gap: var(--j3); }
+.atas img { height: 34px; width: auto; }
+.atas .judul { font-weight: 700; font-size: var(--h-n); line-height: 1.2; }
+.atas .sub { font-size: var(--h-xs); color: var(--tinta-terang-2); }
+.atas .isi { flex: 1; min-width: 0; }
+.atas .kanan { display: flex; gap: var(--j2); align-items: center; }
+.jam { font-variant-numeric: tabular-nums; font-weight: 700; background: var(--emas); color: var(--utama-teks);
+  padding: var(--j1) var(--j3); border-radius: var(--r1); font-size: var(--h-b); }
+.jam.hampir { background: var(--absen-muda); color: var(--absen-tua); }
+
+.bungkus { max-width: 760px; margin: 0 auto; padding: var(--j3) var(--j4) var(--j7); }
+.bungkus.lebar { max-width: 1180px; }
+
+/* ---- Kartu, tombol, isian ---- */
+.kartu { background: var(--kertas-2); border: 1px solid var(--garis); border-radius: var(--r3); padding: var(--j4); margin: var(--j3) 0; box-shadow: var(--bayang-1); }
+button, .tombol { font: inherit; font-size: var(--h-n); font-weight: 700; border: 0; border-radius: var(--r2); padding: var(--j3) var(--j4);
+  min-height: var(--sentuh); cursor: pointer; background: var(--utama); color: var(--utama-teks); }
+button:hover { background: var(--utama-tua); color: #fff; }
+button.garis { background: var(--kertas-2); color: var(--gelap); border: 1.5px solid var(--garis-2); }
+button.garis:hover { border-color: var(--gelap); background: var(--kertas-3); color: var(--gelap); }
+button.gelap { background: var(--gelap); color: var(--tinta-terang); }
+button.gelap:hover { background: var(--gelap-2); }
+button.bahaya { background: var(--absen-muda); color: var(--absen-tua); }
+button.kecil { min-height: 32px; padding: var(--j1) var(--j3); font-size: var(--h-s); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+.atas button { background: transparent; color: var(--tinta-terang); border: 1px solid var(--gelap-2); min-height: 36px; padding: var(--j1) var(--j3); font-size: var(--h-s); }
+.atas button:hover { background: var(--gelap-2); }
+
+label.isian { display: block; font-size: var(--h-m); font-weight: 600; margin: var(--j3) 0 var(--j1); }
+input[type=text], input[type=date], input[type=number], input[type=password], select {
+  width: 100%; font: inherit; font-size: var(--h-b); padding: var(--j3); border: 1px solid var(--garis-2); border-radius: var(--r1); background: #fff; color: var(--tinta); }
+.baris { display: flex; gap: var(--j2); flex-wrap: wrap; align-items: center; }
+.baris > .tumbuh { flex: 1; min-width: 160px; }
+
+.lencana { display: inline-block; font-size: var(--h-xs); font-weight: 700; padding: 2px var(--j2); border-radius: var(--r-bulat);
+  background: var(--netral-muda); color: var(--tinta-2); white-space: nowrap; }
+.lencana.baik { background: var(--hadir-muda); color: var(--hadir-tua); }
+.lencana.buruk { background: var(--absen-muda); color: var(--absen-tua); }
+.lencana.emas { background: var(--emas-muda); color: var(--emas-teks); }
+.lencana.biru { background: var(--sakit-muda); color: var(--sakit-tua); }
+
+.pesan { padding: var(--j3); border-radius: var(--r1); font-size: var(--h-m); margin: var(--j2) 0; background: var(--emas-muda); color: var(--emas-teks); }
+.pesan.buruk { background: var(--absen-muda); color: var(--absen-tua); }
+
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--gelap); color: #fff; padding: var(--j3) var(--j4);
+  border-radius: var(--r2); font-size: var(--h-m); z-index: var(--lapis-pesan); opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 90vw; }
+.toast.show { opacity: 1; }
+
+/* ---- Pecahan bersusun & teks soal ---- */
+.pc { display: inline-flex; align-items: center; gap: .12em; vertical-align: middle; }
+.pc-w { margin-right: .08em; }
+.pc-f { display: inline-flex; flex-direction: column; align-items: center; font-size: .78em; line-height: 1.1; }
+.pc-n { border-bottom: .08em solid currentColor; padding: 0 .15em; }
+.pc-d { padding: 0 .15em; }
+.op { margin: 0 .1em; }
+.nm { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ---- Batang kemajuan ---- */
+.batang { height: 8px; background: var(--kertas-3); border-radius: var(--r-bulat); overflow: hidden; }
+.batang > i { display: block; height: 100%; background: var(--hadir); border-radius: var(--r-bulat); }
+
+/* ---- Tabel ---- */
+.gulir { overflow-x: auto; }
+table.tabel { width: 100%; border-collapse: collapse; font-size: var(--h-m); }
+table.tabel th, table.tabel td { padding: var(--j2) var(--j2); border-bottom: 1px solid var(--garis); text-align: left; vertical-align: middle; }
+table.tabel th { background: var(--kertas-3); font-size: var(--h-s); color: var(--tinta-2); font-weight: 600; white-space: nowrap; }
+table.tabel td.angka, table.tabel th.angka { text-align: right; }
+table.tabel tr.klik { cursor: pointer; }
+table.tabel tr.klik:hover td { background: var(--emas-kabut); }
+
+.kosong-data { padding: var(--j5); text-align: center; color: var(--tinta-2); }
