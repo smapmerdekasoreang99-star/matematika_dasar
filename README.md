@@ -78,11 +78,14 @@ memindahkan posisi siswa. PIN pengawas hanya bisa melihat.
   status (*Sedang berlatih*, *Terkunci*, *Belum pernah masuk*), jumlah keluar
   halaman 7 hari terakhir, pencarian, **Unduh daftar** (.xlsx; *Semua kelompok* = satu lembar per kelompok), dan tombol **Buka kunci**.
   Diperbarui otomatis tiap 30 detik.
+  Centang siswa (atau semua yang tampil, mis. satu tingkat/kelompok) untuk
+  **Atur posisi** (tingkat & level awal berbeda per tingkat/kelompok/siswa; opsi
+  *hanya yang belum pernah masuk*) atau **Hapus data latihan**.
 - **Analisis siswa**: catatan otomatis, grafik level tuntas, jenis kesalahan
   yang paling sering, akurasi per tingkat, daftar kesalahan terakhir (soal,
   jawaban siswa, kunci), dan riwayat level tuntas. Di sini juga ada
   **Pindahkan posisi**, misalnya untuk siswa yang sudah lancar agar bisa
-  melompat ke depan.
+  melompat ke depan. Juga **Hapus data latihan** satu siswa (mis. setelah uji coba).
 - **Pengaturan**, dikelompokkan seperti *Pengaturan ujian* di Dasbor Hasil Tryout:
   - *Halaman Latihan*: dibuka/ditutup, yang boleh masuk (anggota kelompok MD
     saja / semua siswa aktif), tampilkan jawaban benar saat salah, kode akses.
@@ -95,6 +98,9 @@ memindahkan posisi siswa. PIN pengawas hanya bisa melihat.
     soal, pecahan wajib paling sederhana.
   - *Sesi & titik awal*: lama sesi dan titik awal siswa baru (Penjumlahan
     Dasar, atau modul sesuai tingkat kelompoknya: MD11 → Modul Kelas 11).
+  - *Kosongkan data latihan*: hapus data latihan **semua** siswa, hanya dengan
+    **PIN kepala sekolah** (`tka_privat.pin_kepsek_matdas`, bukan PIN guru) dan
+    mengetik KOSONGKAN. Data siswa, pengaturan, tingkat & level tetap.
 
 ## Memasang
 

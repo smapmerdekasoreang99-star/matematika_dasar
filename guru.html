@@ -68,8 +68,33 @@
 .sinkron-tegas b { font-weight: 800; }
 
 /* ---- Daftar siswa ---- */
-.daftar-alat { display: grid; grid-template-columns: 200px minmax(0, 1fr) 200px auto auto; gap: var(--j2); align-items: center; }
-@media (max-width: 860px) { .daftar-alat { grid-template-columns: 1fr 1fr; } .daftar-alat #dl-cari { grid-column: 1 / -1; grid-row: 1; } }
+.daftar-alat { display: grid; grid-template-columns: 190px 150px minmax(0, 1fr) 190px auto auto; gap: var(--j2); align-items: center; }
+@media (max-width: 960px) { .daftar-alat { grid-template-columns: 1fr 1fr; } .daftar-alat #dl-cari { grid-column: 1 / -1; grid-row: 1; } }
+/* Bilah aksi massal: muncul saat ada siswa dicentang, menempel di bawah layar */
+.massal { display: none; position: sticky; bottom: var(--j3); z-index: var(--lapis-bar); align-items: center; gap: var(--j2) var(--j3); flex-wrap: wrap;
+  background: var(--gelap); color: var(--tinta-terang); border-radius: var(--r3); padding: var(--j3) var(--j4); margin: var(--j3) 0; box-shadow: var(--bayang-2); }
+.massal.on { display: flex; }
+.massal .jml { font-size: var(--h-m); } .massal .jml b { color: var(--emas); font-size: var(--h-judul-s); }
+.massal .pisah { width: 1px; align-self: stretch; background: var(--gelap-2); }
+.massal .ket { font-size: var(--h-s); color: var(--tinta-terang-2); }
+.massal select { width: auto; min-width: 150px; max-width: 280px; padding: var(--j2); font-size: var(--h-m); }
+.massal label.cek { display: inline-flex; align-items: center; gap: 6px; font-size: var(--h-s); cursor: pointer; }
+.massal label.cek input { width: 16px; height: 16px; accent-color: var(--emas); }
+.massal .tutup { background: transparent; color: var(--tinta-terang); border: 1px solid var(--gelap-2); }
+.massal .tutup:hover { background: var(--gelap-2); }
+.massal .ujung { margin-left: auto; display: flex; gap: var(--j2); flex-wrap: wrap; }
+th.pilih, td.pilih { width: 34px; text-align: center !important; }
+td.pilih input, th.pilih input { width: 18px; height: 18px; accent-color: var(--gelap); cursor: pointer; vertical-align: middle; }
+table.tabel tr.dipilih td { background: var(--emas-kabut); }
+/* Tindakan yang menghapus data */
+.bahaya-kartu { border-color: #E3B9AE; }
+.bahaya-kartu h2 { color: var(--absen-tua); }
+.seksi.bahaya { border-color: #E3B9AE; }
+.seksi.bahaya .seksi-kepala { background: linear-gradient(180deg, var(--absen-muda), var(--kertas-2)); }
+.seksi.bahaya .seksi-ikon { background: var(--absen-tua); color: #fff; }
+.kosongkan { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: var(--j2); width: 100%; }
+.kosongkan input { padding: var(--j2) var(--j3); font-size: var(--h-m); }
+@media (max-width: 640px) { .kosongkan { grid-template-columns: 1fr; } }
 input[type=search] { width: 100%; font: inherit; font-size: var(--h-b); padding: var(--j3); border: 1px solid var(--garis-2); border-radius: var(--r1); background: #fff; color: var(--tinta); }
 .titik-on { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--hadir); margin-right: 6px; box-shadow: 0 0 0 3px var(--hadir-muda); vertical-align: middle; }
 .nisn { font-variant-numeric: tabular-nums; color: var(--tinta-2); }
@@ -212,6 +237,9 @@ body.lihat .ubah { display: none !important; }
     <div id="p-daftar" class="hidden">
       <div class="daftar-alat">
         <select id="dl-kelompok" aria-label="Pilih kelompok"></select>
+        <select id="dl-tingkat" aria-label="Saring tingkat">
+          <option value="">Semua tingkat</option><option value="10">Tingkat 10</option><option value="11">Tingkat 11</option><option value="12">Tingkat 12</option>
+        </select>
         <input type="search" id="dl-cari" placeholder="Cari nama, NISN, atau NIS…" aria-label="Cari siswa">
         <select id="dl-status" aria-label="Saring status">
           <option value="">Semua status</option>
@@ -224,10 +252,20 @@ body.lihat .ubah { display: none !important; }
         <button class="btn-unduh" data-fmt="xlsx" id="dl-unduh" title="Daftar sesuai saringan; Semua kelompok = satu lembar per kelompok">Unduh daftar</button>
       </div>
       <div class="ubin" id="dl-ubin"></div>
+      <!-- Aksi massal (guru/operator): atur tingkat & level atau hapus data latihan siswa yang dicentang -->
+      <div class="massal ubah" id="dl-massal" role="region" aria-label="Aksi untuk siswa terpilih">
+        <span class="jml"><b id="dl-n-pilih">0</b> siswa dipilih</span><span class="pisah"></span>
+        <span class="ket">Atur posisi ke</span>
+        <select id="dl-tk" aria-label="Tingkat"></select><select id="dl-lv" aria-label="Level"></select>
+        <label class="cek"><input type="checkbox" id="dl-baru"> hanya yang belum pernah masuk</label>
+        <button class="kecil" id="dl-terapkan">Terapkan</button>
+        <span class="ujung"><button class="kecil bahaya" id="dl-hapus">Hapus data latihan</button><button class="kecil tutup" id="dl-batal">Batal pilih</button></span>
+      </div>
       <div class="kartu">
         <div class="gulir"><table class="tabel" id="t-daftar"></table></div>
         <p class="redup kecil">Diperbarui otomatis setiap 30 detik selama tab ini terbuka. <b>Sedang berlatih</b> = sesi latihannya masih berjalan.
           <b>Terkunci</b> = terlalu sering keluar halaman (Pengaturan → Pengawasan keluar halaman); buka dengan tombol <b>Buka kunci</b> atau kode buka di perangkat siswa.
+          <span class="ubah">Centang siswa (atau kotak di kepala tabel untuk semua yang tampil) untuk <b>mengatur tingkat &amp; level</b> sekaligus — misalnya satu kelompok atau satu tingkat dimulai dari level berbeda — atau <b>menghapus data latihannya</b>.</span>
           Ketuk nama untuk melihat analisisnya.</p>
       </div>
     </div>
@@ -287,7 +325,7 @@ async function masuk(pin, diam) {
     const opsi = [...$("pil-kelas").options];
     $("dl-kelompok").innerHTML = opsi.filter((o) => o.value === "").concat(opsi.filter((o) => o.value !== "")).map((o) => o.outerHTML).join("");
     $("dl-kelompok").value = "";
-    muatKelas(); gambarTingkat(); gambarAtur(); gambarSinkron();
+    muatKelas(); gambarTingkat(); gambarAtur(); gambarSinkron(); isiPilihPosisi();
   } catch (e) {
     if (diam) return;
     $("pin-pesan").textContent = e.message; $("pin-pesan").classList.remove("hidden");
@@ -438,6 +476,9 @@ async function muatDaftar(diam) {
 $("dl-kelompok").onchange = () => muatDaftar();
 $("dl-muat").onclick = () => muatDaftar();
 $("dl-status").onchange = () => gambarDaftar();
+$("dl-tingkat").onchange = () => gambarDaftar();
+// Siswa yang dicentang untuk aksi massal (bertahan saat daftar diperbarui otomatis)
+const PILIH = new Set();
 $("dl-cari").oninput = () => gambarDaftar();
 
 const statusDaftar = (r) => r.terkunci ? '<span class="lencana buruk">Terkunci</span>'
@@ -446,9 +487,17 @@ const statusDaftar = (r) => r.terkunci ? '<span class="lencana buruk">Terkunci</
   : r.selesai ? '<span class="lencana baik">Tamat</span>'
   : `<span class="redup kecil">Aktif ${esc(sejakTeks(r.terakhir || r.masuk_terakhir))}</span>`;
 
+// Tingkat siswa: dari kelompok MD (MD11-2 → 11), bila tidak ada dari rombel (11-2 / XI-2 → 11)
+const ROMAWI = { X: "10", XI: "11", XII: "12" };
+function tingkatSiswa(r) {
+  const k = String(r.kelompok || "").match(/\d+/);
+  if (k) return k[0];
+  const m = String(r.kelas || "").toUpperCase().match(/^(XII|XI|X|10|11|12)\b/);
+  return m ? ROMAWI[m[1]] || m[1] : "";
+}
 function saringDaftar() {
-  const q = $("dl-cari").value.trim().toLowerCase(), st = $("dl-status").value;
-  return DAFTAR.filter((r) => (!q || [r.nama, r.nisn, r.nis].some((v) => String(v || "").toLowerCase().includes(q)))
+  const q = $("dl-cari").value.trim().toLowerCase(), st = $("dl-status").value, tk = $("dl-tingkat").value;
+  return DAFTAR.filter((r) => (!tk || tingkatSiswa(r) === tk) && (!q || [r.nama, r.nisn, r.nis].some((v) => String(v || "").toLowerCase().includes(q)))
     && (!st || (st === "online" ? r.online : st === "kunci" ? r.terkunci : st === "belum" ? !r.tingkat : !!r.tingkat)));
 }
 
@@ -461,17 +510,29 @@ function gambarDaftar() {
     [D.reduce((a, r) => a + (r.keluar_7 || 0), 0), "keluar halaman, 7 hari"],
   ].map(([v, l, s]) => `<div class="${s ? "sorot" : ""}"><div class="n">${v}</div><div class="l">${l}</div></div>`).join("");
   const R = saringDaftar();
-  $("t-daftar").innerHTML = `<thead><tr><th>No</th><th>Nama</th><th>NISN</th><th>NIS</th><th>Rombel</th>${semua && MODE_MD ? "<th>Kelompok</th>" : ""}
+  const ada = new Set(DAFTAR.map((r) => r.nisn));
+  [...PILIH].forEach((n) => { if (!ada.has(n)) PILIH.delete(n); });
+  const semuaDipilih = R.length > 0 && R.every((r) => PILIH.has(r.nisn));
+  $("t-daftar").innerHTML = `<thead><tr><th class="pilih ubah"><input type="checkbox" id="dl-semua" ${semuaDipilih ? "checked" : ""} title="Pilih semua yang tampil" aria-label="Pilih semua siswa yang tampil"></th><th>No</th><th>Nama</th><th>NISN</th><th>NIS</th><th>Rombel</th>${semua && MODE_MD ? "<th>Kelompok</th>" : ""}
     <th>Status</th><th>Posisi</th><th class="angka" title="Keluar halaman latihan yang dihitung, 7 hari terakhir">Keluar hlm.</th><th></th></tr></thead><tbody>` +
-    (R.length ? R.map((r, i) => `<tr class="klik" data-n="${esc(r.nisn)}"><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>
+    (R.length ? R.map((r, i) => `<tr class="klik ${PILIH.has(r.nisn) ? "dipilih" : ""}" data-n="${esc(r.nisn)}"><td class="pilih ubah"><input type="checkbox" data-pilih="${esc(r.nisn)}" ${PILIH.has(r.nisn) ? "checked" : ""} aria-label="Pilih ${esc(r.nama)}"></td><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>
       <td class="nisn">${esc(r.nisn)}</td><td class="nisn">${esc(r.nis || "–")}</td><td>${esc(r.kelas)}</td>
       ${semua && MODE_MD ? `<td>${esc(r.kelompok || "–")}</td>` : ""}
       <td>${statusDaftar(r)}</td>
       <td>${r.tingkat ? `${esc(r.nama_tingkat)} · <span class="nm">Lv ${r.level}</span>` : '<span class="redup">–</span>'}</td>
       <td class="angka">${r.keluar_7 || '<span class="redup">0</span>'}</td>
       <td>${r.terkunci ? `<button class="kecil" data-buka="${esc(r.nisn)}">Buka kunci</button>` : ""}</td></tr>`).join("")
-      : `<tr><td colspan="10" class="kosong-data">${D.length ? "Tidak ada siswa yang cocok dengan pencarian." : "Tidak ada siswa."}</td></tr>`) + "</tbody>";
-  $("t-daftar").querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = (e) => { if (!e.target.closest("button")) bukaSiswa(tr.dataset.n); });
+      : `<tr><td colspan="11" class="kosong-data">${D.length ? "Tidak ada siswa yang cocok dengan pencarian." : "Tidak ada siswa."}</td></tr>`) + "</tbody>";
+  $("t-daftar").querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = (e) => {
+    if (e.target.closest("td.pilih")) { if (!e.target.matches("input")) { const c = tr.querySelector("[data-pilih]"); c.checked = !c.checked; c.onchange(); } return; }
+    if (!e.target.closest("button")) bukaSiswa(tr.dataset.n);
+  });
+  $("t-daftar").querySelectorAll("[data-pilih]").forEach((c) => c.onchange = () => {
+    if (c.checked) PILIH.add(c.dataset.pilih); else PILIH.delete(c.dataset.pilih);
+    c.closest("tr").classList.toggle("dipilih", c.checked); perbaruiMassal();
+  });
+  if ($("dl-semua")) $("dl-semua").onchange = (e) => { R.forEach((r) => e.target.checked ? PILIH.add(r.nisn) : PILIH.delete(r.nisn)); gambarDaftar(); };
+  perbaruiMassal();
   $("t-daftar").querySelectorAll("[data-buka]").forEach((b) => b.onclick = async () => {
     const r = DAFTAR.find((x) => x.nisn === b.dataset.buka);
     if (!confirm(`Buka kunci latihan ${r ? r.nama : b.dataset.buka}? Siswa lalu mengetuk "Periksa lagi" di layarnya.`)) return;
@@ -483,6 +544,43 @@ function gambarDaftar() {
 
 // Unduh daftar (.xlsx): sesuai saringan di layar. "Semua kelompok" → satu lembar gabungan
 // ditambah satu lembar per kelompok (siap dicetak per kelompok).
+/* ---- Aksi massal: atur posisi / hapus data latihan siswa terpilih ---- */
+function perbaruiMassal() {
+  const n = PILIH.size;
+  $("dl-massal").classList.toggle("on", n > 0 && PERAN !== "pengawas");
+  $("dl-n-pilih").textContent = n;
+  const semua = $("dl-semua"), tampil = saringDaftar();
+  if (semua) semua.indeterminate = n > 0 && !tampil.every((r) => PILIH.has(r.nisn)) && tampil.some((r) => PILIH.has(r.nisn));
+}
+function isiPilihPosisi() {
+  $("dl-tk").innerHTML = G.tingkat.map((t) => `<option value="${t.kode}">${esc(t.nama)}${t.aktif ? "" : " (ditutup)"}</option>`).join("");
+  const isiLv = () => { const t = G.tingkat.find((x) => x.kode === $("dl-tk").value);
+    $("dl-lv").innerHTML = (t ? t.level : []).map((l) => `<option value="${l.level}">Level ${l.level}: ${esc(l.ket)}</option>`).join(""); };
+  $("dl-tk").onchange = isiLv; isiLv();
+}
+const namaTerpilih = () => { const nm = DAFTAR.filter((r) => PILIH.has(r.nisn)).map((r) => r.nama);
+  return nm.slice(0, 5).join(", ") + (nm.length > 5 ? `, dan ${nm.length - 5} lainnya` : ""); };
+$("dl-batal").onclick = () => { PILIH.clear(); gambarDaftar(); };
+$("dl-terapkan").onclick = async () => {
+  const t = $("dl-tk"), l = $("dl-lv"), baru = $("dl-baru").checked, n = PILIH.size;
+  if (!confirm(`Atur posisi ${n} siswa ke ${t.options[t.selectedIndex].text}, level ${l.value}?\n\n${namaTerpilih()}\n\n` +
+    (baru ? "Siswa yang sudah pernah masuk dilewati." : "Siswa yang sudah maju juga ikut dipindah, dan sesi yang sedang berjalan ditutup."))) return;
+  try {
+    const r = await rpc("mtd_set_posisi_banyak", { p_pin: PIN, p_nisn: [...PILIH], p_tingkat: t.value, p_level: +l.value, p_hanya_baru: baru });
+    toast(`Posisi diatur: ${r.diatur} siswa${r.dilewati ? ` (${r.dilewati} dilewati karena sudah pernah masuk)` : ""}`);
+    PILIH.clear(); muatDaftar(true); muatKelas();
+  } catch (e) { toast(e.message); }
+};
+$("dl-hapus").onclick = async () => {
+  const n = PILIH.size;
+  if (!confirm(`Hapus SEMUA data latihan ${n} siswa?\n\n${namaTerpilih()}\n\nPosisi, riwayat jawaban, dan level tuntas dihapus; siswa mulai lagi dari titik awal. Data siswa tidak terhapus. Tindakan ini tidak bisa dibatalkan.`)) return;
+  try {
+    const r = await rpc("mtd_hapus_latihan", { p_pin: PIN, p_nisn: [...PILIH] });
+    toast(`Data latihan dihapus: ${r.siswa} siswa, ${r.jawaban} jawaban`);
+    PILIH.clear(); muatDaftar(true); muatKelas();
+  } catch (e) { toast(e.message); }
+};
+
 $("dl-unduh").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
   const R = saringDaftar().sort(urutKelompok);
   if (!R.length) throw new Error("Tidak ada siswa di daftar.");
@@ -670,7 +768,10 @@ function gambarSiswa() {
     ${bolehUbah ? `<div class="kartu ubah"><h2>Pindahkan posisi</h2>
       <p class="redup kecil" style="margin-top:0">Untuk siswa yang sudah lancar (lompat ke depan) atau perlu mengulang materi. Sesi yang sedang berjalan akan ditutup.</p>
       <div class="baris"><select id="pp-tingkat" class="tumbuh">${G.tingkat.map((t) => `<option value="${t.kode}" ${p && p.tingkat === t.kode ? "selected" : ""}>${esc(t.nama)}${t.aktif ? "" : " (ditutup)"}</option>`).join("")}</select>
-      <select id="pp-level" style="max-width:260px"></select><button id="pp-simpan">Pindahkan</button></div></div>` : ""}`;
+      <select id="pp-level" style="max-width:260px"></select><button id="pp-simpan">Pindahkan</button></div></div>
+    <div class="kartu ubah bahaya-kartu"><h2>Hapus data latihan</h2>
+      <p class="redup kecil" style="margin-top:0">Menghapus posisi, riwayat jawaban, dan level tuntas siswa ini, misalnya setelah uji coba. Saat masuk berikutnya ia mulai lagi dari titik awal. Data siswa tidak terhapus. Tidak bisa dibatalkan.</p>
+      <button class="bahaya" id="hl-hapus">Hapus data latihan siswa ini</button></div>` : ""}`;
   garisKemajuan($("g-maju"), titik);
   if (bolehUbah) {
     const isiLv = () => { const t = G.tingkat.find((x) => x.kode === $("pp-tingkat").value);
@@ -680,6 +781,11 @@ function gambarSiswa() {
       const t = $("pp-tingkat"), l = $("pp-level");
       if (!confirm(`Pindahkan ${D.siswa.nama} ke ${t.options[t.selectedIndex].text}, level ${l.value}?`)) return;
       try { await rpc("mtd_set_posisi", { p_pin: PIN, p_nisn: D.siswa.nisn, p_tingkat: t.value, p_level: +l.value }); toast("Posisi dipindahkan"); bukaSiswa(D.siswa.nisn); muatKelas(); }
+      catch (e) { toast(e.message); }
+    };
+    $("hl-hapus").onclick = async () => {
+      if (!confirm(`Hapus SEMUA data latihan ${D.siswa.nama}?\n\nPosisi, riwayat jawaban, dan level tuntas dihapus. Tindakan ini tidak bisa dibatalkan.`)) return;
+      try { const r = await rpc("mtd_hapus_latihan", { p_pin: PIN, p_nisn: [D.siswa.nisn] }); toast(`Data latihan ${D.siswa.nama} dihapus (${r.jawaban} jawaban)`); bukaSiswa(D.siswa.nisn); muatKelas(); }
       catch (e) { toast(e.message); }
     };
   }
@@ -723,6 +829,7 @@ const IKON = {
   layar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',
   perisai: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.1 7.5 9.5 4.3-1.4 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg>',
   tangga: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4v-4h4v-4h4V8h4"/><path d="M16 4h4v4"/></svg>',
+  sampah: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></svg>',
   jam: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>',
 };
 const SEKSI = [
@@ -748,7 +855,7 @@ const SEKSI = [
     { k: "durasi_menit", jenis: "angka", satuan: "menit", min: 5, maks: 180, l: "Lama satu sesi", s: "Setelah waktu habis, saat masuk lagi siswa mulai dari nomor 1 di levelnya." },
     { k: "mulai", jenis: "pilih", l: "Titik awal siswa baru", s: "Hanya berlaku untuk siswa yang belum pernah masuk.",
       pilih: [["awal", "Dari Penjumlahan Dasar", "Semua siswa mulai dari tingkat pertama Modul Kelas 10"], ["kelas", "Sesuai tingkat kelompoknya", "Mis. MD11 → Modul Kelas 11 (bila modulnya sudah ada)"]] },
-  ] },
+  ], catatan: "Ingin satu tingkat, satu kelompok, atau beberapa siswa mulai dari tingkat dan level tertentu? Buka tab <b>Daftar siswa</b>, saring tingkat/kelompok, centang siswanya, lalu <b>Atur posisi</b>. Centang <i>hanya yang belum pernah masuk</i> agar siswa yang sudah maju tidak tergeser. Untuk satu siswa juga bisa lewat <b>Analisis siswa → Pindahkan posisi</b>." },
 ];
 const SEMUA_ATUR = SEKSI.flatMap((s) => s.baris);
 
@@ -785,7 +892,27 @@ function gambarAtur() {
         <div class="l"><b>${x.l}</b><span>${x.s}</span></div>
         <div class="kendali"><span class="ok-simpan" data-ok="${x.k}">✓ Tersimpan</span>${kendaliAtur(x, a, boleh)}</div></div>`).join("")}
       ${s.catatan ? `<p class="catatan-seksi"><span>${s.catatan}</span></p>` : ""}
-    </section>`).join("");
+    </section>`).join("") +
+    // Bukan pengaturan biasa: memakai PIN kepala sekolah, bukan PIN guru, jadi tampil untuk semua peran.
+    `<section class="kartu seksi bahaya">
+      <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true">${IKON.sampah}</span><div><h2>Kosongkan data latihan</h2><p>Untuk memulai dari nol, misalnya setelah uji coba atau di awal tahun ajaran.</p></div></div>
+      <div class="atur-baris susun"><div class="l"><b>Kosongkan semua data latihan</b><span>Menghapus posisi, riwayat jawaban, level tuntas, dan sesi <strong>semua siswa</strong>. Data siswa, pengaturan, serta tingkat &amp; level tetap. Hanya dengan <strong>PIN kepala sekolah</strong>. Tidak bisa dibatalkan.</span></div>
+        <div class="kendali"><div class="kosongkan"><input type="password" id="ks-pin" autocomplete="off" placeholder="PIN kepala sekolah" aria-label="PIN kepala sekolah">
+          <input type="text" id="ks-ketik" autocomplete="off" spellcheck="false" placeholder="Ketik KOSONGKAN untuk memastikan" aria-label="Ketik KOSONGKAN">
+          <button class="bahaya" id="ks-tombol" disabled>Kosongkan semua</button></div></div></div>
+      <p class="catatan-seksi"><span>Hanya beberapa siswa? Hapus satu siswa di <b>Analisis siswa</b>; beberapa siswa atau satu kelompok di <b>Daftar siswa</b> → centang → <b>Hapus data latihan</b> (PIN guru/operator).</span></p>
+    </section>`;
+  const siapKosong = () => { $("ks-tombol").disabled = !($("ks-pin").value.trim() && $("ks-ketik").value.trim().toUpperCase() === "KOSONGKAN"); };
+  $("ks-pin").oninput = siapKosong; $("ks-ketik").oninput = siapKosong;
+  $("ks-tombol").onclick = async () => {
+    if (!confirm("Kosongkan SEMUA data latihan Matematika Dasar untuk seluruh siswa? Tindakan ini tidak bisa dibatalkan.")) return;
+    $("ks-tombol").disabled = true;
+    try {
+      const r = await rpc("mtd_kosongkan_semua", { p_pin_kepsek: $("ks-pin").value.trim() });
+      toast(`Data latihan dikosongkan: ${r.siswa} siswa, ${r.jawaban} jawaban`);
+      $("ks-pin").value = ""; $("ks-ketik").value = ""; muatKelas(); if (DAFTAR.length) muatDaftar(true);
+    } catch (e) { toast(e.message); siapKosong(); }
+  };
 
   const simpan = async (k, v) => {
     const x = SEMUA_ATUR.find((y) => y.k === k);
