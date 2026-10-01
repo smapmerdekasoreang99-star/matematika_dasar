@@ -54,7 +54,8 @@ modul.
 
 ## Untuk guru
 
-Masuk dengan **PIN Tryout**. PIN guru/operator boleh mengubah pengaturan dan
+Siswa dan guru memakai **satu alamat** yang sama. Guru mengetuk tautan
+**Guru / pengawas** di bawah kotak masuk siswa (seperti di Tryout), lalu masuk dengan **PIN Tryout**. PIN guru/operator boleh mengubah pengaturan dan
 memindahkan posisi siswa. PIN pengawas hanya bisa melihat.
 
 - **Kemajuan kelas**: posisi setiap siswa, kemajuan (level terlewati dari
