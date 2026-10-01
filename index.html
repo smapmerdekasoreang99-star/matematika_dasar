@@ -298,7 +298,7 @@ function isiPosisi() {
     ks.className = "kesempatan";
     ks.innerHTML = S.salah ? `<span>Salah di level ini: <b>${S.salah}</b></span>` : "";
   }
-  $("hd-sub").textContent = `${S.nama} · ${S.kelas}`;
+  $("hd-sub").textContent = `${S.nama} · ${S.kelompok || S.kelas}`;
   // peta
   $("peta-ringkas").textContent = `· ${S.ringkas.lewat} dari ${S.ringkas.total} level tuntas`;
   $("peta-batang").style.width = (100 * S.ringkas.lewat / Math.max(1, S.ringkas.total)) + "%";

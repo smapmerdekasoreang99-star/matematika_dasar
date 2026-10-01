@@ -20,7 +20,12 @@ perubahan lewat [`../database_tryout/`](../database_tryout/README.md)
 ## Cara kerja untuk siswa
 
 1. Masuk dengan NISN dan tanggal lahir. Data siswanya sama dengan Tryout,
-   jadi tidak perlu diunggah lagi.
+   jadi tidak perlu diunggah lagi. **Hanya anggota kelompok Matematika Dasar**
+   (MD10-1, MD11-2, … di Data Induk → Kelompok Belajar) yang boleh masuk;
+   siswa lain mendapat pesan "belum terdaftar di kelompok Matematika Dasar".
+   Kelompok ikut terbawa saat operator menekan **Tarik dari data induk** di
+   admin Tryout (tab Data siswa). Sebelum kelompok pernah ditarik, semua siswa
+   aktif tetap boleh masuk.
 2. Soal muncul satu per satu. Jawaban diketik lewat papan angka di layar.
    Untuk soal pecahan ada kotak bilangan bulat, pembilang, dan penyebut.
 3. **Benar**: lanjut ke nomor berikutnya.
@@ -58,7 +63,10 @@ Siswa dan guru memakai **satu alamat** yang sama. Guru mengetuk tautan
 **Guru / pengawas** di bawah kotak masuk siswa (seperti di Tryout), lalu masuk dengan **PIN Tryout**. PIN guru/operator boleh mengubah pengaturan dan
 memindahkan posisi siswa. PIN pengawas hanya bisa melihat.
 
-- **Kemajuan kelas**: posisi setiap siswa, kemajuan (level terlewati dari
+- **Kemajuan kelompok**: dipilih per kelompok MD (MD10-1, …), *Semua
+  kelompok*, atau *Tanpa kelompok MD* (siswa yang pernah berlatih lalu keluar
+  dari kelompok). Pindah kelompok di Data Induk tidak mengubah posisi latihan
+  siswa; setelah ditarik ulang ia tampil di kelompok barunya. Isinya: posisi setiap siswa, kemajuan (level terlewati dari
   seluruh level), akurasi, waktu latihan, dan terakhir aktif. Siswa ditandai
   *Macet* (3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah
   di level itu), *Tidak aktif* (7 hari tidak berlatih), *Akurasi rendah*, atau
@@ -70,7 +78,8 @@ memindahkan posisi siswa. PIN pengawas hanya bisa melihat.
   melompat ke depan.
 - **Pengaturan**: buka/tutup Matdas, lama sesi, jumlah soal benar per level,
   batas salah, batas waktu per soal, kewajiban pecahan paling sederhana, dan
-  titik awal siswa baru.
+  titik awal siswa baru (dari Penjumlahan Dasar, atau dari modul sesuai tingkat
+  kelompoknya: MD11 → Modul Kelas 11).
 
 ## Memasang
 

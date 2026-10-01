@@ -90,16 +90,16 @@ body.lihat .ubah { display: none !important; }
 
   <section id="v-utama" class="hidden">
     <nav class="tab" id="tab">
-      <button data-v="kelas" class="on">Kemajuan kelas</button>
+      <button data-v="kelas" class="on" id="tab-kelompok">Kemajuan kelompok</button>
       <button data-v="siswa">Analisis siswa</button>
       <button data-v="tingkat">Tingkat &amp; contoh soal</button>
       <button data-v="atur">Pengaturan</button>
     </nav>
 
-    <!-- Kemajuan kelas -->
+    <!-- Kemajuan per kelompok MD (sebelum kelompok pernah ditarik dari Data Induk: per kelas) -->
     <div id="p-kelas">
       <div class="baris">
-        <select id="pil-kelas" style="max-width:220px" aria-label="Pilih kelas"></select>
+        <select id="pil-kelas" style="max-width:220px" aria-label="Pilih kelompok"></select>
         <select id="pil-urut" style="max-width:240px" aria-label="Urutkan">
           <option value="perhatian">Urut: perlu perhatian dulu</option>
           <option value="nama">Urut: nama</option>
@@ -127,7 +127,7 @@ body.lihat .ubah { display: none !important; }
       <div class="baris">
         <select id="pil-siswa" class="tumbuh" aria-label="Pilih siswa"></select>
       </div>
-      <div id="d-isi"><div class="kartu kosong-data">Pilih siswa dari daftar di atas, atau ketuk nama di tab Kemajuan kelas.</div></div>
+      <div id="d-isi"><div class="kartu kosong-data">Pilih siswa dari daftar di atas, atau ketuk nama di tab Kemajuan kelompok.</div></div>
     </div>
 
     <!-- Tingkat -->
@@ -149,6 +149,8 @@ body.lihat .ubah { display: none !important; }
 "use strict";
 const KUNCI_PIN = "mtd_pin";
 let PIN = "", PERAN = "", G = null, REKAP = [], DETAIL = null;
+// true bila kelompok MD sudah ditarik dari Data Induk: rekap per kelompok (MD10-1, ...), bukan per rombel
+let MODE_MD = false;
 
 /* ----------------------------------------------------------- masuk */
 async function masuk(pin, diam) {
@@ -158,9 +160,13 @@ async function masuk(pin, diam) {
     document.body.classList.toggle("lihat", PERAN === "pengawas");
     $("hd-sub").textContent = `Masuk sebagai ${PERAN}`;
     $("v-pin").classList.add("hidden"); $("v-utama").classList.remove("hidden"); $("btn-keluar").classList.remove("hidden");
-    $("pil-kelas").innerHTML = G.kelas.map((k) => `<option>${esc(k)}</option>`).join("") + '<option value="">Semua kelas</option>';
+    MODE_MD = (G.kelompok || []).length > 0;
+    $("tab-kelompok").textContent = MODE_MD ? "Kemajuan kelompok" : "Kemajuan kelas";
+    $("pil-kelas").innerHTML = MODE_MD
+      ? G.kelompok.map((k) => `<option>${esc(k)}</option>`).join("") + (G.ada_tanpa_kelompok ? '<option value="-">Tanpa kelompok MD</option>' : "") + '<option value="">Semua kelompok</option>'
+      : G.kelas.map((k) => `<option>${esc(k)}</option>`).join("") + '<option value="">Semua kelas</option>';
     const kSimpan = ssGet("mtd_kelas", null);
-    if (kSimpan !== null) $("pil-kelas").value = kSimpan;
+    if (kSimpan !== null && [...$("pil-kelas").options].some((o) => o.value === kSimpan)) $("pil-kelas").value = kSimpan;
     muatKelas(); gambarTingkat(); gambarAtur();
   } catch (e) {
     if (diam) return;
@@ -197,7 +203,7 @@ async function muatKelas() {
   try { REKAP = await rpc("mtd_rekap", { p_pin: PIN, p_kelas: k || null }); }
   catch (e) { $("t-kelas").innerHTML = `<tr><td class="kosong-data">${esc(e.message)}</td></tr>`; return; }
   $("pil-siswa").innerHTML = '<option value="">— pilih siswa —</option>' +
-    REKAP.map((r) => `<option value="${esc(r.nisn)}">${esc(r.nama)} (${esc(r.kelas)})</option>`).join("");
+    REKAP.map((r) => `<option value="${esc(r.nisn)}">${esc(r.nama)} (${esc(MODE_MD ? r.kelompok || "tanpa kelompok" : r.kelas)})</option>`).join("");
   gambarKelas();
 }
 $("pil-kelas").onchange = muatKelas;
@@ -229,11 +235,11 @@ function gambarKelas() {
     : u === "aktif" ? hariSejak(a.terakhir) - hariSejak(b.terakhir)
     : bobot(b) - bobot(a) || a.lewat - b.lewat || a.nama.localeCompare(b.nama));
   const semua = !$("pil-kelas").value;
-  $("t-kelas").innerHTML = `<thead><tr><th>No</th><th>Nama</th>${semua ? "<th>Kelas</th>" : ""}<th>Posisi sekarang</th><th>Kemajuan</th>
+  $("t-kelas").innerHTML = `<thead><tr><th>No</th><th>Nama</th>${semua ? `<th>${MODE_MD ? "Kelompok" : "Kelas"}</th>` : ""}<th>Posisi sekarang</th><th>Kemajuan</th>
     <th class="angka">Level tuntas 7 hari</th><th class="angka">Akurasi</th><th class="angka">Waktu latihan</th><th>Terakhir</th><th>Catatan</th></tr></thead><tbody>` +
     (R.length ? R.map((r, i) => {
       const ak = r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) + "%" : "–";
-      return `<tr class="klik" data-n="${esc(r.nisn)}"><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>${semua ? `<td>${esc(r.kelas)}</td>` : ""}
+      return `<tr class="klik" data-n="${esc(r.nisn)}"><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>${semua ? `<td>${esc(MODE_MD ? r.kelompok || "–" : r.kelas)}</td>` : ""}
         <td>${r.tingkat ? `${esc(r.nama_tingkat)} · <span class="nm">Lv ${r.level}</span>` : '<span class="redup">–</span>'}</td>
         <td><div class="maju"><div class="batang"><i style="width:${100 * r.lewat / Math.max(1, jumlah)}%"></i></div><span>${r.lewat}/${jumlah}</span></div></td>
         <td class="angka">${r.tuntas_7}</td><td class="angka">${ak}</td><td class="angka">${r.detik ? lamaTeks(r.detik) : "–"}</td>
@@ -244,8 +250,8 @@ function gambarKelas() {
 
 $("btn-csv").onclick = () => {
   const jumlah = G.tingkat.filter((t) => t.aktif).reduce((a, t) => a + t.level.length, 0);
-  const h = ["NISN", "Nama", "Kelas", "Tingkat", "Level", "Level tuntas (urutan)", "Total level", "Soal dijawab", "Benar", "Akurasi %", "Menit latihan", "Hari latihan", "Terakhir aktif", "Catatan"];
-  const rows = REKAP.map((r) => [r.nisn, r.nama, r.kelas, r.nama_tingkat || "", r.level || "", r.lewat, jumlah, r.n_jawab, r.n_benar,
+  const h = ["NISN", "Nama", "Kelompok MD", "Rombel", "Tingkat", "Level", "Level tuntas (urutan)", "Total level", "Soal dijawab", "Benar", "Akurasi %", "Menit latihan", "Hari latihan", "Terakhir aktif", "Catatan"];
+  const rows = REKAP.map((r) => [r.nisn, r.nama, r.kelompok || "", r.kelas, r.nama_tingkat || "", r.level || "", r.lewat, jumlah, r.n_jawab, r.n_benar,
     r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", Math.round(r.detik / 60), r.hari, r.terakhir ? tglTeks(r.terakhir, true) : "",
     status(r).map((s) => s.t).join(", ")]);
   const csv = "﻿" + [h, ...rows].map((a) => a.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(";")).join("\r\n");
@@ -376,7 +382,7 @@ function gambarSiswa() {
 
   $("d-isi").innerHTML = `
     <div class="kartu">
-      <div class="baris"><div class="tumbuh"><h1 style="margin:0">${esc(D.siswa.nama)}</h1><div class="redup">${esc(D.siswa.kelas)} · NISN ${esc(D.siswa.nisn)}</div></div>
+      <div class="baris"><div class="tumbuh"><h1 style="margin:0">${esc(D.siswa.nama)}</h1><div class="redup">${D.siswa.kelompok ? esc(D.siswa.kelompok) + " · " : ""}Rombel ${esc(D.siswa.kelas)} · NISN ${esc(D.siswa.nisn)}</div></div>
       ${p ? `<span class="lencana ${p.selesai ? "baik" : "biru"}">${p.selesai ? "Tamat" : `${esc(p.nama_tingkat)} · Level ${p.level}`}</span>` : '<span class="lencana">Belum mulai</span>'}</div>
       ${p ? `<div class="maju" style="margin-top:var(--j3)"><div class="batang"><i style="width:${100 * p.lewat / Math.max(1, p.total)}%"></i></div><span>${p.lewat} dari ${p.total} level</span></div>` : ""}
     </div>
@@ -470,7 +476,7 @@ const ATUR = [
   { k: "batas_waktu_soal", jenis: "angka", l: "Batas waktu per soal (detik)", s: "Waktu habis dihitung salah. 0 = tanpa batas waktu." },
   { k: "pecahan_sederhana", jenis: "ya", l: "Jawaban pecahan wajib paling sederhana", s: "Bila ya, 2/4 untuk kunci 1/2 dihitung salah (siswa diberi tahu nilainya sudah benar)." },
   { k: "mulai", jenis: "pilih", l: "Titik awal siswa baru", s: "Hanya berlaku untuk siswa yang belum pernah masuk.",
-    pilih: [["awal", "Semua mulai dari Penjumlahan Dasar"], ["kelas", "Mulai dari modul kelasnya (bila sudah ada)"]] },
+    pilih: [["awal", "Semua mulai dari Penjumlahan Dasar"], ["kelas", "Mulai dari modul sesuai tingkat kelompoknya, mis. MD11 → Modul Kelas 11 (bila sudah ada)"]] },
 ];
 function gambarAtur() {
   const a = G.atur, boleh = PERAN !== "pengawas";
