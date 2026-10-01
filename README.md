@@ -73,10 +73,10 @@ memindahkan posisi siswa. PIN pengawas hanya bisa melihat.
   seluruh level), akurasi, waktu latihan, dan terakhir aktif. Siswa ditandai
   *Macet* (3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah
   di level itu), *Tidak aktif* (7 hari tidak berlatih), *Akurasi rendah*, atau
-  *Belum mulai*. Tersedia unduhan rekap (CSV, bisa dibuka di Excel).
+  *Belum mulai*. Tersedia **Unduh rekap** (.xlsx berkop: rekap kemajuan + sebaran per tingkat).
 - **Daftar siswa**: semua anggota kelompok MD dengan NISN, NIS, rombel, dan
   status (*Sedang berlatih*, *Terkunci*, *Belum pernah masuk*), jumlah keluar
-  halaman 7 hari terakhir, pencarian, unduhan CSV, dan tombol **Buka kunci**.
+  halaman 7 hari terakhir, pencarian, **Unduh daftar** (.xlsx; *Semua kelompok* = satu lembar per kelompok), dan tombol **Buka kunci**.
   Diperbarui otomatis tiap 30 detik.
 - **Analisis siswa**: catatan otomatis, grafik level tuntas, jenis kesalahan
   yang paling sering, akurasi per tingkat, daftar kesalahan terakhir (soal,

@@ -194,7 +194,7 @@ body.lihat .ubah { display: none !important; }
         </select>
         <span class="tumbuh"></span>
         <button class="garis kecil" id="btn-muat">Muat ulang</button>
-        <button class="btn-unduh" data-fmt="csv" id="btn-csv">Unduh rekap</button>
+        <button class="btn-unduh utama" data-fmt="xlsx" id="btn-unduh-rekap" title="Rekap kemajuan dan sebaran per tingkat dalam satu buku kerja Excel berformat">Unduh rekap</button>
       </div>
       <div class="ubin" id="k-ubin"></div>
       <div class="kartu">
@@ -221,7 +221,7 @@ body.lihat .ubah { display: none !important; }
           <option value="mulai">Sudah pernah masuk</option>
         </select>
         <button class="garis kecil" id="dl-muat">Muat ulang</button>
-        <button class="btn-unduh" data-fmt="csv" id="dl-csv">Unduh daftar</button>
+        <button class="btn-unduh" data-fmt="xlsx" id="dl-unduh" title="Daftar sesuai saringan; Semua kelompok = satu lembar per kelompok">Unduh daftar</button>
       </div>
       <div class="ubin" id="dl-ubin"></div>
       <div class="kartu">
@@ -260,6 +260,7 @@ body.lihat .ubah { display: none !important; }
 <div class="toast" id="toast" role="status"></div>
 
 <script src="assets/umum.js?v=2"></script>
+<script src="assets/excel.js?v=1"></script>
 <script>
 "use strict";
 const KUNCI_PIN = "mtd_pin";
@@ -386,18 +387,46 @@ function gambarKelas() {
   $("t-kelas").querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = () => bukaSiswa(tr.dataset.n));
 }
 
-$("btn-csv").onclick = () => {
+/* Teks pilihan kelompok/kelas yang sedang dipilih, untuk kop dan nama berkas. */
+const labelPilihan = (id) => { const s = $(id); return s.options[s.selectedIndex] ? s.options[s.selectedIndex].text : ""; };
+const urutKelompok = (a, b) => String(MODE_MD ? a.kelompok || "~" : a.kelas).localeCompare(String(MODE_MD ? b.kelompok || "~" : b.kelas), "id", { numeric: true })
+  || a.nama.localeCompare(b.nama);
+
+// Unduh rekap (.xlsx): lembar Rekap Kemajuan + Sebaran per Tingkat.
+$("btn-unduh-rekap").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
+  if (!REKAP.length) throw new Error("Belum ada data. Muat ulang dulu.");
   const jumlah = G.tingkat.filter((t) => t.aktif).reduce((a, t) => a + t.level.length, 0);
-  const h = ["NISN", "Nama", "Kelompok MD", "Rombel", "Tingkat", "Level", "Level tuntas (urutan)", "Total level", "Soal dijawab", "Benar", "Akurasi %", "Menit latihan", "Hari latihan", "Terakhir aktif", "Catatan"];
-  const rows = REKAP.map((r) => [r.nisn, r.nama, r.kelompok || "", r.kelas, r.nama_tingkat || "", r.level || "", r.lewat, jumlah, r.n_jawab, r.n_benar,
-    r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", Math.round(r.detik / 60), r.hari, r.terakhir ? tglTeks(r.terakhir, true) : "",
-    status(r).map((s) => s.t).join(", ")]);
-  const csv = "﻿" + [h, ...rows].map((a) => a.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(";")).join("\r\n");
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-  a.download = `Rekap_Matematika_Dasar_${$("pil-kelas").value || "semua"}.csv`;
-  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-};
+  const grup = MODE_MD ? "Kelompok" : "Kelas", pilih = labelPilihan("pil-kelas");
+  const R = REKAP.slice().sort(urutKelompok), mulai = R.filter((r) => r.tingkat);
+  const rata = mulai.length ? mulai.reduce((a, r) => a + r.lewat, 0) / mulai.length : 0;
+  const nJ = R.reduce((a, r) => a + r.n_jawab, 0), nB = R.reduce((a, r) => a + r.n_benar, 0);
+  const sebaran = G.tingkat.filter((t) => t.aktif).map((t) => [t.urut, t.nama, t.level.length, R.filter((r) => r.tingkat === t.kode && !r.selesai).length]);
+  const tamat = R.filter((r) => r.selesai).length;
+  const nama = `Rekap_Matematika_Dasar_${potongNama(pilih) || "semua"}_${tglBerkas()}.xlsx`;
+  await unduhBukuXLSX({ namaBerkas: nama, judulBuku: "Rekap Kemajuan", lembar: [
+    { nama: "Rekap Kemajuan", judul: "Rekap Kemajuan Latihan", sub: `${grup}: ${pilih}`,
+      info: [[grup, pilih], ["Jumlah siswa", `${R.length} siswa`], ["Total level aktif", `${jumlah} level`]],
+      ubin: [["Siswa", R.length], ["Sudah mulai", mulai.length], ["Rata-rata level", Math.round(rata * 10) / 10],
+        ["Akurasi", nJ ? Math.round(100 * nB / nJ) + "%" : "–"], ["Macet", R.filter((r) => status(r).some((s) => s.t === "Macet")).length],
+        ["Tidak aktif ≥ 7 hr", R.filter((r) => r.tingkat && hariSejak(r.terakhir) >= 7).length]],
+      kolom: [{ t: "No", w: 5, rata: "center" }, { t: "Nama", w: 30, tebal: true }, { t: "NISN", w: 13, rata: "center" },
+        { t: "Kelompok MD", w: 12, rata: "center" }, { t: "Rombel", w: 9, rata: "center" }, { t: "Tingkat sekarang", w: 26 },
+        { t: "Level", w: 7, rata: "center" }, { t: `Level tuntas /${jumlah}`, w: 11, rata: "center" }, { t: "Kemajuan", w: 10, rata: "center", fmt: '0"%"' },
+        { t: "Soal dijawab", w: 9, rata: "center" }, { t: "Benar", w: 8, rata: "center" }, { t: "Akurasi", w: 9, rata: "center", fmt: '0"%"', cf: CF_PERSEN },
+        { t: "Menit latihan", w: 9, rata: "center" }, { t: "Hari latihan", w: 8, rata: "center" }, { t: "Tuntas 7 hari", w: 8, rata: "center" },
+        { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }, { t: "Catatan", w: 24, bungkus: true, size: 9 }],
+      baris: R.map((r, i) => [i + 1, r.nama, r.nisn, r.kelompok, r.kelas, r.tingkat ? (r.selesai ? "Tamat" : r.nama_tingkat) : "Belum mulai",
+        r.tingkat && !r.selesai ? r.level : "", r.lewat, Math.round(100 * r.lewat / Math.max(1, jumlah)), r.n_jawab, r.n_benar,
+        r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", Math.round(r.detik / 60), r.hari, r.tuntas_7, waktuXL(r.terakhir),
+        status(r).map((s) => s.t).join(", ")]),
+      warnaSel: (b, j) => j === 16 && /Macet|Terkunci/.test(b[16]) ? { warna: XL.merah, tebal: true } : j === 16 && /Tidak aktif|Akurasi/.test(b[16]) ? { warna: XL.emasTeks } : null,
+      catatan: ["Macet: 3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih 7 hari terakhir. Akurasi: hijau ≥ 80%, kuning 60–79%, merah < 60%."] },
+    { nama: "Sebaran Tingkat", judul: "Sebaran Posisi Siswa per Tingkat", sub: `${grup}: ${pilih}`, beku: 0, melintang: false,
+      kolom: [{ t: "Urutan", w: 8, rata: "center" }, { t: "Tingkat", w: 34, tebal: true }, { t: "Jumlah level", w: 12, rata: "center" }, { t: "Siswa di tingkat ini", w: 16, rata: "center" }],
+      baris: sebaran.concat(tamat ? [["", "Tamat semua tingkat", "", tamat]] : []).concat([["", "Belum pernah masuk", "", R.length - mulai.length]]) },
+  ] });
+  return nama;
+});
 
 /* ----------------------------------------------------------- daftar siswa */
 async function muatDaftar(diam) {
@@ -452,17 +481,34 @@ function gambarDaftar() {
   });
 }
 
-$("dl-csv").onclick = () => {
-  const h = ["NISN", "NIS", "Nama", "Rombel", "Kelompok MD", "Status", "Tingkat", "Level", "Terakhir aktif", "Keluar halaman 7 hari"];
-  const rows = saringDaftar().map((r) => [r.nisn, r.nis || "", r.nama, r.kelas, r.kelompok || "",
-    r.terkunci ? "Terkunci" : r.online ? "Sedang berlatih" : !r.tingkat ? "Belum pernah masuk" : r.selesai ? "Tamat" : "Pernah masuk",
-    r.nama_tingkat || "", r.level || "", r.terakhir ? tglTeks(r.terakhir, true) : "", r.keluar_7 || 0]);
-  const csv = "﻿" + [h, ...rows].map((a) => a.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(";")).join("\r\n");
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-  a.download = `Daftar_Siswa_Matematika_Dasar_${$("dl-kelompok").value || "semua"}.csv`;
-  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-};
+// Unduh daftar (.xlsx): sesuai saringan di layar. "Semua kelompok" → satu lembar gabungan
+// ditambah satu lembar per kelompok (siap dicetak per kelompok).
+$("dl-unduh").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
+  const R = saringDaftar().sort(urutKelompok);
+  if (!R.length) throw new Error("Tidak ada siswa di daftar.");
+  const grup = MODE_MD ? "Kelompok" : "Kelas", pilih = labelPilihan("dl-kelompok");
+  const saring = [$("dl-status").value && labelPilihan("dl-status"), $("dl-cari").value.trim() && `cari "${$("dl-cari").value.trim()}"`].filter(Boolean).join(", ");
+  const st = (r) => r.terkunci ? "Terkunci" : r.online ? "Sedang berlatih" : !r.tingkat ? "Belum pernah masuk" : r.selesai ? "Tamat" : "Pernah masuk";
+  const kolom = [{ t: "No", w: 5, rata: "center" }, { t: "Nama", w: 32, tebal: true }, { t: "NISN", w: 13, rata: "center" }, { t: "NIS", w: 9, rata: "center" },
+    { t: "Rombel", w: 9, rata: "center" }, { t: "Kelompok MD", w: 12, rata: "center" }, { t: "Status", w: 18 }, { t: "Tingkat sekarang", w: 26 },
+    { t: "Level", w: 7, rata: "center" }, { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }, { t: "Keluar halaman (7 hari)", w: 11, rata: "center" }];
+  const baris = (L) => L.map((r, i) => [i + 1, r.nama, r.nisn, r.nis, r.kelas, r.kelompok, st(r), r.tingkat ? r.nama_tingkat : "", r.tingkat && !r.selesai ? r.level : "",
+    waktuXL(r.terakhir), r.keluar_7 || 0]);
+  const warnaSel = (b, j) => j === 6 && b[6] === "Terkunci" ? { warna: XL.merah, tebal: true } : j === 6 && b[6] === "Sedang berlatih" ? { warna: XL.hijau, tebal: true }
+    : j === 10 && b[10] >= 3 ? { warna: XL.merah, tebal: true } : null;
+  const lembar = (nama, L, judulGrup) => ({ nama, judul: "Daftar Siswa", sub: `${grup}: ${judulGrup}`, kolom, baris: baris(L), warnaSel,
+    info: [[grup, judulGrup], ["Jumlah siswa", `${L.length} siswa`]].concat(saring ? [["Saringan", saring]] : []),
+    ubin: [["Siswa", L.length], ["Sedang berlatih", L.filter((r) => r.online).length], ["Belum pernah masuk", L.filter((r) => !r.tingkat).length],
+      ["Terkunci", L.filter((r) => r.terkunci).length]] });
+  const semua = [lembar("Semua", R, pilih)];
+  if (!$("dl-kelompok").value) {
+    const kel = [...new Set(R.map((r) => (MODE_MD ? r.kelompok : r.kelas) || "Tanpa kelompok"))];
+    if (kel.length > 1) kel.forEach((k) => semua.push(lembar(k, R.filter((r) => ((MODE_MD ? r.kelompok : r.kelas) || "Tanpa kelompok") === k), k)));
+  }
+  const nama = `Daftar_Siswa_Matematika_Dasar_${potongNama(pilih) || "semua"}_${tglBerkas()}.xlsx`;
+  await unduhBukuXLSX({ namaBerkas: nama, judulBuku: "Daftar Siswa", lembar: semua });
+  return nama;
+});
 
 /* ----------------------------------------------------------- grafik (SVG, satu seri) */
 const WARNA = "#2F5D7C";   /* --sakit: seri tunggal, kontras tinggi di latar putih */
