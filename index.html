@@ -50,7 +50,18 @@
 .catatan-simpan { display: flex; gap: var(--j2); align-items: flex-start; background: var(--kertas-3); border-radius: var(--r1); padding: var(--j3);
   margin-top: var(--j3); font-size: var(--h-s); color: var(--tinta-2); }
 .kaki { text-align: center; font-size: var(--h-xs); color: var(--tinta-3); margin: var(--j5) 0 var(--j2); }
-.kaki a { color: var(--tinta-2); font-weight: 600; font-size: var(--h-s); }
+.kaki { display: flex; flex-direction: column; align-items: center; gap: var(--j3); }
+/* Pintu masuk staf (sama dengan Tryout): sengaja sekunder supaya tidak bersaing dengan tombol "Mulai latihan" */
+.staf-link { display: inline-flex; align-items: center; gap: var(--j2); padding: var(--j2) var(--j4) var(--j2) var(--j3); min-height: var(--sentuh);
+  border: 1px solid var(--garis); border-radius: var(--r-bulat); background: var(--kertas-2); color: var(--tinta-2);
+  font-size: var(--h-s); font-weight: 600; letter-spacing: .01em; text-decoration: none; box-shadow: var(--bayang-1);
+  transition: border-color .15s, color .15s, background-color .15s; }
+.staf-link .ik { width: var(--h-b); height: var(--h-b); flex: none; }
+.staf-link .pnh { width: var(--h-m); height: var(--h-m); flex: none; opacity: .55; transition: transform .15s, opacity .15s; }
+.staf-link:hover { border-color: var(--gelap); color: var(--gelap); background: var(--kertas-3); }
+.staf-link:hover .pnh { opacity: 1; transform: translateX(2px); }
+.staf-link:focus-visible { outline: 2px solid var(--emas); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .staf-link, .staf-link .pnh { transition: none; } .staf-link:hover .pnh { transform: none; } }
 
 /* ---- Posisi ---- */
 .posisi-kartu { padding: 0; overflow: hidden; }
@@ -184,7 +195,7 @@ details.peta[open] summary::before { transform: rotate(90deg); }
       <div class="catatan-simpan"><span aria-hidden="true">💾</span><span>Kemajuanmu tersimpan otomatis. Bila waktu habis atau kamu keluar, saat masuk lagi kamu mulai dari nomor 1 di level terakhirmu.</span></div>
     </div>
     <!-- Satu alamat untuk siswa dan guru: guru masuk lewat tautan ini (seperti Tryout). -->
-    <div class="kaki"><a href="guru.html">Guru / pengawas</a><br>SMA Plus Merdeka Soreang</div>
+    <div class="kaki"><a href="guru.html" class="staf-link"><svg class="ik" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Masuk guru / pengawas</span><svg class="pnh" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span>SMA Plus Merdeka Soreang</span></div>
   </section>
 
   <!-- Latihan -->
