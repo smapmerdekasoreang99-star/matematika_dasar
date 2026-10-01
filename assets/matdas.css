@@ -68,6 +68,7 @@ input[type=text], input[type=date], input[type=number], input[type=password], se
 .pc-n { border-bottom: .08em solid currentColor; padding: 0 .15em; }
 .pc-d { padding: 0 .15em; }
 .op { margin: 0 .1em; }
+.op.sisa-kata { font-size: .72em; font-weight: 700; color: var(--tinta-2); letter-spacing: .02em; }
 .nm { font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 /* ---- Batang kemajuan ---- */

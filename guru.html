@@ -19,7 +19,7 @@
 <!-- /pratinjau -->
 <link rel="icon" href="assets/logo.png">
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=1">
+<link rel="stylesheet" href="assets/matdas.css?v=2">
 <script src="config.js"></script>
 <style>
 .tab { display: flex; gap: var(--j1); flex-wrap: wrap; margin: var(--j3) 0; }
@@ -57,10 +57,94 @@
 .lv-baris .kt { flex: 1; }
 .contoh { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--j1) var(--j4); padding: var(--j2) 0 var(--j3) 76px; font-size: var(--h-n); }
 .contoh .k { color: var(--hadir-tua); font-weight: 700; }
-.atur-baris { display: grid; grid-template-columns: 1fr 180px; gap: var(--j3); align-items: center; padding: var(--j3) 0; border-bottom: 1px solid var(--garis); }
-.atur-baris .l b { display: block; }
-.atur-baris .l span { font-size: var(--h-s); color: var(--tinta-2); }
-@media (max-width: 560px) { .atur-baris { grid-template-columns: 1fr; } .contoh { padding-left: 0; } }
+@media (max-width: 560px) { .contoh { padding-left: 0; } }
+
+/* Peringatan belum pernah sinkron: harus menonjol, bukan sekadar teks redup */
+.sinkron-tegas { display: flex; gap: var(--j3); align-items: center; background: var(--emas-muda); border: 1px solid var(--emas);
+  border-left: 6px solid var(--emas-tua); border-radius: var(--r2); padding: var(--j3) var(--j4); margin: 0 0 var(--j3);
+  color: var(--tinta); font-size: var(--h-n); font-weight: 600; line-height: 1.45; }
+.sinkron-tegas .ik { width: 30px; height: 30px; border-radius: 50%; background: var(--emas-tua); color: #fff; flex: none;
+  display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 17px; }
+.sinkron-tegas b { font-weight: 800; }
+
+/* ---- Daftar siswa ---- */
+.daftar-alat { display: grid; grid-template-columns: 200px minmax(0, 1fr) 200px auto auto; gap: var(--j2); align-items: center; }
+@media (max-width: 860px) { .daftar-alat { grid-template-columns: 1fr 1fr; } .daftar-alat #dl-cari { grid-column: 1 / -1; grid-row: 1; } }
+input[type=search] { width: 100%; font: inherit; font-size: var(--h-b); padding: var(--j3); border: 1px solid var(--garis-2); border-radius: var(--r1); background: #fff; color: var(--tinta); }
+.titik-on { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--hadir); margin-right: 6px; box-shadow: 0 0 0 3px var(--hadir-muda); vertical-align: middle; }
+.nisn { font-variant-numeric: tabular-nums; color: var(--tinta-2); }
+.ubin > div.sorot { border-color: var(--absen); background: var(--absen-muda); }
+.ubin > div.sorot .n { color: var(--absen-tua); }
+
+/* ---- Pengaturan ---- */
+.atur-kepala { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--j4); flex-wrap: wrap; margin: var(--j2) 0 var(--j3); }
+.atur-kepala h1 { margin: 0; }
+.atur-kepala p { margin: var(--j1) 0 0; max-width: 62ch; }
+.ringkas { display: flex; flex-wrap: wrap; gap: var(--j2); margin: 0 0 var(--j4); }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--kertas-2); border: 1px solid var(--garis); border-radius: var(--r-bulat);
+  padding: 6px 12px; font-size: var(--h-s); color: var(--tinta-2); box-shadow: var(--bayang-1); }
+.chip b { color: var(--tinta); }
+.chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--tinta-3); }
+.chip.on i { background: var(--hadir); } .chip.off i { background: var(--absen); } .chip.info i { background: var(--sakit); }
+
+.seksi { padding: 0; overflow: hidden; margin: 0 0 var(--j4); }
+.seksi-kepala { display: flex; gap: var(--j3); align-items: center; padding: var(--j4) var(--j5); border-bottom: 1px solid var(--garis);
+  background: linear-gradient(180deg, var(--kertas-3), var(--kertas-2)); }
+.seksi-ikon { width: 42px; height: 42px; border-radius: 12px; flex: none; display: flex; align-items: center; justify-content: center;
+  background: var(--gelap); color: var(--emas); }
+.seksi-ikon svg { width: 22px; height: 22px; }
+.seksi-kepala h2 { margin: 0; font-size: var(--h-judul-s); }
+.seksi-kepala p { margin: 2px 0 0; font-size: var(--h-s); color: var(--tinta-2); }
+.atur-baris { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 340px); gap: var(--j3) var(--j5); align-items: center;
+  padding: var(--j4) var(--j5); border-bottom: 1px solid var(--garis); }
+.atur-baris:last-child { border-bottom: 0; }
+.atur-baris.susun { grid-template-columns: 1fr; }
+.atur-baris .l b { display: block; font-size: var(--h-n); color: var(--tinta); }
+.atur-baris .l span { display: block; font-size: var(--h-s); color: var(--tinta-2); margin-top: 2px; }
+.kendali { display: flex; align-items: center; justify-content: flex-end; gap: var(--j3); }
+.atur-baris.susun .kendali { justify-content: flex-start; }
+.ok-simpan { font-size: var(--h-xs); font-weight: 700; color: var(--hadir-tua); opacity: 0; transition: opacity .2s; white-space: nowrap; }
+.ok-simpan.show { opacity: 1; }
+.atur-baris.susun .ok-simpan:not(.show) { display: none; }
+.grup.kode input::placeholder { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--tinta-3); }
+
+.saklar { position: relative; display: inline-flex; align-items: center; gap: var(--j2); cursor: pointer; font-size: var(--h-s); font-weight: 700; color: var(--tinta-2); user-select: none; }
+.saklar input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.saklar .jalur { width: 48px; height: 28px; border-radius: var(--r-bulat); background: var(--garis-2); position: relative; transition: background .15s; flex: none; }
+.saklar .jalur::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .15s; }
+.saklar input:checked + .jalur { background: var(--hadir); }
+.saklar input:checked + .jalur::after { transform: translateX(20px); }
+.saklar input:focus-visible + .jalur { outline: 2px solid var(--emas); outline-offset: 2px; }
+.saklar input:disabled + .jalur { opacity: .5; }
+.saklar.siaga input:checked + .jalur { background: var(--emas-tua); }
+
+.grup { display: flex; align-items: stretch; }
+.grup input { border-radius: var(--r1) 0 0 var(--r1); text-align: right; width: 110px; }
+.grup .satuan { display: flex; align-items: center; padding: 0 var(--j3); border: 1px solid var(--garis-2); border-left: 0; background: var(--kertas-3);
+  border-radius: 0 var(--r1) var(--r1) 0; font-size: var(--h-s); color: var(--tinta-2); white-space: nowrap; min-width: 60px; justify-content: center; }
+.grup.kode { width: 100%; max-width: 340px; }
+.grup.kode input { text-align: left; width: auto; flex: 1; min-width: 0; letter-spacing: .12em; font-weight: 700; text-transform: uppercase; }
+.grup.kode button { border-radius: 0 var(--r1) var(--r1) 0; min-height: 0; }
+
+.pilihan { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: var(--j2); width: 100%; }
+.pilihan label { display: flex; gap: var(--j3); align-items: flex-start; border: 1.5px solid var(--garis); border-radius: var(--r2); padding: var(--j3) var(--j4);
+  cursor: pointer; background: #fff; transition: border-color .15s, background-color .15s; }
+.pilihan label:hover { border-color: var(--garis-2); }
+.pilihan label:has(input:checked) { border-color: var(--gelap); background: var(--emas-kabut); box-shadow: inset 0 0 0 1px var(--gelap); }
+.pilihan input { margin-top: 3px; accent-color: var(--gelap); width: 16px; height: 16px; flex: none; }
+.pilihan b { display: block; font-size: var(--h-m); }
+.pilihan span span { display: block; font-size: var(--h-s); color: var(--tinta-2); }
+.catatan-seksi { display: flex; gap: var(--j3); margin: 0; padding: var(--j3) var(--j5); background: var(--kertas-3); border-top: 1px solid var(--garis);
+  font-size: var(--h-s); color: var(--tinta-2); line-height: 1.55; }
+.catatan-seksi::before { content: "i"; flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--sakit); color: #fff; font-weight: 800;
+  font-size: 12px; display: flex; align-items: center; justify-content: center; font-style: italic; font-family: Georgia, serif; margin-top: 1px; }
+@media (max-width: 640px) {
+  .seksi-kepala, .atur-baris, .catatan-seksi { padding-left: var(--j4); padding-right: var(--j4); }
+  .atur-baris { grid-template-columns: 1fr; }
+  .kendali { justify-content: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) { .saklar .jalur, .saklar .jalur::after { transition: none; } }
 body.lihat .ubah { display: none !important; }
 .pin-kartu { max-width: 420px; margin: var(--j6) auto; border-top: 5px solid var(--emas); text-align: center; padding: var(--j6) var(--j5) var(--j5); }
 .pin-kartu .isian, .pin-kartu input, .pin-kartu .pesan { text-align: left; }
@@ -90,12 +174,13 @@ body.lihat .ubah { display: none !important; }
   <section id="v-utama" class="hidden">
     <nav class="tab" id="tab">
       <button data-v="kelas" class="on" id="tab-kelompok">Kemajuan kelompok</button>
+      <button data-v="daftar">Daftar siswa</button>
       <button data-v="siswa">Analisis siswa</button>
       <button data-v="tingkat">Tingkat &amp; contoh soal</button>
       <button data-v="atur">Pengaturan</button>
     </nav>
     <!-- Kapan data siswa & kelompok MD terakhir ditarik dari Data Induk (lewat admin Tryout) -->
-    <p class="kecil redup" id="info-sinkron" style="margin-top:0"></p>
+    <div class="kecil redup" id="info-sinkron" style="margin:0 0 var(--j2)"></div>
 
     <!-- Kemajuan per kelompok MD (sebelum kelompok pernah ditarik dari Data Induk: per kelas) -->
     <div id="p-kelas">
@@ -123,6 +208,30 @@ body.lihat .ubah { display: none !important; }
       </div>
     </div>
 
+    <!-- Daftar siswa: anggota kelompok MD, status masuk, kunci keluar halaman -->
+    <div id="p-daftar" class="hidden">
+      <div class="daftar-alat">
+        <select id="dl-kelompok" aria-label="Pilih kelompok"></select>
+        <input type="search" id="dl-cari" placeholder="Cari nama, NISN, atau NIS…" aria-label="Cari siswa">
+        <select id="dl-status" aria-label="Saring status">
+          <option value="">Semua status</option>
+          <option value="online">Sedang berlatih</option>
+          <option value="kunci">Terkunci</option>
+          <option value="belum">Belum pernah masuk</option>
+          <option value="mulai">Sudah pernah masuk</option>
+        </select>
+        <button class="garis kecil" id="dl-muat">Muat ulang</button>
+        <button class="btn-unduh" data-fmt="csv" id="dl-csv">Unduh daftar</button>
+      </div>
+      <div class="ubin" id="dl-ubin"></div>
+      <div class="kartu">
+        <div class="gulir"><table class="tabel" id="t-daftar"></table></div>
+        <p class="redup kecil">Diperbarui otomatis setiap 30 detik selama tab ini terbuka. <b>Sedang berlatih</b> = sesi latihannya masih berjalan.
+          <b>Terkunci</b> = terlalu sering keluar halaman (Pengaturan → Pengawasan keluar halaman); buka dengan tombol <b>Buka kunci</b> atau kode buka di perangkat siswa.
+          Ketuk nama untuk melihat analisisnya.</p>
+      </div>
+    </div>
+
     <!-- Analisis siswa -->
     <div id="p-siswa" class="hidden">
       <div class="baris">
@@ -139,17 +248,22 @@ body.lihat .ubah { display: none !important; }
 
     <!-- Pengaturan -->
     <div id="p-atur" class="hidden">
-      <div class="kartu" id="f-atur"></div>
+      <div class="atur-kepala">
+        <div><h1>Pengaturan</h1>
+          <p class="redup kecil">Atur halaman latihan siswa, pengawasan, dan aturan naik level. Setiap perubahan langsung tersimpan dan berlaku saat siswa masuk berikutnya.</p></div>
+      </div>
+      <div class="ringkas" id="atur-ringkas" aria-label="Ringkasan pengaturan"></div>
+      <div id="f-atur"></div>
     </div>
   </section>
 </main>
 <div class="toast" id="toast" role="status"></div>
 
-<script src="assets/umum.js?v=1"></script>
+<script src="assets/umum.js?v=2"></script>
 <script>
 "use strict";
 const KUNCI_PIN = "mtd_pin";
-let PIN = "", PERAN = "", G = null, REKAP = [], DETAIL = null;
+let PIN = "", PERAN = "", G = null, REKAP = [], DETAIL = null, DAFTAR = [], daftarT = null;
 // true bila kelompok MD sudah ditarik dari Data Induk: rekap per kelompok (MD10-1, ...), bukan per rombel
 let MODE_MD = false;
 
@@ -168,6 +282,10 @@ async function masuk(pin, diam) {
       : G.kelas.map((k) => `<option>${esc(k)}</option>`).join("") + '<option value="">Semua kelas</option>';
     const kSimpan = ssGet("mtd_kelas", null);
     if (kSimpan !== null && [...$("pil-kelas").options].some((o) => o.value === kSimpan)) $("pil-kelas").value = kSimpan;
+    // Daftar siswa: pilihan kelompok sama, "Semua" didahulukan
+    const opsi = [...$("pil-kelas").options];
+    $("dl-kelompok").innerHTML = opsi.filter((o) => o.value === "").concat(opsi.filter((o) => o.value !== "")).map((o) => o.outerHTML).join("");
+    $("dl-kelompok").value = "";
     muatKelas(); gambarTingkat(); gambarAtur(); gambarSinkron();
   } catch (e) {
     if (diam) return;
@@ -180,7 +298,11 @@ async function masuk(pin, diam) {
 function gambarSinkron() {
   const t = G.sinkron, el = $("info-sinkron");
   if (G.sinkron === undefined) { el.textContent = ""; return; }
-  if (!t) { el.innerHTML = '<span class="lencana emas">Belum pernah disinkron dari Data Induk</span> Minta operator menarik data siswa di admin Tryout.'; return; }
+  if (!t) {
+    el.innerHTML = '<div class="sinkron-tegas" role="note"><span class="ik" aria-hidden="true">!</span><div><b>Belum pernah disinkron dari Data Induk.</b> ' +
+      'Minta operator menarik data siswa di admin pada <b>Aplikasi Tryout Guru</b>.</div></div>';
+    return;
+  }
   const kapan = t.hari < 1 ? "hari ini" : t.hari < 2 ? "kemarin" : `${t.hari} hari lalu`;
   const tgl = new Date(t.waktu).toLocaleString("id-ID", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
   el.innerHTML = `<span class="lencana ${t.hari > 7 ? "emas" : "baik"}">Data siswa disinkron ${kapan}</span> ${esc(tgl)} · ${t.total_aktif} siswa aktif · ${t.anggota_md} anggota MD`
@@ -193,7 +315,9 @@ $("btn-keluar").onclick = () => { ssSet(KUNCI_PIN, null); location.reload(); };
 $("tab").querySelectorAll("button").forEach((b) => b.onclick = () => bukaTab(b.dataset.v));
 function bukaTab(v) {
   $("tab").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.v === v));
-  ["kelas", "siswa", "tingkat", "atur"].forEach((x) => $("p-" + x).classList.toggle("hidden", x !== v));
+  ["kelas", "daftar", "siswa", "tingkat", "atur"].forEach((x) => $("p-" + x).classList.toggle("hidden", x !== v));
+  clearInterval(daftarT);
+  if (v === "daftar") { muatDaftar(); daftarT = setInterval(() => { if (!document.hidden) muatDaftar(true); }, 30000); }
 }
 
 /* ----------------------------------------------------------- kemajuan kelas */
@@ -201,6 +325,7 @@ const hariSejak = (iso) => iso ? (Date.now() - new Date(iso)) / 86400000 : Infin
 function status(r) {
   const s = [];
   if (!r.tingkat) return [{ t: "Belum mulai", c: "" , bobot: 2 }];
+  if (r.terkunci) s.push({ t: "Terkunci", c: "buruk", bobot: 5 });
   if (r.selesai) s.push({ t: "Tamat", c: "baik", bobot: 0 });
   if (!r.selesai && (r.percobaan >= 3 || r.salah_sini >= 8)) s.push({ t: "Macet", c: "buruk", bobot: 4 });
   if (hariSejak(r.terakhir) >= 7) s.push({ t: "Tidak aktif", c: "emas", bobot: 3 });
@@ -271,6 +396,71 @@ $("btn-csv").onclick = () => {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
   a.download = `Rekap_Matematika_Dasar_${$("pil-kelas").value || "semua"}.csv`;
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+};
+
+/* ----------------------------------------------------------- daftar siswa */
+async function muatDaftar(diam) {
+  if (!diam) $("t-daftar").innerHTML = '<tr><td class="kosong-data">Memuat…</td></tr>';
+  try { DAFTAR = await rpc("mtd_rekap", { p_pin: PIN, p_kelas: $("dl-kelompok").value || null }); }
+  catch (e) { if (!diam) $("t-daftar").innerHTML = `<tr><td class="kosong-data">${esc(e.message)}</td></tr>`; return; }
+  gambarDaftar();
+}
+$("dl-kelompok").onchange = () => muatDaftar();
+$("dl-muat").onclick = () => muatDaftar();
+$("dl-status").onchange = () => gambarDaftar();
+$("dl-cari").oninput = () => gambarDaftar();
+
+const statusDaftar = (r) => r.terkunci ? '<span class="lencana buruk">Terkunci</span>'
+  : r.online ? '<span class="lencana baik"><span class="titik-on"></span>Sedang berlatih</span>'
+  : !r.tingkat ? '<span class="lencana">Belum pernah masuk</span>'
+  : r.selesai ? '<span class="lencana baik">Tamat</span>'
+  : `<span class="redup kecil">Aktif ${esc(sejakTeks(r.terakhir || r.masuk_terakhir))}</span>`;
+
+function saringDaftar() {
+  const q = $("dl-cari").value.trim().toLowerCase(), st = $("dl-status").value;
+  return DAFTAR.filter((r) => (!q || [r.nama, r.nisn, r.nis].some((v) => String(v || "").toLowerCase().includes(q)))
+    && (!st || (st === "online" ? r.online : st === "kunci" ? r.terkunci : st === "belum" ? !r.tingkat : !!r.tingkat)));
+}
+
+function gambarDaftar() {
+  const D = DAFTAR, semua = !$("dl-kelompok").value;
+  const n = (f) => D.filter(f).length, kunci = n((r) => r.terkunci);
+  $("dl-ubin").innerHTML = [
+    [D.length, MODE_MD ? "siswa di daftar" : "siswa"], [n((r) => r.online), "sedang berlatih sekarang"],
+    [n((r) => !r.tingkat), "belum pernah masuk"], [kunci, "terkunci (keluar halaman)", kunci > 0],
+    [D.reduce((a, r) => a + (r.keluar_7 || 0), 0), "keluar halaman, 7 hari"],
+  ].map(([v, l, s]) => `<div class="${s ? "sorot" : ""}"><div class="n">${v}</div><div class="l">${l}</div></div>`).join("");
+  const R = saringDaftar();
+  $("t-daftar").innerHTML = `<thead><tr><th>No</th><th>Nama</th><th>NISN</th><th>NIS</th><th>Rombel</th>${semua && MODE_MD ? "<th>Kelompok</th>" : ""}
+    <th>Status</th><th>Posisi</th><th class="angka" title="Keluar halaman latihan yang dihitung, 7 hari terakhir">Keluar hlm.</th><th></th></tr></thead><tbody>` +
+    (R.length ? R.map((r, i) => `<tr class="klik" data-n="${esc(r.nisn)}"><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>
+      <td class="nisn">${esc(r.nisn)}</td><td class="nisn">${esc(r.nis || "–")}</td><td>${esc(r.kelas)}</td>
+      ${semua && MODE_MD ? `<td>${esc(r.kelompok || "–")}</td>` : ""}
+      <td>${statusDaftar(r)}</td>
+      <td>${r.tingkat ? `${esc(r.nama_tingkat)} · <span class="nm">Lv ${r.level}</span>` : '<span class="redup">–</span>'}</td>
+      <td class="angka">${r.keluar_7 || '<span class="redup">0</span>'}</td>
+      <td>${r.terkunci ? `<button class="kecil" data-buka="${esc(r.nisn)}">Buka kunci</button>` : ""}</td></tr>`).join("")
+      : `<tr><td colspan="10" class="kosong-data">${D.length ? "Tidak ada siswa yang cocok dengan pencarian." : "Tidak ada siswa."}</td></tr>`) + "</tbody>";
+  $("t-daftar").querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = (e) => { if (!e.target.closest("button")) bukaSiswa(tr.dataset.n); });
+  $("t-daftar").querySelectorAll("[data-buka]").forEach((b) => b.onclick = async () => {
+    const r = DAFTAR.find((x) => x.nisn === b.dataset.buka);
+    if (!confirm(`Buka kunci latihan ${r ? r.nama : b.dataset.buka}? Siswa lalu mengetuk "Periksa lagi" di layarnya.`)) return;
+    b.disabled = true;
+    try { await rpc("mtd_buka_kunci_guru", { p_pin: PIN, p_nisn: b.dataset.buka }); toast("Kunci dibuka"); muatDaftar(true); }
+    catch (e) { toast(e.message); b.disabled = false; }
+  });
+}
+
+$("dl-csv").onclick = () => {
+  const h = ["NISN", "NIS", "Nama", "Rombel", "Kelompok MD", "Status", "Tingkat", "Level", "Terakhir aktif", "Keluar halaman 7 hari"];
+  const rows = saringDaftar().map((r) => [r.nisn, r.nis || "", r.nama, r.kelas, r.kelompok || "",
+    r.terkunci ? "Terkunci" : r.online ? "Sedang berlatih" : !r.tingkat ? "Belum pernah masuk" : r.selesai ? "Tamat" : "Pernah masuk",
+    r.nama_tingkat || "", r.level || "", r.terakhir ? tglTeks(r.terakhir, true) : "", r.keluar_7 || 0]);
+  const csv = "﻿" + [h, ...rows].map((a) => a.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(";")).join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  a.download = `Daftar_Siswa_Matematika_Dasar_${$("dl-kelompok").value || "semua"}.csv`;
   a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 };
 
@@ -481,28 +671,102 @@ function gambarTingkat() {
 }
 
 /* ----------------------------------------------------------- pengaturan */
-const ATUR = [
-  { k: "aktif", jenis: "ya", l: "Matematika Dasar dibuka untuk siswa", s: "Bila ditutup, siswa tidak bisa masuk." },
-  { k: "durasi_menit", jenis: "angka", l: "Lama satu sesi (menit)", s: "Setelah waktu habis, siswa keluar dan saat masuk lagi mulai dari nomor 1 di levelnya. 5–180." },
-  { k: "n_benar", jenis: "angka", l: "Soal benar untuk tuntas satu level", s: "Bawaan 10. 1–50." },
-  { k: "batas_salah", jenis: "angka", l: "Batas salah per level", s: "Lebih dari batas ini, level diulang dari nomor 1. 0 = tanpa batas." },
-  { k: "batas_waktu_soal", jenis: "angka", l: "Batas waktu per soal (detik)", s: "Waktu habis dihitung salah. 0 = tanpa batas waktu." },
-  { k: "pecahan_sederhana", jenis: "ya", l: "Jawaban pecahan wajib paling sederhana", s: "Bila ya, 2/4 untuk kunci 1/2 dihitung salah (siswa diberi tahu nilainya sudah benar)." },
-  { k: "mulai", jenis: "pilih", l: "Titik awal siswa baru", s: "Hanya berlaku untuk siswa yang belum pernah masuk.",
-    pilih: [["awal", "Semua mulai dari Penjumlahan Dasar"], ["kelas", "Mulai dari modul sesuai tingkat kelompoknya, mis. MD11 → Modul Kelas 11 (bila sudah ada)"]] },
+/* Dikelompokkan seperti "Pengaturan ujian" di Dasbor Hasil Tryout, istilahnya "Halaman Latihan".
+   jenis: ya (saklar), angka (dengan satuan), pilih (kartu pilihan), kode (teks + tombol Simpan). */
+const IKON = {
+  layar: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',
+  perisai: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.1 7.5 9.5 4.3-1.4 7.5-4.9 7.5-9.5V6z"/><path d="m9 12 2 2 4-4"/></svg>',
+  tangga: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4v-4h4v-4h4V8h4"/><path d="M16 4h4v4"/></svg>',
+  jam: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>',
+};
+const SEKSI = [
+  { ikon: "layar", judul: "Halaman Latihan", ket: "Siapa yang boleh masuk dan apa yang dilihat siswa.", baris: [
+    { k: "aktif", jenis: "ya", l: "Halaman latihan dibuka", s: "Bila ditutup, siswa tidak bisa masuk. Kemajuan siswa tetap tersimpan.", on: "Dibuka", off: "Ditutup" },
+    { k: "peserta", jenis: "pilih", l: "Yang boleh masuk", s: "Kelompok MD diambil dari Data Induk lewat admin Aplikasi Tryout Guru.",
+      pilih: [["md", "Anggota kelompok MD saja", "MD10-1, MD11-2, … di Data Induk → Kelompok Belajar"], ["semua", "Semua siswa aktif", "Siapa pun yang terdaftar di Tryout boleh berlatih"]] },
+    { k: "tampil_kunci", jenis: "ya", l: "Tampilkan jawaban benar saat siswa salah", s: "Bila dimatikan, siswa hanya diberi tahu jawabannya belum tepat (beserta saran bila kesalahannya dikenali).", on: "Ditampilkan", off: "Disembunyikan" },
+    { k: "kode_akses", jenis: "kode", l: "Kode akses latihan", s: "Diminta saat siswa masuk, misalnya agar latihan hanya dikerjakan di kelas. Kosongkan lalu Simpan untuk menonaktifkan." },
+  ] },
+  { ikon: "perisai", judul: "Pengawasan keluar halaman", ket: "Mencatat siswa yang meninggalkan halaman latihan (membuka aplikasi lain, mencari jawaban).", baris: [
+    { k: "maks_keluar", jenis: "angka", satuan: "kali", maks: 20, l: "Batas keluar halaman", s: "Saat batas tercapai, latihan dikunci sampai dibuka pengawas. 0 = tanpa batas (tetap dicatat)." },
+    { k: "toleransi_keluar", jenis: "angka", satuan: "detik", maks: 120, l: "Abaikan keluar yang lebih singkat dari", s: "Mis. notifikasi diketuk atau telepon ditolak: hanya dicatat, tidak dihitung." },
+    { k: "kode_buka", jenis: "kode", l: "Kode buka kunci untuk pengawas", s: "Diketik pengawas di perangkat siswa yang terkunci. Kosong = memakai kode akses; bila keduanya kosong, pakai PIN Tryout." },
+  ], catatan: "Kunci tetap berlaku walau siswa keluar lalu masuk lagi, sampai dibuka atau waktu sesinya habis. Guru dan pengawas juga bisa membuka kunci dari tab <b>Daftar siswa</b>, yang juga menampilkan jumlah keluar halaman tiap siswa." },
+  { ikon: "tangga", judul: "Aturan naik level", ket: "Kapan siswa tuntas satu level dan kapan level diulang.", baris: [
+    { k: "n_benar", jenis: "angka", satuan: "soal", min: 1, maks: 50, l: "Soal benar untuk tuntas satu level", s: "Bawaan 10." },
+    { k: "batas_salah", jenis: "angka", satuan: "kali", maks: 50, l: "Batas salah per level", s: "Lebih dari batas ini, level diulang dari nomor 1. 0 = tanpa batas." },
+    { k: "batas_waktu_soal", jenis: "angka", satuan: "detik", maks: 600, l: "Batas waktu per soal", s: "Waktu habis dihitung salah. 0 = tanpa batas waktu." },
+    { k: "pecahan_sederhana", jenis: "ya", l: "Jawaban pecahan wajib paling sederhana", s: "Bila wajib, 2/4 untuk kunci 1/2 dihitung salah (siswa diberi tahu nilainya sudah benar).", on: "Wajib", off: "Tidak wajib" },
+  ] },
+  { ikon: "jam", judul: "Sesi & titik awal", ket: "Lama satu kali latihan dan dari mana siswa baru memulai.", baris: [
+    { k: "durasi_menit", jenis: "angka", satuan: "menit", min: 5, maks: 180, l: "Lama satu sesi", s: "Setelah waktu habis, saat masuk lagi siswa mulai dari nomor 1 di levelnya." },
+    { k: "mulai", jenis: "pilih", l: "Titik awal siswa baru", s: "Hanya berlaku untuk siswa yang belum pernah masuk.",
+      pilih: [["awal", "Dari Penjumlahan Dasar", "Semua siswa mulai dari tingkat pertama Modul Kelas 10"], ["kelas", "Sesuai tingkat kelompoknya", "Mis. MD11 → Modul Kelas 11 (bila modulnya sudah ada)"]] },
+  ] },
 ];
+const SEMUA_ATUR = SEKSI.flatMap((s) => s.baris);
+
+function ringkasAtur() {
+  const a = G.atur;
+  const c = (kls, l, v) => `<span class="chip ${kls}"><i></i>${l}: <b>${esc(v)}</b></span>`;
+  $("atur-ringkas").innerHTML = [
+    c(a.aktif ? "on" : "off", "Halaman latihan", a.aktif ? "Dibuka" : "Ditutup"),
+    c("info", "Peserta", a.peserta === "semua" ? "Semua siswa" : "Kelompok MD"),
+    c(a.kode_akses ? "on" : "", "Kode akses", a.kode_akses || "tidak dipakai"),
+    c(a.maks_keluar > 0 ? "on" : "", "Batas keluar", a.maks_keluar > 0 ? `${a.maks_keluar}×` : "tanpa batas"),
+    c("info", "Tuntas", `${a.n_benar} soal benar`),
+    c("info", "Sesi", `${a.durasi_menit} menit`),
+  ].join("");
+}
+
+function kendaliAtur(x, a, boleh) {
+  const dis = boleh ? "" : "disabled";
+  if (x.jenis === "ya") return `<label class="saklar"><span class="teks" data-teks="${x.k}">${a[x.k] ? x.on : x.off}</span>
+    <input type="checkbox" role="switch" data-k="${x.k}" ${a[x.k] ? "checked" : ""} ${dis} aria-label="${esc(x.l)}"><span class="jalur"></span></label>`;
+  if (x.jenis === "angka") return `<div class="grup"><input type="number" inputmode="numeric" min="${x.min || 0}" max="${x.maks}" step="1" data-k="${x.k}" value="${a[x.k]}" ${dis} aria-label="${esc(x.l)}"><span class="satuan">${x.satuan}</span></div>`;
+  if (x.jenis === "kode") return `<div class="grup kode"><input type="text" maxlength="20" autocomplete="off" spellcheck="false" data-kode="${x.k}" value="${esc(a[x.k] || "")}" placeholder="Tidak dipakai" ${dis} aria-label="${esc(x.l)}"><button class="gelap kecil" data-simpan="${x.k}" ${dis}>Simpan</button></div>`;
+  return `<div class="pilihan" role="radiogroup" aria-label="${esc(x.l)}">${x.pilih.map(([v, t, k]) =>
+    `<label><input type="radio" name="r-${x.k}" value="${v}" data-k="${x.k}" ${a[x.k] === v ? "checked" : ""} ${dis}><span><b>${esc(t)}</b><span>${esc(k)}</span></span></label>`).join("")}</div>`;
+}
+
 function gambarAtur() {
   const a = G.atur, boleh = PERAN !== "pengawas";
-  $("f-atur").innerHTML = `<h2>Pengaturan latihan</h2>${boleh ? "" : '<p class="pesan">PIN pengawas hanya bisa melihat pengaturan.</p>'}` +
-    ATUR.map((x) => `<div class="atur-baris"><div class="l"><b>${x.l}</b><span>${x.s}</span></div><div>${
-      x.jenis === "ya" ? `<select data-k="${x.k}" ${boleh ? "" : "disabled"}><option value="true" ${a[x.k] ? "selected" : ""}>Ya</option><option value="false" ${a[x.k] ? "" : "selected"}>Tidak</option></select>`
-      : x.jenis === "pilih" ? `<select data-k="${x.k}" ${boleh ? "" : "disabled"}>${x.pilih.map(([v, t]) => `<option value="${v}" ${a[x.k] === v ? "selected" : ""}>${t}</option>`).join("")}</select>`
-      : `<input type="number" min="0" step="1" data-k="${x.k}" value="${a[x.k]}" ${boleh ? "" : "disabled"}>`}</div></div>`).join("");
-  $("f-atur").querySelectorAll("[data-k]").forEach((el) => el.onchange = async () => {
-    const x = ATUR.find((y) => y.k === el.dataset.k);
-    const v = x.jenis === "ya" ? el.value === "true" : x.jenis === "angka" ? Number(el.value) : el.value;
-    try { G.atur = await rpc("mtd_set_atur", { p_pin: PIN, p_k: x.k, p_v: v }); toast("Tersimpan: " + x.l); }
-    catch (e) { toast(e.message); gambarAtur(); }
+  ringkasAtur();
+  $("f-atur").innerHTML = (boleh ? "" : '<p class="pesan">Masuk dengan PIN pengawas: pengaturan hanya bisa dilihat. Gunakan PIN guru/operator untuk mengubahnya.</p>') +
+    SEKSI.map((s) => `<section class="kartu seksi">
+      <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true">${IKON[s.ikon]}</span><div><h2>${s.judul}</h2><p>${s.ket}</p></div></div>
+      ${s.baris.map((x) => `<div class="atur-baris ${x.jenis === "pilih" ? "susun" : ""}">
+        <div class="l"><b>${x.l}</b><span>${x.s}</span></div>
+        <div class="kendali"><span class="ok-simpan" data-ok="${x.k}">✓ Tersimpan</span>${kendaliAtur(x, a, boleh)}</div></div>`).join("")}
+      ${s.catatan ? `<p class="catatan-seksi"><span>${s.catatan}</span></p>` : ""}
+    </section>`).join("");
+
+  const simpan = async (k, v) => {
+    const x = SEMUA_ATUR.find((y) => y.k === k);
+    try {
+      G.atur = await rpc("mtd_set_atur", { p_pin: PIN, p_k: k, p_v: v });
+      ringkasAtur();
+      const t = $("f-atur").querySelector(`[data-teks="${k}"]`);
+      if (t) t.textContent = G.atur[k] ? x.on : x.off;
+      if (x.jenis === "kode") $("f-atur").querySelector(`[data-kode="${k}"]`).value = G.atur[k] || "";
+      const ok = $("f-atur").querySelector(`[data-ok="${k}"]`);
+      ok.classList.add("show"); clearTimeout(ok._t); ok._t = setTimeout(() => ok.classList.remove("show"), 2200);
+      toast(x.jenis === "kode" ? (G.atur[k] ? `${x.l}: ${G.atur[k]}` : `${x.l} tidak dipakai`) : "Tersimpan: " + x.l);
+    } catch (e) { toast(e.message); gambarAtur(); }
+  };
+  $("f-atur").querySelectorAll("[data-k]").forEach((el) => el.onchange = () => {
+    const x = SEMUA_ATUR.find((y) => y.k === el.dataset.k);
+    if (x.jenis === "angka") {
+      const n = Number(el.value);
+      if (el.value === "" || !Number.isInteger(n) || n < (x.min || 0) || n > x.maks) { toast(`${x.l}: isi ${x.min || 0}–${x.maks}`); el.value = G.atur[x.k]; return; }
+      return simpan(x.k, n);
+    }
+    simpan(x.k, x.jenis === "ya" ? el.checked : el.value);
+  });
+  $("f-atur").querySelectorAll("[data-simpan]").forEach((b) => {
+    const inp = $("f-atur").querySelector(`[data-kode="${b.dataset.simpan}"]`);
+    b.onclick = () => simpan(b.dataset.simpan, inp.value.trim().toUpperCase());
+    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") b.click(); });
   });
 }
 

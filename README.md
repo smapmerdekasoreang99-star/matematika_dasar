@@ -28,6 +28,7 @@ perubahan lewat [`../database_tryout/`](../database_tryout/README.md)
    aktif tetap boleh masuk.
 2. Soal muncul satu per satu. Jawaban diketik lewat papan angka di layar.
    Untuk soal pecahan ada kotak bilangan bulat, pembilang, dan penyebut.
+   Untuk pembagian bersisa ada kotak **hasil bagi** dan **sisa** (47 ÷ 5 = 9 sisa 2).
 3. **Benar**: lanjut ke nomor berikutnya.
    **Salah**: siswa diberi tahu jawabannya, beserta saran bila kesalahannya
    dikenali (tanda negatif, urutan operasi, belum paling sederhana, dll.).
@@ -44,14 +45,16 @@ perubahan lewat [`../database_tryout/`](../database_tryout/README.md)
 Soal tidak diketik guru. Server membuatnya acak dari aturan tiap level, yang
 mengikuti pola kotak di *Modul Matdas Kelas 10*. Contoh Penjumlahan Dasar:
 level 1 = 1 angka + 1 angka, level 2 = 2 angka + 1 angka, …, level 10 =
-4 angka + 4 angka. Soal yang pernah dijawab siswa tidak diberikan lagi
+4 angka + 4 angka. Pembagian Dasar level 10 adalah pembagian bersisa
+(3 angka ÷ 1 angka); sisa yang tidak lebih kecil dari pembagi dikenali sebagai
+jenis kesalahan tersendiri. Soal yang pernah dijawab siswa tidak diberikan lagi
 kepadanya di level itu. Pengecualian: level yang kemungkinan soalnya memang
 sedikit, misalnya 1 angka ÷ 1 angka yang hanya punya 23 pasangan.
 
 Kunci jawaban diperiksa di server dan **tidak pernah dikirim ke peramban
 sebelum siswa menjawab**.
 
-Tahap 1 berisi Modul Kelas 10: 14 tingkat dengan 105 level (bilangan bulat,
+Tahap 1 berisi Modul Kelas 10: 14 tingkat dengan 106 level (bilangan bulat,
 positif-negatif, operasi gabungan, dan pecahan). Modul Kelas 11 dan 12 menyusul.
 Tab **Tingkat & contoh soal** di `guru.html` menampilkan 10 soal acak beserta
 kuncinya untuk setiap level, supaya guru bisa memeriksa kesesuaiannya dengan
@@ -71,15 +74,26 @@ memindahkan posisi siswa. PIN pengawas hanya bisa melihat.
   *Macet* (3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah
   di level itu), *Tidak aktif* (7 hari tidak berlatih), *Akurasi rendah*, atau
   *Belum mulai*. Tersedia unduhan rekap (CSV, bisa dibuka di Excel).
+- **Daftar siswa**: semua anggota kelompok MD dengan NISN, NIS, rombel, dan
+  status (*Sedang berlatih*, *Terkunci*, *Belum pernah masuk*), jumlah keluar
+  halaman 7 hari terakhir, pencarian, unduhan CSV, dan tombol **Buka kunci**.
+  Diperbarui otomatis tiap 30 detik.
 - **Analisis siswa**: catatan otomatis, grafik level tuntas, jenis kesalahan
   yang paling sering, akurasi per tingkat, daftar kesalahan terakhir (soal,
   jawaban siswa, kunci), dan riwayat level tuntas. Di sini juga ada
   **Pindahkan posisi**, misalnya untuk siswa yang sudah lancar agar bisa
   melompat ke depan.
-- **Pengaturan**: buka/tutup Matdas, lama sesi, jumlah soal benar per level,
-  batas salah, batas waktu per soal, kewajiban pecahan paling sederhana, dan
-  titik awal siswa baru (dari Penjumlahan Dasar, atau dari modul sesuai tingkat
-  kelompoknya: MD11 → Modul Kelas 11).
+- **Pengaturan**, dikelompokkan seperti *Pengaturan ujian* di Dasbor Hasil Tryout:
+  - *Halaman Latihan*: dibuka/ditutup, yang boleh masuk (anggota kelompok MD
+    saja / semua siswa aktif), tampilkan jawaban benar saat salah, kode akses.
+  - *Pengawasan keluar halaman*: batas keluar (tercapai → latihan dikunci),
+    toleransi detik (lebih singkat hanya dicatat), kode buka untuk pengawas
+    (kosong = kode akses; keduanya kosong = PIN Tryout). Kunci bertahan walau
+    siswa keluar lalu masuk lagi, sampai dibuka atau waktu sesinya habis.
+  - *Aturan naik level*: soal benar per level, batas salah, batas waktu per
+    soal, pecahan wajib paling sederhana.
+  - *Sesi & titik awal*: lama sesi dan titik awal siswa baru (Penjumlahan
+    Dasar, atau modul sesuai tingkat kelompoknya: MD11 → Modul Kelas 11).
 
 ## Memasang
 

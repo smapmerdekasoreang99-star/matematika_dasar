@@ -80,6 +80,7 @@ const soalPolos = (teks) => String(teks || "").replace(/_/g, " ");
    pecahan tak wajar ditampilkan juga sebagai pecahan campuran. */
 function kunciHtml(k, bentuk) {
   k = String(k);
+  if (k.includes(" sisa ")) return sisaHtml(k);
   if (!k.includes("/")) return `<span class="nm">${bil(k)}</span>`;
   let [p, q] = k.split("/").map(Number);
   if (q === 1) return `<span class="nm">${bil(p)}</span>`;
@@ -98,10 +99,17 @@ const kunciPolos = (k) => {
   return p < q ? `${neg}${p}/${q}` : `${neg}${Math.floor(p / q)}${p % q ? " " + (p % q) + "/" + q : ""}`;
 };
 
-/* Jawaban siswa ("1 3/4", "-12") → HTML. */
+/* Pembagian bersisa "12 sisa 3" → HTML. */
+function sisaHtml(t) {
+  const [q, r] = String(t).split(/\s*sisa\s*/);
+  return `<span class="nm">${esc(bil(q))}</span> <span class="op sisa-kata">sisa</span> <span class="nm">${esc(bil(r || "0"))}</span>`;
+}
+
+/* Jawaban siswa ("1 3/4", "-12", "12 sisa 3") → HTML. */
 function jawabHtml(j) {
   j = String(j == null ? "" : j).trim();
   if (!j) return '<span class="redup">(kosong)</span>';
+  if (/^\d+ sisa \d+$/.test(j)) return sisaHtml(j);
   let m = j.match(/^(-)?(\d+) (\d+)\/(\d+)$/);
   if (m) return pecHtml(m[2], m[3], m[4], !!m[1]);
   m = j.match(/^(-)?(\d+)\/(\d+)$/);
@@ -121,6 +129,8 @@ const JENIS = {
   waktu:     { label: "Kehabisan waktu",            saran: "Waktu untuk soal ini sudah habis." },
   kosong:    { label: "Tidak menjawab",             saran: "" },
   format:    { label: "Tulisan tidak terbaca",      saran: "Tulis jawaban berupa angka, misalnya 12, −5, 3/4, atau 1 1/2." },
+  sisa:      { label: "Sisa pembagian salah",       saran: "Hasil baginya sudah tepat. Sisa = yang dibagi − (hasil bagi × pembagi)." },
+  sisa_besar:{ label: "Sisa tidak lebih kecil dari pembagi", saran: "Sisa harus lebih kecil dari pembagi. Bila belum, hasil baginya masih bisa ditambah." },
 };
 const jenisLabel = (j) => (JENIS[j] || JENIS.lain).label;
 
