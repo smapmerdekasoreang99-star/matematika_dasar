@@ -95,6 +95,8 @@ body.lihat .ubah { display: none !important; }
       <button data-v="tingkat">Tingkat &amp; contoh soal</button>
       <button data-v="atur">Pengaturan</button>
     </nav>
+    <!-- Kapan data siswa & kelompok MD terakhir ditarik dari Data Induk (lewat admin Tryout) -->
+    <p class="kecil redup" id="info-sinkron" style="margin-top:0"></p>
 
     <!-- Kemajuan per kelompok MD (sebelum kelompok pernah ditarik dari Data Induk: per kelas) -->
     <div id="p-kelas">
@@ -167,11 +169,23 @@ async function masuk(pin, diam) {
       : G.kelas.map((k) => `<option>${esc(k)}</option>`).join("") + '<option value="">Semua kelas</option>';
     const kSimpan = ssGet("mtd_kelas", null);
     if (kSimpan !== null && [...$("pil-kelas").options].some((o) => o.value === kSimpan)) $("pil-kelas").value = kSimpan;
-    muatKelas(); gambarTingkat(); gambarAtur();
+    muatKelas(); gambarTingkat(); gambarAtur(); gambarSinkron();
   } catch (e) {
     if (diam) return;
     $("pin-pesan").textContent = e.message; $("pin-pesan").classList.remove("hidden");
   }
+}
+
+// Lebih dari 7 hari = lencana peringatan; hanya pengingat, tidak menghalangi apa pun.
+// Sinkron dilakukan operator di admin Tryout (Data siswa → Tarik dari data induk).
+function gambarSinkron() {
+  const t = G.sinkron, el = $("info-sinkron");
+  if (G.sinkron === undefined) { el.textContent = ""; return; }
+  if (!t) { el.innerHTML = '<span class="lencana emas">Belum pernah disinkron dari Data Induk</span> Minta operator menarik data siswa di admin Tryout.'; return; }
+  const kapan = t.hari < 1 ? "hari ini" : t.hari < 2 ? "kemarin" : `${t.hari} hari lalu`;
+  const tgl = new Date(t.waktu).toLocaleString("id-ID", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
+  el.innerHTML = `<span class="lencana ${t.hari > 7 ? "emas" : "baik"}">Data siswa disinkron ${kapan}</span> ${esc(tgl)} · ${t.total_aktif} siswa aktif · ${t.anggota_md} anggota MD`
+    + (t.hari > 7 ? " — minta operator menarik ulang dari Data Induk bila ada perubahan kelompok." : "");
 }
 $("btn-pin").onclick = () => masuk($("pin").value.trim());
 $("pin").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-pin").click(); });
