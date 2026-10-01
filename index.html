@@ -535,7 +535,7 @@ function detak() {
 
 function tutupSesi() {
   clearInterval(jamTimer); akhirSesi = 0; akhirSoal = 0; pergiPada = 0;
-  tutupTirai();
+  hentiAlarm(); tutupTirai();
   ssSet(KUNCI_SESI, null);
   $("jam").classList.add("hidden"); $("btn-keluar").classList.add("hidden");
 }
@@ -590,10 +590,36 @@ $("akses").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-ma
 
 /* ----------------------------------------------------------- keluar halaman (Pengaturan → Halaman Latihan)
    Setiap kali kembali ke halaman, lamanya dilaporkan ke server. Server yang menghitung (di bawah toleransi
-   hanya dicatat) dan mengunci latihan bila batas tercapai; kunci dibuka dengan kode dari pengawas. */
+   hanya dicatat) dan mengunci latihan bila batas tercapai; kunci dibuka dengan kode dari pengawas.
+   Alarm, pesan, dan larangan klik kanan/salin sama dengan Tryout_Guru/index.html. */
+const ALARM_DETIK = 2, PESAN_KELUAR = "Dilarang keras, keluar halaman ini selama latihan !!!";
+let ALARM_CTX = null, ALARM_NODE = null;
+// Peramban hanya mengizinkan suara setelah siswa menyentuh halaman: siapkan pada sentuhan pertama.
+function siapAlarm() {
+  try {
+    if (!ALARM_CTX) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return; ALARM_CTX = new AC(); }
+    if (ALARM_CTX.state === "suspended") ALARM_CTX.resume().catch(() => {});
+  } catch (e) { /* tanpa suara */ }
+}
+function bunyiAlarm() {
+  if (ALARM_CTX) {
+    hentiAlarm();
+    try {
+      const c = ALARM_CTX, o = c.createOscillator(), g = c.createGain(), t = c.currentTime;
+      o.type = "square"; g.gain.value = 0.35; o.connect(g); g.connect(c.destination);
+      const n = Math.ceil(ALARM_DETIK / 0.5);
+      for (let i = 0; i < n; i++) o.frequency.setValueAtTime(i % 2 ? 660 : 990, t + i * 0.5);
+      o.start(t); o.stop(t + n * 0.5); ALARM_NODE = o;
+      o.onended = () => { if (ALARM_NODE === o) ALARM_NODE = null; };
+    } catch (e) { /* tanpa suara */ }
+  }
+  try { if (navigator.vibrate) navigator.vibrate([500, 250, 500, 250, 500]); } catch (e) { /* tanpa getar */ }
+}
+function hentiAlarm() { if (ALARM_NODE) { try { ALARM_NODE.stop(); } catch (e) { /* sudah berhenti */ } ALARM_NODE = null; } }
+
 let pergiPada = 0, diamPantau = false;
 const latihanJalan = () => !!(S && akhirSesi && !$("v-latih").classList.contains("hidden"));
-function pergi() { if (diamPantau || pergiPada || !latihanJalan()) return; pergiPada = Date.now(); }
+function pergi() { if (diamPantau || pergiPada || !latihanJalan()) return; pergiPada = Date.now(); bunyiAlarm(); }
 async function kembali() {
   if (!pergiPada) return;
   const d = Math.round((Date.now() - pergiPada) / 1000);
@@ -602,16 +628,19 @@ async function kembali() {
   try {
     const r = await rpc("mtd_lapor_keluar", { p_token: S.token, p_detik: d });
     S.keluar = r.keluar; S.terkunci = r.terkunci;
+    if (!r.dihitung) return tampilSekejap(d);
+    bunyiAlarm();
     if (r.terkunci) return tampilKunci();
-    if (!r.dihitung) { if (r.batas > 0) toast(`Kamu keluar ${d} detik — kali ini tidak dihitung.`); return; }
-    if (r.batas > 0) tampilPeringatan(r);
-    else toast(`Keluar halaman latihan tercatat (${r.keluar}×).`);
+    tampilPeringatan(r, d);
   } catch (e) { if (/berakhir/i.test(e.message)) habis(); }
 }
+["pointerdown", "keydown", "touchstart"].forEach((ev) => document.addEventListener(ev, siapAlarm, { passive: true }));
 document.addEventListener("visibilitychange", () => (document.hidden ? pergi() : kembali()));
 window.addEventListener("blur", pergi);
 window.addEventListener("focus", kembali);
 window.addEventListener("pagehide", pergi);
+document.addEventListener("contextmenu", (e) => { if (latihanJalan()) e.preventDefault(); });
+document.addEventListener("copy", (e) => { if (latihanJalan()) e.preventDefault(); });
 
 function tirai(kunci, ikon, judul, isi, aksi) {
   $("tirai").classList.toggle("kunci", kunci);
@@ -620,19 +649,32 @@ function tirai(kunci, ikon, judul, isi, aksi) {
 }
 function tutupTirai() { $("tirai").classList.add("hidden"); }
 
-function tampilPeringatan(r) {
-  const sisa = Math.max(0, r.batas - r.sejak_buka);
-  tirai(false, "⚠", "Kamu meninggalkan halaman latihan",
-    `Tercatat <b>${r.sejak_buka} dari ${r.batas} kali</b>. ` +
-    (sisa <= 1 ? "<b>Sekali lagi keluar, latihan dikunci</b> dan kamu harus memanggil guru atau pengawas." : `Bila mencapai ${r.batas} kali, latihan dikunci.`) +
+function tombolMengerti() {
+  $("t-ok").onclick = () => { hentiAlarm(); tutupTirai(); };
+  $("t-ok").focus();
+}
+
+// Keluar lebih singkat dari toleransi: hanya dicatat (seperti Tryout).
+function tampilSekejap(d) {
+  tirai(false, "⚠", PESAN_KELUAR, `Kamu keluar ${d} detik — kali ini <b>tidak dihitung</b>. Keluar lebih lama akan dicatat dan dihitung.`,
+    '<button id="t-ok">Saya mengerti, lanjutkan</button>');
+  tombolMengerti();
+}
+
+function tampilPeringatan(r, d) {
+  const sisa = r.batas > 0 ? Math.max(0, r.batas - r.sejak_buka) : 0;
+  tirai(false, "⚠", PESAN_KELUAR,
+    `Tercatat <b>${r.keluar} kali</b>${d ? ` (terakhir ${d} detik)` : ""}` +
+    (r.batas > 0 ? ` — batas <b>${r.batas}</b>${r.keluar !== r.sejak_buka ? " sejak dibuka pengawas" : ""}. ` +
+      (sisa <= 1 ? "<b>Sekali lagi keluar, latihan dikunci</b> dan kamu harus memanggil guru atau pengawas." : "Pada batas itu latihan akan dikunci.") : ".") +
     " Tetap di halaman ini sampai selesai.",
     '<button id="t-ok">Saya mengerti, lanjutkan</button>');
-  $("t-ok").onclick = tutupTirai; $("t-ok").focus();
+  tombolMengerti();
 }
 
 function tampilKunci() {
   tirai(true, "🔒", "Latihan dikunci",
-    `Kamu terlalu sering meninggalkan halaman latihan${S && S.keluar ? ` (${S.keluar} kali)` : ""}. ` +
+    `<b>${PESAN_KELUAR}</b><br>Kamu meninggalkan halaman latihan${S && S.keluar ? ` <b>${S.keluar} kali</b>` : ""}. ` +
     "Panggil guru atau pengawas untuk memasukkan <b>kode buka</b>. Waktu latihan tetap berjalan.",
     '<input type="text" id="t-kode" autocomplete="off" placeholder="Kode buka dari pengawas" style="text-transform:uppercase">' +
     '<button id="t-buka">Buka kunci</button>' +
@@ -642,7 +684,7 @@ function tampilKunci() {
       const r = await rpc(fn, args);
       S = Object.assign(S, r);
       if (S.terkunci) return toast("Latihan masih dikunci.");
-      tutupTirai(); toast("Kunci dibuka — lanjutkan latihan");
+      hentiAlarm(); tutupTirai(); toast("Kunci dibuka — lanjutkan latihan");
     } catch (e) { if (/berakhir/i.test(e.message)) return habis(); toast(e.message); }
   };
   $("t-buka").onclick = () => buka("mtd_buka_kunci", { p_token: S.token, p_kode_buka: $("t-kode").value.trim() });

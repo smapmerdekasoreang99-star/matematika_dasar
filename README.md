@@ -86,7 +86,8 @@ memindahkan posisi siswa. PIN pengawas hanya bisa melihat.
 - **Pengaturan**, dikelompokkan seperti *Pengaturan ujian* di Dasbor Hasil Tryout:
   - *Halaman Latihan*: dibuka/ditutup, yang boleh masuk (anggota kelompok MD
     saja / semua siswa aktif), tampilkan jawaban benar saat salah, kode akses.
-  - *Pengawasan keluar halaman*: batas keluar (tercapai → latihan dikunci),
+  - *Pengawasan keluar halaman* (sama dengan Tryout: alarm bunyi + getar,
+    layar peringatan, klik kanan dan salin dicegah): batas keluar (tercapai → latihan dikunci),
     toleransi detik (lebih singkat hanya dicatat), kode buka untuk pengawas
     (kosong = kode akses; keduanya kosong = PIN Tryout). Kunci bertahan walau
     siswa keluar lalu masuk lagi, sampai dibuka atau waktu sesinya habis.
