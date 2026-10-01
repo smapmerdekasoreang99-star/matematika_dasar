@@ -143,10 +143,10 @@ async function unduhBukuXLSX({ lembar, namaBerkas, judulBuku }) {
   setTimeout(() => URL.revokeObjectURL(a.href), 5000);
 }
 
-/* Tombol unduh: tulisan "Menyusun…" selama berjalan (ikon & lencana XLSX tetap, digambar CSS). */
+/* Tombol unduh: "Menyiapkan…" selama berjalan, sama dengan aplikasi lain (ikon & lencana XLSX tetap, digambar CSS). */
 async function jalankanUnduh(tombol, kerja) {
   const lama = tombol.textContent;
-  tombol.disabled = true; tombol.textContent = "Menyusun…";
+  tombol.disabled = true; tombol.textContent = "Menyiapkan…";
   try { const nama = await kerja(); if (nama) toast("Excel diunduh: " + nama); }
   catch (e) { toast("Gagal menyusun Excel: " + e.message); }
   finally { tombol.disabled = false; tombol.textContent = lama; }
@@ -154,3 +154,7 @@ async function jalankanUnduh(tombol, kerja) {
 
 const tglBerkas = () => { const t = new Date(); return `${t.getFullYear()}${String(t.getMonth() + 1).padStart(2, "0")}${String(t.getDate()).padStart(2, "0")}`; };
 const potongNama = (s) => String(s || "").replace(/[^\w-]+/g, "-");
+
+/* Pustaka Excel (±1 MB) mulai dimuat saat tombol unduh disentuh/didekati kursor, supaya klik pertama tidak lama "Menyiapkan…". */
+document.addEventListener("pointerover", (ev) => { if (ev.target.closest && ev.target.closest(".btn-unduh")) muatExcelJS().catch(() => {}); }, { passive: true });
+document.addEventListener("focusin", (ev) => { if (ev.target.closest && ev.target.closest(".btn-unduh")) muatExcelJS().catch(() => {}); });
