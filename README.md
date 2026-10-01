@@ -7,7 +7,7 @@ berikutnya.
 
 | Berkas | Untuk siapa | Isi |
 |---|---|---|
-| `index.html` | Siswa | Masuk dengan NISN + tanggal lahir, mengerjakan soal |
+| `index.html` | Siswa | Masuk cukup dengan NISN, mengerjakan soal |
 | `guru.html` | Guru, pengawas | Kemajuan per kelas, analisis per siswa, pengaturan, contoh soal |
 | `config.js` | — | Alamat Supabase. **Sama dengan Tryout** (project `Tryout_Guru`) |
 | `assets/dasar.css` | — | Salinan tampilan bersama (harus sama dengan aplikasi lain) |
@@ -19,7 +19,7 @@ perubahan lewat [`../database_tryout/`](../database_tryout/README.md)
 
 ## Cara kerja untuk siswa
 
-1. Masuk dengan NISN dan tanggal lahir. Data siswanya sama dengan Tryout,
+1. Masuk cukup dengan **NISN** (tanpa tanggal lahir). Data siswanya sama dengan Tryout,
    jadi tidak perlu diunggah lagi. **Hanya anggota kelompok Matematika Dasar**
    (MD10-1, MD11-2, … di Data Induk → Kelompok Belajar) yang boleh masuk;
    siswa lain mendapat pesan "belum terdaftar di kelompok Matematika Dasar".

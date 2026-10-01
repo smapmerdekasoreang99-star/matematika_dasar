@@ -199,11 +199,9 @@ details.peta[open] summary::before { transform: rotate(90deg); }
 
     <div class="kartu form">
       <h2>Masuk untuk berlatih</h2>
-      <p class="redup kecil" style="margin-top:0">Gunakan data yang sama dengan Tryout.</p>
+      <p class="redup kecil" style="margin-top:0">Cukup ketik NISN-mu, sama dengan yang dipakai di Tryout.</p>
       <label class="isian" for="nisn">NISN</label>
       <input type="text" id="nisn" inputmode="numeric" autocomplete="off" placeholder="Contoh: 0081234567">
-      <label class="isian" for="tgl">Tanggal lahir</label>
-      <input type="date" id="tgl" autocomplete="off">
       <!-- Muncul bila guru memasang kode akses di Pengaturan → Halaman Latihan -->
       <div id="akses-isian" class="hidden">
         <label class="isian" for="akses">Kode akses latihan</label>
@@ -567,15 +565,15 @@ $("btn-keluar").onclick = async () => {
   tutupSesi(); S = null; tampil("v-masuk");
 };
 
-$("btn-lagi").onclick = () => { tampil("v-masuk"); $("tgl").focus(); };
+$("btn-lagi").onclick = () => { tampil("v-masuk"); $("nisn").focus(); };
 
 $("btn-masuk").onclick = async () => {
-  const nisn = $("nisn").value.trim(), tgl = $("tgl").value, m = $("masuk-pesan");
+  const nisn = $("nisn").value.trim(), m = $("masuk-pesan");
   m.classList.add("hidden");
-  if (!nisn || !tgl) { m.textContent = "Isi NISN dan tanggal lahir."; m.classList.remove("hidden"); return; }
+  if (!nisn) { m.textContent = "Isi NISN dulu."; m.classList.remove("hidden"); $("nisn").focus(); return; }
   $("btn-masuk").disabled = true;
   try {
-    const r = await rpc("mtd_masuk", { p_nisn: nisn, p_tgl_lahir: tgl, p_kode_akses: $("akses").value.trim() || null });
+    const r = await rpc("mtd_masuk", { p_nisn: nisn, p_kode_akses: $("akses").value.trim() || null });
     try { localStorage.setItem(KUNCI_NISN, nisn); } catch (e) { /* abaikan */ }
     mulai(r);
   } catch (e) {
@@ -585,7 +583,7 @@ $("btn-masuk").onclick = async () => {
   }
   finally { $("btn-masuk").disabled = false; }
 };
-$("tgl").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-masuk").click(); });
+$("nisn").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-masuk").click(); });
 $("akses").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-masuk").click(); });
 
 /* ----------------------------------------------------------- keluar halaman (Pengaturan → Halaman Latihan)
