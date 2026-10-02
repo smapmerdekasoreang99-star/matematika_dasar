@@ -68,6 +68,9 @@ input[type=text], input[type=date], input[type=number], input[type=password], se
 .pc-n { border-bottom: .08em solid currentColor; padding: 0 .15em; }
 .pc-d { padding: 0 .15em; }
 .op { margin: 0 .1em; }
+/* □ bilangan yang dicari: digambar CSS (karakter □ di banyak huruf tampil kecil) */
+.kotak-soal { display: inline-block; width: .8em; height: .8em; border: .09em solid var(--emas-teks); border-radius: .12em; vertical-align: -.06em;
+  margin: 0 .08em; background: var(--emas-kabut); color: transparent; overflow: hidden; line-height: 0; }
 .op.sisa-kata { font-size: .72em; font-weight: 700; color: var(--tinta-2); letter-spacing: .02em; }
 .nm { font-variant-numeric: tabular-nums; white-space: nowrap; }
 

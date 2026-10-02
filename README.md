@@ -8,7 +8,7 @@ berikutnya.
 | Berkas | Untuk siapa | Isi |
 |---|---|---|
 | `index.html` | Siswa | Masuk cukup dengan NISN, mengerjakan soal |
-| `guru.html` | Guru, pengawas | Kemajuan per kelas, analisis per siswa, pengaturan, contoh soal |
+| `guru.html` | Guru, pengawas | Kemajuan per kelompok, daftar & analisis siswa, tingkat dan level soal, pengaturan |
 | `config.js` | — | Alamat Supabase. **Sama dengan Tryout** (project `Tryout_Guru`) |
 | `assets/dasar.css` | — | Salinan tampilan bersama (harus sama dengan aplikasi lain) |
 | `assets/matdas.css`, `assets/umum.js` | — | Komponen dan fungsi bersama kedua halaman |
@@ -54,9 +54,25 @@ sedikit, misalnya 1 angka ÷ 1 angka yang hanya punya 23 pasangan.
 Kunci jawaban diperiksa di server dan **tidak pernah dikirim ke peramban
 sebelum siswa menjawab**.
 
-Tahap 1 berisi Modul Kelas 10: 14 tingkat dengan 106 level (bilangan bulat,
-positif-negatif, operasi gabungan, dan pecahan). Modul Kelas 11 dan 12 menyusul.
-Tab **Tingkat & contoh soal** di `guru.html` menampilkan 10 soal acak beserta
+Isi saat ini:
+
+- **MD10** (Modul Kelas 10): 16 tingkat, 126 level (bilangan bulat, positif-negatif,
+  operasi gabungan, pecahan). Dua tingkat melatih mencari bilangan yang hilang,
+  masing-masing 10 level dari 1 angka & 1 angka sampai 3 angka & 3 angka, tanpa
+  bilangan negatif maupun koma:
+  - ke-3 *Kombinasi Penjumlahan dan Pengurangan* (setelah Penjumlahan dan
+    Pengurangan Dasar): □ + 3 = 8, 54 − □ = 29, …
+  - ke-6 *Kombinasi Perkalian dan Pembagian* (setelah Perkalian dan Pembagian
+    Dasar): □ × 6 = 42, 42 ÷ □ = 6, □ ÷ 6 = 7, … (pembagian selalu habis).
+- **MD11** (Modul Kelas 11), tahap A: 6 tingkat, 46 level: penjumlahan, pengurangan,
+  perkalian, pembagian desimal (satuan … ribuan), gabungan desimal, dan operasi
+  campuran pecahan, desimal, persen. Pembagian selalu menghasilkan desimal yang
+  berhenti. Jawaban dinilai dari nilainya: 0,75 = 3/4 = 75% sama-sama benar
+  (papan angka soal desimal punya tombol **,** **/** **%**). Kesalahan letak koma
+  dan persen yang belum diubah dikenali.
+- Menyusul: Kelas 11 tahap B (mengurutkan bilangan, persentase dalam kehidupan,
+  notasi baku & eksponen) dan MD12.
+Tab **Tingkat dan Level Soal** di `guru.html` menampilkan 10 soal acak beserta
 kuncinya untuk setiap level, supaya guru bisa memeriksa kesesuaiannya dengan
 modul.
 
@@ -97,7 +113,7 @@ memindahkan posisi siswa. PIN pengawas hanya bisa melihat.
   - *Aturan naik level*: soal benar per level, batas salah, batas waktu per
     soal, pecahan wajib paling sederhana.
   - *Sesi & titik awal*: lama sesi dan titik awal siswa baru (Penjumlahan
-    Dasar, atau modul sesuai tingkat kelompoknya: MD11 → Modul Kelas 11).
+    Dasar, atau tingkat pertama sesuai kelompoknya: MD11 → MD11).
   - *Kosongkan data latihan*: hapus data latihan **semua** siswa, hanya dengan
     **PIN kepala sekolah** (`tka_privat.pin_kepsek_matdas`, bukan PIN guru) dan
     mengetik KOSONGKAN. Data siswa, pengaturan, tingkat & level tetap.

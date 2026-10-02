@@ -48,9 +48,10 @@ function ssSet(k, v) { try { if (v === null) sessionStorage.removeItem(k); else 
 function bil(v) {
   const s = String(v).replace("-", "−");
   const neg = s.startsWith("−");
-  const d = neg ? s.slice(1) : s;
+  // Desimal: titik ribuan hanya pada bagian bulat (2486,72 → 2486,72; 9034492,15 → 9.034.492,15).
+  const [d, k] = (neg ? s.slice(1) : s).split(",");
   const f = d.length > 4 ? d.replace(/\B(?=(\d{3})+(?!\d))/g, ".") : d;
-  return (neg ? "−" : "") + f;
+  return (neg ? "−" : "") + f + (k !== undefined ? "," + k : "");
 }
 
 /* HTML pecahan bersusun. w = bilangan bulat (boleh kosong). */
@@ -59,15 +60,19 @@ function pecHtml(w, n, d, neg) {
     `<span class="pc-f"><span class="pc-n">${n}</span><span class="pc-d">${d}</span></span></span>`;
 }
 
-/* Teks soal dari server → HTML. Pecahan "3/4", campuran "1_1/2", negatif "(−7)". */
+/* Teks soal dari server → HTML. Pecahan "3/4", campuran "1_1/2", negatif "(−7)",
+   desimal "2486,72", persen "185%". */
 function soalHtml(teks) {
   return esc(teks).split(" ").map((tok) => {
     let m = tok.match(/^(\d+)_(\d+)\/(\d+)$/);
     if (m) return pecHtml(m[1], m[2], m[3]);
     m = tok.match(/^(\d+)\/(\d+)$/);
     if (m) return pecHtml("", m[1], m[2]);
-    if (/^[+−×÷]$/.test(tok)) return `<span class="op">${tok}</span>`;
-    m = tok.match(/^(\(?)(−?)(\d+)(\)?)$/);
+    if (/^[+−×÷=]$/.test(tok)) return `<span class="op">${tok}</span>`;
+    if (tok === "□") return '<span class="kotak-soal" aria-label="bilangan yang dicari">□</span>';
+    m = tok.match(/^(\d+(?:,\d+)?)%$/);
+    if (m) return `<span class="nm">${bil(m[1])}%</span>`;
+    m = tok.match(/^(\(?)(−?)(\d+(?:,\d+)?)(\)?)$/);
     if (m) return `<span class="nm">${m[1]}${m[2]}${bil(m[3])}${m[4]}</span>`;
     return tok;
   }).join(" ");
@@ -128,7 +133,10 @@ const JENIS = {
   sederhana: { label: "Belum paling sederhana",     saran: "Nilainya sudah benar, tetapi belum paling sederhana. Bagi pembilang dan penyebut dengan FPB-nya." },
   waktu:     { label: "Kehabisan waktu",            saran: "Waktu untuk soal ini sudah habis." },
   kosong:    { label: "Tidak menjawab",             saran: "" },
-  format:    { label: "Tulisan tidak terbaca",      saran: "Tulis jawaban berupa angka, misalnya 12, −5, 3/4, atau 1 1/2." },
+  format:    { label: "Tulisan tidak terbaca",      saran: "Tulis jawaban berupa angka, misalnya 12, −5, 3/4, 1 1/2, 0,75, atau 75%." },
+  balik_op:  { label: "Operasi tidak dibalik",      saran: "Untuk mencari □, pakai operasi kebalikannya. Contoh: □ + 14 = 29, maka □ = 29 − 14 = 15." },
+  koma:      { label: "Letak koma salah",           saran: "Angkanya sudah benar, tetapi letak komanya bergeser. Hitung lagi banyaknya angka di belakang koma." },
+  persen:    { label: "Persen belum diubah",        saran: "Ubah persen dulu sebelum menghitung: 185% = 1,85 = 185/100." },
   sisa:      { label: "Sisa pembagian salah",       saran: "Hasil baginya sudah tepat. Sisa = yang dibagi − (hasil bagi × pembagi)." },
   sisa_besar:{ label: "Sisa tidak lebih kecil dari pembagi", saran: "Sisa harus lebih kecil dari pembagi. Bila belum, hasil baginya masih bisa ditambah." },
 };

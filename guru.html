@@ -19,7 +19,7 @@
 <!-- /pratinjau -->
 <link rel="icon" href="assets/logo.png">
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=2">
+<link rel="stylesheet" href="assets/matdas.css?v=3">
 <script src="config.js"></script>
 <style>
 .tab { display: flex; gap: var(--j1); flex-wrap: wrap; margin: var(--j3) 0; }
@@ -201,7 +201,7 @@ body.lihat .ubah { display: none !important; }
       <button data-v="kelas" class="on" id="tab-kelompok">Kemajuan kelompok</button>
       <button data-v="daftar">Daftar siswa</button>
       <button data-v="siswa">Analisis siswa</button>
-      <button data-v="tingkat">Tingkat &amp; contoh soal</button>
+      <button data-v="tingkat">Tingkat dan Level Soal</button>
       <button data-v="atur">Pengaturan</button>
     </nav>
     <!-- Kapan data siswa & kelompok MD terakhir ditarik dari Data Induk (lewat admin Tryout) -->
@@ -297,7 +297,7 @@ body.lihat .ubah { display: none !important; }
 </main>
 <div class="toast" id="toast" role="status"></div>
 
-<script src="assets/umum.js?v=2"></script>
+<script src="assets/umum.js?v=4"></script>
 <script src="assets/excel.js?v=2"></script>
 <script>
 "use strict";
@@ -791,12 +791,12 @@ function gambarSiswa() {
   }
 }
 
-/* ----------------------------------------------------------- tingkat & contoh soal */
+/* ----------------------------------------------------------- tingkat dan level soal */
 function gambarTingkat() {
   const bolehUbah = PERAN !== "pengawas";
   let modul = null, h = "";
   G.tingkat.forEach((t) => {
-    if (t.modul !== modul) { if (modul !== null) h += "</div>"; modul = t.modul; h += `<div class="kartu"><h2>Modul Kelas ${t.modul}</h2>`; }
+    if (t.modul !== modul) { if (modul !== null) h += "</div>"; modul = t.modul; h += `<div class="kartu"><h2>MD${t.modul}</h2>`; }
     h += `<details style="margin:var(--j2) 0"><summary style="cursor:pointer;padding:var(--j2) 0"><b>${t.urut}. ${esc(t.nama)}</b>
         <span class="redup kecil">· ${t.level.length} level</span> ${t.aktif ? "" : '<span class="lencana buruk">ditutup</span>'}</summary>
       ${bolehUbah ? `<p class="ubah"><button class="garis kecil" data-aktif="${t.kode}" data-nilai="${!t.aktif}">${t.aktif ? "Tutup tingkat ini" : "Buka tingkat ini"}</button></p>` : ""}
@@ -810,7 +810,9 @@ function gambarTingkat() {
     b.disabled = true;
     try {
       const soal = await rpc("mtd_contoh", { p_pin: PIN, p_tingkat: kode, p_level: +lv, p_n: 10 });
-      box.innerHTML = soal.map((s) => `<div>${soalHtml(s.teks)} <span class="op">=</span> <span class="k">${kunciHtml(s.kunci)}</span></div>`).join("");
+      box.innerHTML = soal.map((s) => s.bentuk === "hilang"
+        ? `<div>${soalHtml(s.teks)} <span class="redup">→</span> <span class="k"><span class="kotak-soal">□</span> = ${kunciHtml(s.kunci)}</span></div>`
+        : `<div>${soalHtml(s.teks)} <span class="op">=</span> <span class="k">${kunciHtml(s.kunci)}</span></div>`).join("");
       box.classList.remove("hidden"); b.textContent = "Contoh lain";
     } catch (e) { toast(e.message); }
     b.disabled = false;
@@ -854,7 +856,7 @@ const SEKSI = [
   { ikon: "jam", judul: "Sesi & titik awal", ket: "Lama satu kali latihan dan dari mana siswa baru memulai.", baris: [
     { k: "durasi_menit", jenis: "angka", satuan: "menit", min: 5, maks: 180, l: "Lama satu sesi", s: "Setelah waktu habis, saat masuk lagi siswa mulai dari nomor 1 di levelnya." },
     { k: "mulai", jenis: "pilih", l: "Titik awal siswa baru", s: "Hanya berlaku untuk siswa yang belum pernah masuk.",
-      pilih: [["awal", "Dari Penjumlahan Dasar", "Semua siswa mulai dari tingkat pertama Modul Kelas 10"], ["kelas", "Sesuai tingkat kelompoknya", "Mis. MD11 → Modul Kelas 11 (bila modulnya sudah ada)"]] },
+      pilih: [["awal", "Dari Penjumlahan Dasar", "Semua siswa mulai dari tingkat pertama MD10"], ["kelas", "Sesuai tingkat kelompoknya", "Mis. kelompok MD11 mulai dari tingkat pertama MD11"]] },
   ], catatan: "Ingin satu tingkat, satu kelompok, atau beberapa siswa mulai dari tingkat dan level tertentu? Buka tab <b>Daftar siswa</b>, saring tingkat/kelompok, centang siswanya, lalu <b>Atur posisi</b>. Centang <i>hanya yang belum pernah masuk</i> agar siswa yang sudah maju tidak tergeser. Untuk satu siswa juga bisa lewat <b>Analisis siswa → Pindahkan posisi</b>." },
 ];
 const SEMUA_ATUR = SEKSI.flatMap((s) => s.baris);

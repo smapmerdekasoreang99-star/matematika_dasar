@@ -19,7 +19,7 @@
 <!-- /pratinjau -->
 <link rel="icon" href="assets/logo.png">
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=2">
+<link rel="stylesheet" href="assets/matdas.css?v=3">
 <script src="config.js"></script>
 <style>
 /* ---- Masuk ---- */
@@ -134,6 +134,8 @@
 .papan button.kirim:hover { background: var(--utama-tua); color: #fff; }
 .papan button.lebar { grid-column: span 2; }
 .papan .kosong { visibility: hidden; }
+.papan button.tanda { font-size: 24px; font-weight: 800; color: var(--gelap); }
+.kotak.lebar-isi { min-width: 5.5em; justify-content: flex-end; padding: 0 .4em; }
 
 /* ---- Umpan balik ---- */
 .benar-kilat { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%) scale(.9); background: var(--hadir); color: #fff;
@@ -219,7 +221,7 @@ details.peta[open] summary::before { transform: rotate(90deg); }
   <section id="v-latih" class="hidden">
     <div class="kartu posisi-kartu">
       <div class="posisi-atas">
-        <div class="baris-atas"><span class="modul" id="p-modul">Modul Kelas 10</span><span id="p-urut">Tingkat 1 dari 14</span></div>
+        <div class="baris-atas"><span class="modul" id="p-modul">MD10</span><span id="p-urut">Tingkat 1 dari 14</span></div>
         <div class="tk" id="p-tingkat">Penjumlahan Dasar</div>
         <div class="lv" id="p-level"></div>
         <div class="maju-total" title="Kemajuan di seluruh modul"><div class="batang"><i id="p-batang" style="width:0"></i></div><span id="p-ke">0 dari 105 level</span></div>
@@ -288,7 +290,7 @@ details.peta[open] summary::before { transform: rotate(90deg); }
 <div class="benar-kilat" id="kilat" aria-hidden="true">Benar ✓</div>
 <div class="toast" id="toast" role="status"></div>
 
-<script src="assets/umum.js?v=2"></script>
+<script src="assets/umum.js?v=4"></script>
 <script>
 "use strict";
 const KUNCI_SESI = "mtd_token", KUNCI_NISN = "mtd_nisn";
@@ -302,7 +304,7 @@ function tampil(v) { ["v-masuk", "v-latih", "v-akhir"].forEach((x) => $(x).class
 function isiPosisi() {
   const p = S.posisi, nb = S.atur.n_benar, bs = S.atur.batas_salah;
   const peta = S.peta || [], ke = peta.findIndex((x) => x.status === "sekarang");
-  $("p-modul").textContent = p.modul ? `Modul Kelas ${p.modul}` : "Matematika Dasar";
+  $("p-modul").textContent = p.modul ? `MD${p.modul}` : "Matematika Dasar";
   $("p-urut").textContent = ke >= 0 ? `Tingkat ${ke + 1} dari ${peta.length}` : "";
   $("p-tingkat").textContent = p.nama;
   $("p-level").innerHTML = `<b>Level ${p.level}</b> dari ${p.n_level}${p.ket ? " · " + esc(p.ket) : ""}`;
@@ -336,14 +338,19 @@ function isiPosisi() {
 function isiSoal() {
   const s = S.soal;
   $("s-no").textContent = `Soal nomor ${S.nomor} dari ${S.atur.n_benar}`;
-  $("s-teks").innerHTML = soalHtml(s.teks) + ' <span class="op">=</span> …';
+  $("s-teks").innerHTML = s.bentuk === "hilang" ? soalHtml(s.teks) : soalHtml(s.teks) + ' <span class="op">=</span> …';
   A = s.bentuk === "pecahan" ? { pc: true, neg: false, w: "", n: "", d: "", f: "n" }
     : s.bentuk === "sisa" ? { ss: true, neg: false, q: "", r: "", f: "q" }
-    : { pc: false, neg: false, v: "" };
+    : s.bentuk === "desimal" ? { ds: true, neg: false, v: "" }
+    : { pc: false, neg: false, v: "", hl: s.bentuk === "hilang" };
   $("s-petunjuk").textContent = A.ss
     ? "Isi hasil bagi, lalu ketuk kotak sisa (atau tombol Pindah). Sisa harus lebih kecil dari pembagi."
+    : A.ds
+    ? "Pakai tombol , untuk koma. Jawaban boleh desimal (0,75), pecahan (3/4), atau persen (75%)."
+    : A.hl
+    ? "Tulis bilangan yang hilang (pengganti kotak). Tekan ± bila jawabannya negatif."
     : "Ketuk kotak untuk memilih. Bilangan bulat boleh kosong. Tulis dalam bentuk paling sederhana.";
-  $("s-petunjuk").classList.toggle("hidden", !A.pc && !A.ss);
+  $("s-petunjuk").classList.toggle("hidden", !A.pc && !A.ss && !A.ds && !A.hl);
   gambarJawab(); gambarPapan();
   // batas waktu per soal
   const bw = S.atur.batas_waktu_soal;
@@ -360,12 +367,26 @@ function gambarJawab() {
     ? `${neg}${k("w", A.w)}<span class="susun">${k("n", A.n, "kecil")}<span class="garis-pc"></span>${k("d", A.d, "kecil")}</span>`
     : A.ss
     ? `<span class="isi-lbl">${k("q", A.q)}<small>hasil bagi</small></span><span class="kata-sisa">sisa</span><span class="isi-lbl">${k("r", A.r)}<small>sisa</small></span>`
+    : A.ds
+    ? k("v", A.v, "lebar-isi")
+    : A.hl
+    ? `<span class="kotak-soal">□</span><span class="op">=</span>${neg}${k("v", A.v)}`
     : `${neg}${k("v", A.v)}`;
   $("s-jawab").querySelectorAll("[data-k]").forEach((el) => el.onclick = () => { if (A.pc || A.ss) { A.f = el.dataset.k; gambarJawab(); } });
 }
 
 function gambarPapan() {
   const b = (t, act, cls) => `<button type="button" data-a="${act}" class="${cls || ""}">${t}</button>`;
+  // Desimal: koma, garis pecahan, dan persen menggantikan ± dan Pindah (jawaban desimal tidak pernah negatif).
+  if (A.ds) {
+    $("papan").innerHTML =
+      b(7, 7) + b(8, 8) + b(9, 9) + b("⌫", "hapus", "fn") +
+      b(4, 4) + b(5, 5) + b(6, 6) + b(",", "koma", "fn tanda") +
+      b(1, 1) + b(2, 2) + b(3, 3) + b("/", "garis", "fn tanda") +
+      b(0, 0) + b("%", "persen", "fn tanda") + b("Jawab", "kirim", "kirim");
+    $("papan").querySelectorAll("button").forEach((x) => x.onclick = () => tombol(x.dataset.a));
+    return;
+  }
   $("papan").innerHTML =
     b(7, 7) + b(8, 8) + b(9, 9) + b("⌫", "hapus", "fn") +
     b(4, 4) + b(5, 5) + b(6, 6) + (A.ss ? '<span class="kosong"></span>' : b("±", "neg", "fn")) +
@@ -379,6 +400,7 @@ function tombol(a) {
   if (sibuk || menungguLanjut || menungguNaik) return;
   if (S && S.terkunci) return tampilKunci();
   if (a === "kirim") return kirim();
+  if (A.ds) return tombolDesimal(a);
   if (a === "neg") { if (!A.ss) A.neg = !A.neg; }
   else if (a === "pindah") A.f = A.ss ? (A.f === "q" ? "r" : "q") : A.f === "w" ? "n" : A.f === "n" ? "d" : "w";
   else if (a === "hapus") { const f = A.pc || A.ss ? A.f : "v"; A[f] = A[f].slice(0, -1); }
@@ -389,7 +411,20 @@ function tombol(a) {
   gambarJawab();
 }
 
+/* Isian desimal satu kotak: angka, satu koma per bilangan, satu garis pecahan, persen di akhir. */
+function tombolDesimal(a) {
+  const v = A.v, akhir = v.slice(-1), bagian = v.split("/").pop();
+  if (a === "hapus") A.v = v.slice(0, -1);
+  else if (v.endsWith("%")) return toast("Persen sudah di akhir. Hapus dulu bila ingin mengubah.");
+  else if (/^\d$/.test(a)) { if (v.length < 16) A.v = (bagian === "0" ? v.slice(0, -1) : v) + a; }
+  else if (a === "koma") { if (!bagian.includes(",")) A.v = v + (bagian === "" ? "0," : ","); }
+  else if (a === "garis") { if (v && !v.includes("/") && /\d/.test(akhir)) A.v = v + "/"; }
+  else if (a === "persen") { if (v && !v.includes("/") && /\d/.test(akhir)) A.v = v + "%"; }
+  gambarJawab();
+}
+
 function teksJawaban() {
+  if (A.ds) return !A.v ? "" : /[,/]$/.test(A.v) ? null : A.v;
   if (A.ss) {
     if (!A.q && !A.r) return "";
     if (!A.q || !A.r) return null;
@@ -408,6 +443,10 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Enter") { e.preventDefault(); if (menungguNaik) return $("btn-naik").click(); if (menungguLanjut) return $("btn-lanjut").click(); return tombol("kirim"); }
   if (/^\d$/.test(e.key)) { e.preventDefault(); return tombol(e.key); }
   if (e.key === "Backspace") { e.preventDefault(); return tombol("hapus"); }
+  if (A && A.ds) {
+    const t = { ",": "koma", ".": "koma", "/": "garis", "%": "persen" }[e.key];
+    if (t) { e.preventDefault(); return tombol(t); }
+  }
   if (e.key === "-" || e.key === "−") { e.preventDefault(); return tombol("neg"); }
   if (A && A.ss) {
     if (e.key === " " || e.key.toLowerCase() === "s") { e.preventDefault(); A.f = "r"; return gambarJawab(); }
@@ -424,7 +463,7 @@ document.addEventListener("keydown", (e) => {
 async function kirim(waktuHabis) {
   if (sibuk) return;
   const j = teksJawaban();
-  if (j === null && !waktuHabis) return toast(A.ss ? "Isi hasil bagi dan sisanya." : "Lengkapi pembilang dan penyebutnya.");
+  if (j === null && !waktuHabis) return toast(A.ss ? "Isi hasil bagi dan sisanya." : A.ds ? "Lengkapi jawabanmu (angka setelah koma atau garis pecahan)." : "Lengkapi pembilang dan penyebutnya.");
   if (j === "" && !waktuHabis) return toast("Tulis jawabanmu dulu.");
   sibuk = true;
   try {
