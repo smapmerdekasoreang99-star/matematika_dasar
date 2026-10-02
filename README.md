@@ -127,15 +127,23 @@ memindahkan posisi siswa. PIN pengawas hanya bisa melihat.
   jawaban siswa, kunci), dan riwayat level tuntas. Di sini juga ada
   **Pindahkan posisi**, misalnya untuk siswa yang sudah lancar agar bisa
   melompat ke depan. Juga **Hapus data latihan** satu siswa (mis. setelah uji coba).
-- **Jalur Khusus** (remedial/pengayaan): guru menyusun jalur berupa langkah-langkah
-  tingkat + rentang level (mis. Pembagian Dasar lv 5–9 → Penjumlahan Pecahan lv 1–3),
-  dengan ujung *berhenti* atau *lanjut ke urutan biasa*. Jalur dipasang lewat Daftar
-  siswa (centang → Pasang jalur); siswa naik mengikuti jalurnya saja, siswa lain tetap
-  urutan biasa. Tingkat yang ditutup untuk umum tetap bisa dipakai di jalur.
-  Pindahkan posisi manual melepas jalur. Tiap jalur boleh punya aturan sendiri:
-  *soal benar per level* dan *batas salah* (kosong = ikut Pengaturan umum), mis.
-  remedial 15 soal dengan batas longgar, pengayaan 5 soal.
-- **Pengaturan**, dikelompokkan seperti *Pengaturan ujian* di Dasbor Hasil Tryout:
+- **Pengaturan Umum (Bawaan)** berlaku untuk semua siswa, **kecuali** yang diatur di
+  **Aturan & Jalur Khusus**. Prioritas: **siswa → jalur → kelompok → umum**.
+- **Aturan & Jalur Khusus**:
+  1. *Profil aturan*: kumpulan aturan bernama yang bisa dipakai ulang (strategi guru,
+     dengan catatan). Bisa dibedakan: halaman dibuka/ditutup, kode akses, tampilkan
+     jawaban benar, soal benar per level, batas salah, pecahan sederhana, lama sesi,
+     batas waktu per soal, pengawasan keluar halaman (batas, toleransi, kode buka).
+     Isian kosong mengikuti lapisan di bawahnya; kode "-" = sengaja tanpa kode.
+     Yang boleh masuk dan titik awal siswa baru tetap umum.
+  2. *Aturan per kelompok*: profil dipasang ke kelompok MD.
+  3. *Aturan beberapa siswa*: Daftar siswa → centang → Pasang aturan.
+  4. *Jalur latihan khusus* (remedial/pengayaan): langkah-langkah tingkat + rentang
+     level, ujung *berhenti* atau *lanjut ke urutan biasa*, boleh memakai profil
+     aturan. Dipasang lewat Daftar siswa → Pasang jalur. Pindahkan posisi manual
+     melepas jalur.
+  Analisis siswa menampilkan *Aturan yang berlaku* beserta asal tiap aturan.
+- **Pengaturan Umum**, dikelompokkan seperti *Pengaturan ujian* di Dasbor Hasil Tryout:
   - *Halaman Latihan*: dibuka/ditutup, yang boleh masuk (anggota kelompok MD
     saja / semua siswa aktif), tampilkan jawaban benar saat salah, kode akses.
   - *Pengawasan keluar halaman* (sama dengan Tryout: alarm bunyi + getar,
