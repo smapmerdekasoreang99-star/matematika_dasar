@@ -132,7 +132,9 @@ memindahkan posisi siswa. PIN pengawas hanya bisa melihat.
   dengan ujung *berhenti* atau *lanjut ke urutan biasa*. Jalur dipasang lewat Daftar
   siswa (centang → Pasang jalur); siswa naik mengikuti jalurnya saja, siswa lain tetap
   urutan biasa. Tingkat yang ditutup untuk umum tetap bisa dipakai di jalur.
-  Pindahkan posisi manual melepas jalur.
+  Pindahkan posisi manual melepas jalur. Tiap jalur boleh punya aturan sendiri:
+  *soal benar per level* dan *batas salah* (kosong = ikut Pengaturan umum), mis.
+  remedial 15 soal dengan batas longgar, pengayaan 5 soal.
 - **Pengaturan**, dikelompokkan seperti *Pengaturan ujian* di Dasbor Hasil Tryout:
   - *Halaman Latihan*: dibuka/ditutup, yang boleh masuk (anggota kelompok MD
     saja / semua siswa aktif), tampilkan jawaban benar saat salah, kode akses.

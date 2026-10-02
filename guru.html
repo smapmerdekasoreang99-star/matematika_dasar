@@ -86,6 +86,9 @@
 .jl-langkah li + li::after { content: "→"; position: absolute; left: -17px; color: var(--emas-teks); font-weight: 800; }
 .jl-langkah li.jl-ujung { background: var(--hadir-muda); border-color: transparent; color: var(--hadir-tua); font-weight: 700; padding-left: 12px; }
 .jl-langkah li.jl-ujung::before { display: none; }
+.jl-aturan { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--j3); margin-top: var(--j2); }
+.jl-aturan label { display: grid; gap: 4px; font-size: var(--h-m); font-weight: 600; }
+.jl-aturan small { font-weight: 400; color: var(--tinta-2); font-size: var(--h-xs); }
 .jl-editor { border-top: 4px solid var(--emas); scroll-margin-top: 140px; }
 .jl-baris-daftar { display: grid; gap: var(--j2); }
 .jl-baris { display: flex; align-items: center; gap: var(--j2); flex-wrap: wrap; padding: var(--j2); background: var(--kertas-3); border-radius: var(--r2); }
@@ -726,7 +729,7 @@ async function muatJalur(diam) {
 function gambarJalur() {
   const boleh = PERAN !== "pengawas";
   $("jl-daftar").innerHTML = JALUR.length ? JALUR.map((j) => `<div class="kartu jl-kartu">
-      <div class="jl-kepala"><div><h2>${esc(j.nama)}</h2><span class="redup kecil">${j.langkah.reduce((a, l) => a + (l.sampai - l.dari + 1), 0)} level · ${j.n_siswa} siswa memakai · ujung: ${j.akhir === "lanjut" ? "lanjut ke urutan biasa" : "berhenti"}</span></div>
+      <div class="jl-kepala"><div><h2>${esc(j.nama)}</h2><span class="redup kecil">${j.langkah.reduce((a, l) => a + (l.sampai - l.dari + 1), 0)} level · ${j.n_benar ?? G.atur.n_benar} soal benar/level${j.n_benar == null ? " (umum)" : ""} · batas salah ${j.batas_salah ?? G.atur.batas_salah}${j.batas_salah == null ? " (umum)" : ""} · ${j.n_siswa} siswa memakai · ujung: ${j.akhir === "lanjut" ? "lanjut ke urutan biasa" : "berhenti"}</span></div>
         ${boleh ? `<span class="jl-aksi"><button class="garis kecil" data-ubah-jalur="${j.id}">Ubah</button><button class="kecil bahaya" data-hapus-jalur="${j.id}">Hapus</button></span>` : ""}</div>
       <ol class="jl-langkah">${j.langkah.map((l) => `<li><b>${esc(namaTingkat(l.tingkat))}</b><span>Level ${l.dari === l.sampai ? l.dari : l.dari + "–" + l.sampai}</span></li>`).join("")}
         <li class="jl-ujung">${j.akhir === "lanjut" ? "Lanjut ke urutan biasa" : "Selesai"}</li></ol></div>`).join("")
@@ -740,6 +743,7 @@ function gambarJalur() {
 }
 // Penyusun jalur: nama, langkah (tingkat + level dari–sampai), ujung jalur.
 function bukaEditorJalur(j) {
+  const aturJ = { nb: j && j.n_benar != null ? String(j.n_benar) : "", bs: j && j.batas_salah != null ? String(j.batas_salah) : "" };
   const ed = $("jl-editor"), langkah = j ? j.langkah.map((l) => ({ ...l })) : [{ tingkat: G.tingkat[0].kode, dari: 1, sampai: G.tingkat[0].level.length }];
   const opsiTingkat = (pilih) => [10, 11, 12].map((m) => {
     const ts = G.tingkat.filter((t) => t.modul === m);
@@ -759,6 +763,9 @@ function bukaEditorJalur(j) {
       <div class="isian">Setelah langkah terakhir</div>
       <div class="pilihan"><label><input type="radio" name="jl-akhir" value="berhenti" ${(j ? j.akhir : "berhenti") === "berhenti" ? "checked" : ""}><span><b>Berhenti</b><span>Siswa selesai; guru memutuskan langkah berikutnya</span></span></label>
         <label><input type="radio" name="jl-akhir" value="lanjut" ${j && j.akhir === "lanjut" ? "checked" : ""}><span><b>Lanjut ke urutan biasa</b><span>Meneruskan tingkat/level berikutnya; jalur dilepas otomatis</span></span></label></div>
+      <div class="isian">Aturan naik level di jalur ini <span class="redup kecil" style="font-weight:400">— kosongkan untuk mengikuti Pengaturan umum</span></div>
+      <div class="jl-aturan"><label>Soal benar per level<span class="grup"><input type="number" id="jl-nb" min="1" max="50" inputmode="numeric" placeholder="${G.atur.n_benar}" value="${esc(aturJ.nb ?? "")}"><span class="satuan">soal</span></span><small>umum: ${G.atur.n_benar} soal</small></label>
+        <label>Batas salah per level<span class="grup"><input type="number" id="jl-bs" min="0" max="50" inputmode="numeric" placeholder="${G.atur.batas_salah}" value="${esc(aturJ.bs ?? "")}"><span class="satuan">kali</span></span><small>umum: ${G.atur.batas_salah || "tanpa batas"}; 0 = tanpa batas</small></label></div>
       <div class="baris" style="margin-top:var(--j4)"><button id="jl-simpan">Simpan jalur</button><button class="garis" id="jl-batal">Batal</button></div>`;
     ed.querySelectorAll("select[data-i]").forEach((s) => s.onchange = () => {
       const l = langkah[+s.dataset.i], f = s.dataset.f;
@@ -775,12 +782,15 @@ function bukaEditorJalur(j) {
     $("jl-simpan").onclick = async () => {
       const nama = $("jl-nama").value.trim(), akhir = ed.querySelector('[name="jl-akhir"]:checked').value;
       if (!nama) return toast("Isi nama jalur dulu.");
-      try { await rpc("mtd_jalur_simpan", { p_pin: PIN, p_nama: nama, p_langkah: langkah, p_akhir: akhir, p_id: j ? j.id : null });
+      const nb = $("jl-nb").value.trim(), bs = $("jl-bs").value.trim();
+      if (nb && !(+nb >= 1 && +nb <= 50)) return toast("Soal benar per level: isi 1–50 atau kosongkan.");
+      if (bs && !(+bs >= 0 && +bs <= 50)) return toast("Batas salah: isi 0–50 atau kosongkan.");
+      try { await rpc("mtd_jalur_simpan", { p_pin: PIN, p_nama: nama, p_langkah: langkah, p_akhir: akhir, p_id: j ? j.id : null, p_n_benar: nb === "" ? null : +nb, p_batas_salah: bs === "" ? null : +bs });
         toast("Jalur disimpan"); ed.classList.add("hidden"); muatJalur(); } catch (e) { toast(e.message); }
     };
   };
   let namaSementara = j ? j.nama : "";
-  const simpanNama = () => { namaSementara = $("jl-nama").value; if (j) j = { ...j, nama: namaSementara }; };
+  const simpanNama = () => { namaSementara = $("jl-nama").value; aturJ.nb = $("jl-nb").value; aturJ.bs = $("jl-bs").value; if (j) j = { ...j, nama: namaSementara }; };
   gambar();
   if (!j) $("jl-nama").value = namaSementara;
   ed.classList.remove("hidden"); ed.scrollIntoView({ behavior: "smooth", block: "start" }); $("jl-nama").focus();
