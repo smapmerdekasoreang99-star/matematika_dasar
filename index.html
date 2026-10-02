@@ -398,7 +398,7 @@ function isiPetunjuk() {
   $("s-petunjuk").textContent = A.ss
     ? "Isi hasil bagi, lalu ketuk kotak sisa (atau tombol Pindah). Sisa harus lebih kecil dari pembagi."
     : A.ds
-    ? "Boleh dijawab dalam bentuk mana pun yang senilai. " + PETUNJUK_DS[A.m]
+    ? (A.boleh.length > 1 ? "Boleh dijawab dalam bentuk mana pun yang senilai. " : "") + PETUNJUK_DS[A.m]
     : A.hl
     ? "Tulis bilangan yang hilang (pengganti kotak). Tekan ± bila jawabannya negatif."
     : A.pv
@@ -434,7 +434,11 @@ function isiSoal() {
   $("s-teks").classList.toggle("soal-baca", ["cerita", "pilihan"].includes(s.bentuk));
   A = s.bentuk === "pecahan" ? { pc: true, neg: false, w: "", n: "", d: "", f: "n" }
     : s.bentuk === "sisa" ? { ss: true, neg: false, q: "", r: "", f: "q" }
-    : s.bentuk === "desimal" ? { ds: true, m: BENTUK_DS, neg: false, v: "", w: "", n: "", d: "", f: "n" }
+    : s.bentuk === "desimal" ? (() => {
+        // Pilihan bentuk jawaban mengikuti soal: pecahan bila ada pecahan/pangkat negatif, persen bila ada persen.
+        const boleh = ["des"].concat(/[/⁻]/.test(s.teks) ? ["pec"] : [], /%/.test(s.teks) ? ["pers"] : []);
+        return { ds: true, boleh, m: boleh.includes(BENTUK_DS) ? BENTUK_DS : "des", neg: false, v: "", w: "", n: "", d: "", f: "n" };
+      })()
     : s.bentuk === "pilihan" ? { pl: true, v: "", opsi: uraiPilihan(s.teks).opsi }
     : s.bentuk === "urut" ? { ur: true, items: uraiUrut(s.teks).items, urut: [] }
     : s.bentuk === "notasi" ? { nt: true, a: "", n: "", nneg: false, f: "a" }
@@ -464,8 +468,8 @@ function gambarJawab() {
   const neg = A.neg ? '<span class="neg-tanda">−</span>' : "";
   const susunPc = () => `${k("w", A.w)}<span class="susun">${k("n", A.n, "kecil")}<span class="garis-pc"></span>${k("d", A.d, "kecil")}</span>`;
   // Pilihan bentuk jawaban (soal desimal MD11)
-  $("s-bentuk").classList.toggle("hidden", !A.ds);
-  if (A.ds) $("s-bentuk").innerHTML = [["des", "Desimal"], ["pec", "Pecahan"], ["pers", "Persen"]]
+  $("s-bentuk").classList.toggle("hidden", !A.ds || A.boleh.length < 2);
+  if (A.ds) $("s-bentuk").innerHTML = [["des", "Desimal"], ["pec", "Pecahan"], ["pers", "Persen"]].filter(([m]) => A.boleh.includes(m))
     .map(([m, t]) => `<button type="button" role="radio" aria-checked="${A.m === m}" data-bentuk="${m}">${t}</button>`).join("");
   $("s-jawab").innerHTML = A.pc
     ? `${neg}${susunPc()}`
@@ -514,7 +518,7 @@ function gambarJawab() {
 
 /* Ganti bentuk jawaban soal desimal. Angka yang sudah diketik ikut dibawa bila masuk akal. */
 function gantiBentuk(m) {
-  if (!A || !A.ds || A.m === m) return;
+  if (!A || !A.ds || A.m === m || !A.boleh.includes(m)) return;
   const dari = A.m;
   if (m === "pec") { A.n = dari !== "pec" && /^\d+$/.test(A.v) ? A.v : ""; A.w = ""; A.d = ""; A.f = A.n ? "d" : "n"; }
   else if (dari === "pec") A.v = "";
