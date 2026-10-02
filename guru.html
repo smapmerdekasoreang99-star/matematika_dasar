@@ -281,7 +281,7 @@ body.lihat .ubah { display: none !important; }
 
     <!-- Tingkat -->
     <div id="p-tingkat" class="hidden">
-      <p class="redup kecil">Soal dibuat acak oleh server dari aturan tiap level. Tekan <b>Contoh</b> untuk melihat 10 soal acak beserta kuncinya. Tingkat yang ditutup dilewati siswa.</p>
+      <p class="redup kecil">Soal dibuat acak oleh server dari aturan tiap level. Tekan <b>Contoh</b> untuk melihat 10 soal acak beserta kuncinya, atau <b>Coba</b> untuk mengerjakannya sendiri seperti siswa (uji coba guru: terbuka di tab baru, tidak memakai akun siswa, tidak masuk rekap, tetap bisa walau Halaman Latihan ditutup). Tingkat yang ditutup dilewati siswa.</p>
       <div id="t-tingkat"></div>
     </div>
 
@@ -802,10 +802,21 @@ function gambarTingkat() {
         <span class="redup kecil">· ${t.level.length} level</span> ${t.aktif ? "" : '<span class="lencana buruk">ditutup</span>'}</summary>
       ${bolehUbah ? `<p class="ubah"><button class="garis kecil" data-aktif="${t.kode}" data-nilai="${!t.aktif}">${t.aktif ? "Tutup tingkat ini" : "Buka tingkat ini"}</button></p>` : ""}
       ${t.level.map((l) => `<div class="lv-baris"><span class="no">Level ${l.level}</span><span class="kt">${esc(l.ket)}</span>
-        <button class="garis kecil" data-contoh="${t.kode}|${l.level}">Contoh</button></div><div class="contoh hidden" id="c-${t.kode}-${l.level}"></div>`).join("")}
+        <button class="garis kecil" data-contoh="${t.kode}|${l.level}">Contoh</button><button class="kecil" data-coba="${t.kode}|${l.level}" title="Kerjakan level ini seperti siswa">Coba</button></div><div class="contoh hidden" id="c-${t.kode}-${l.level}"></div>`).join("")}
       </details>`;
   });
   $("t-tingkat").innerHTML = h + (modul !== null ? "</div>" : "");
+  // Uji coba guru: tab dibuka lebih dulu (supaya tidak diblokir peramban), lalu diarahkan setelah sesi dibuat.
+  $("t-tingkat").querySelectorAll("[data-coba]").forEach((b) => b.onclick = async () => {
+    const [kode, lv] = b.dataset.coba.split("|"), w = window.open("about:blank", "_blank");
+    b.disabled = true;
+    try {
+      const r = await rpc("mtd_uji_mulai", { p_pin: PIN, p_tingkat: kode, p_level: +lv });
+      const url = `index.html#uji=${r.token}`;
+      if (w) w.location.href = url; else location.href = url;
+    } catch (e) { if (w) w.close(); toast(e.message); }
+    b.disabled = false;
+  });
   $("t-tingkat").querySelectorAll("[data-contoh]").forEach((b) => b.onclick = async () => {
     const [kode, lv] = b.dataset.contoh.split("|"), box = $(`c-${kode}-${lv}`);
     b.disabled = true;

@@ -149,6 +149,8 @@
 .papan button.kirim:hover { background: var(--utama-tua); color: #fff; }
 .papan button.lebar { grid-column: span 2; }
 .papan .kosong { visibility: hidden; }
+.uji-pita { margin: var(--j3) 0 0; padding: var(--j2) var(--j4); border-radius: var(--r2); background: var(--sakit-muda); color: var(--sakit-tua);
+  border: 1px dashed var(--sakit); font-size: var(--h-s); text-align: center; }
 .soal-teks.soal-kecil { font-size: clamp(22px, 6.2vw, 34px); }
 .soal-teks.soal-baca { font-size: var(--h-b); font-weight: 500; margin: var(--j3) 0 var(--j4); }
 .satuan-jawab { font-size: 22px; font-weight: 700; color: var(--tinta-2); margin: 0 6px; }
@@ -265,6 +267,8 @@ details.peta[open] summary::before { transform: rotate(90deg); }
 
   <!-- Latihan -->
   <section id="v-latih" class="hidden">
+    <!-- Uji coba guru (dibuka dari tab Tingkat dan Level Soal di halaman guru) -->
+    <div class="uji-pita hidden" id="uji-pita" role="note"><b>Uji coba guru</b> · jawaban tidak masuk rekap siswa. Tutup tab ini bila selesai.</div>
     <div class="kartu posisi-kartu">
       <div class="posisi-atas">
         <div class="baris-atas"><span class="modul" id="p-modul">MD10</span><span id="p-urut">Tingkat 1 dari 14</span></div>
@@ -374,7 +378,7 @@ function isiPosisi() {
     ks.className = "kesempatan";
     ks.innerHTML = S.salah ? `<span>Salah di level ini: <b>${S.salah}</b></span>` : "";
   }
-  $("hd-sub").textContent = `${S.nama} · ${S.kelompok || S.kelas}`;
+  $("hd-sub").textContent = [S.nama, S.kelompok || S.kelas].filter(Boolean).join(" · ");
   // peta
   $("peta-ringkas").textContent = `· ${S.ringkas.lewat} dari ${S.ringkas.total} level tuntas`;
   $("peta-batang").style.width = (100 * S.ringkas.lewat / Math.max(1, S.ringkas.total)) + "%";
@@ -783,6 +787,7 @@ $("btn-naik").onclick = () => {
 function mulai(r) {
   S = r;
   ssSet(KUNCI_SESI, r.token);
+  $("uji-pita").classList.toggle("hidden", !r.uji);
   akhirSesi = Date.now() + r.sisa_detik * 1000;
   $("jam").classList.remove("hidden"); $("btn-keluar").classList.remove("hidden");
   if (r.selesai) return selesai();
@@ -836,11 +841,13 @@ function selesai() {
 $("btn-keluar").onclick = async () => {
   // Kotak konfirmasi bawaan peramban bisa memicu blur; jangan dihitung keluar halaman.
   diamPantau = true;
-  const ya = confirm("Keluar sekarang? Posisi tingkat dan levelmu tersimpan, tetapi saat masuk lagi kamu mulai dari nomor 1 di level ini.");
+  const ya = confirm(S && S.uji ? "Akhiri uji coba?" : "Keluar sekarang? Posisi tingkat dan levelmu tersimpan, tetapi saat masuk lagi kamu mulai dari nomor 1 di level ini.");
   diamPantau = false; pergiPada = 0;
   if (!ya) return;
+  const uji = S && S.uji;
   try { await rpc("mtd_keluar", { p_token: S.token }); } catch (e) { /* tetap keluar */ }
   tutupSesi(); S = null; tampil("v-masuk");
+  if (uji) { history.replaceState(null, "", location.pathname); window.close(); }
 };
 
 $("btn-lagi").onclick = () => { tampil("v-masuk"); $("nisn").focus(); };
@@ -894,7 +901,7 @@ function bunyiAlarm() {
 function hentiAlarm() { if (ALARM_NODE) { try { ALARM_NODE.stop(); } catch (e) { /* sudah berhenti */ } ALARM_NODE = null; } }
 
 let pergiPada = 0, diamPantau = false;
-const latihanJalan = () => !!(S && akhirSesi && !$("v-latih").classList.contains("hidden"));
+const latihanJalan = () => !!(S && !S.uji && akhirSesi && !$("v-latih").classList.contains("hidden"));
 function pergi() { if (diamPantau || pergiPada || !latihanJalan()) return; pergiPada = Date.now(); bunyiAlarm(); }
 async function kembali() {
   if (!pergiPada) return;
@@ -971,6 +978,12 @@ function tampilKunci() {
 /* Muat ulang halaman: lanjutkan sesi yang masih berjalan. */
 (async () => {
   try { $("nisn").value = localStorage.getItem(KUNCI_NISN) || ""; } catch (e) { /* abaikan */ }
+  // Uji coba guru: index.html#uji=TOKEN
+  const uji = location.hash.match(/uji=([0-9a-f]{32})/);
+  if (uji) {
+    try { return mulai(await rpc("mtd_lanjut", { p_token: uji[1] })); }
+    catch (e) { history.replaceState(null, "", location.pathname); return toast("Uji coba sudah berakhir. Mulai lagi dari halaman guru."); }
+  }
   const tok = ssGet(KUNCI_SESI, null);
   if (!tok) return;
   try { mulai(await rpc("mtd_lanjut", { p_token: tok })); } catch (e) { ssSet(KUNCI_SESI, null); }

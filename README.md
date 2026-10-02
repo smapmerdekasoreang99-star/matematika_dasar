@@ -93,6 +93,10 @@ Isi saat ini:
   pangkat 10 salah dikenali.
 
 Ketiga modul (MD10, MD11, MD12) sudah lengkap.
+Di tab yang sama, tombol **Coba** membuka level itu di tab baru sebagai **uji coba guru**:
+guru mengerjakan soal seperti siswa tanpa akun siswa (akun sementara `UJI-…`, tidak
+masuk rekap, terhapus sendiri setelah sehari), tetap bisa walau Halaman Latihan ditutup.
+
 Tab **Tingkat dan Level Soal** di `guru.html` menampilkan 10 soal acak beserta
 kuncinya untuk setiap level, supaya guru bisa memeriksa kesesuaiannya dengan
 modul.
