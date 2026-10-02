@@ -222,6 +222,11 @@ details.peta[open] summary::before { transform: rotate(90deg); }
 .peta li.sekarang { font-weight: 700; }
 .peta li.sekarang .st { background: var(--emas); color: var(--utama-teks); }
 .peta li .nl { margin-left: auto; color: var(--tinta-2); font-size: var(--h-s); white-space: nowrap; }
+/* Pilihan masuk: Siswa / Guru */
+.peran { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin: 0 0 var(--j4); background: var(--kertas-3); border: 1px solid var(--garis); border-radius: var(--r-bulat); }
+.peran button { background: transparent; color: var(--tinta-2); border: 0; box-shadow: none; padding: 10px; border-radius: var(--r-bulat); font-weight: 700; font-size: var(--h-m); }
+.peran button.on { background: var(--gelap); color: #fff; }
+.peran button:focus-visible { outline: 2px solid var(--emas); outline-offset: 2px; }
 </style>
 </head>
 <body>
@@ -248,6 +253,11 @@ details.peta[open] summary::before { transform: rotate(90deg); }
     </ol>
 
     <div class="kartu form">
+      <div class="peran" role="tablist" aria-label="Masuk sebagai">
+        <button role="tab" data-peran="siswa" class="on" aria-selected="true">Siswa</button>
+        <button role="tab" data-peran="guru" aria-selected="false">Guru</button>
+      </div>
+      <div id="f-siswa">
       <h2>Masuk untuk berlatih</h2>
       <p class="redup kecil" style="margin-top:0">Cukup ketik NISN-mu, sama dengan yang dipakai di Tryout.</p>
       <label class="isian" for="nisn">NISN</label>
@@ -260,9 +270,17 @@ details.peta[open] summary::before { transform: rotate(90deg); }
       <div id="masuk-pesan" class="pesan buruk hidden" role="alert"></div>
       <button id="btn-masuk" class="tombol-masuk">Mulai latihan →</button>
       <div class="catatan-simpan"><span aria-hidden="true">💾</span><span>Kemajuanmu tersimpan otomatis. Bila waktu habis atau kamu keluar, saat masuk lagi kamu mulai dari nomor 1 di level terakhirmu.</span></div>
+      </div>
+      <!-- Guru masuk dengan PIN dari admin Matdas, lalu dibawa ke ruang guru -->
+      <div id="f-guru" class="hidden">
+        <h2>Masuk ruang guru</h2>
+        <p class="redup kecil" style="margin-top:0">Gunakan PIN dari admin Matematika Dasar.</p>
+        <label class="isian" for="pin-guru">PIN</label>
+        <input type="password" id="pin-guru" autocomplete="off" placeholder="••••••">
+        <div id="guru-pesan" class="pesan buruk hidden" role="alert"></div>
+        <button id="btn-guru" class="tombol-masuk">Masuk ruang guru →</button>
+      </div>
     </div>
-    <!-- Satu alamat untuk siswa dan guru: guru masuk lewat tautan ini (seperti Tryout). -->
-    <div class="kaki"><a href="guru.html" class="staf-link"><svg class="ik" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Masuk guru / pengawas</span><svg class="pnh" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
   </section>
 
   <!-- Latihan -->
@@ -875,6 +893,22 @@ $("btn-masuk").onclick = async () => {
   finally { $("btn-masuk").disabled = false; }
 };
 $("nisn").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-masuk").click(); });
+// Pilih peran: Siswa (NISN) atau Guru (PIN → ruang guru)
+document.querySelectorAll(".peran [data-peran]").forEach((b) => b.onclick = () => {
+  const guru = b.dataset.peran === "guru";
+  document.querySelectorAll(".peran [data-peran]").forEach((x) => { x.classList.toggle("on", x === b); x.setAttribute("aria-selected", String(x === b)); });
+  $("f-siswa").classList.toggle("hidden", guru); $("f-guru").classList.toggle("hidden", !guru);
+  (guru ? $("pin-guru") : $("nisn")).focus();
+});
+$("btn-guru").onclick = async () => {
+  const pin = $("pin-guru").value.trim();
+  $("guru-pesan").classList.add("hidden");
+  if (!pin) { $("guru-pesan").textContent = "Masukkan PIN."; $("guru-pesan").classList.remove("hidden"); return; }
+  $("btn-guru").disabled = true;
+  try { await rpc("mtd_guru_masuk", { p_pin: pin }); ssSet("mtd_pin", pin); location.href = "guru.html"; }
+  catch (e) { $("guru-pesan").textContent = e.message; $("guru-pesan").classList.remove("hidden"); $("btn-guru").disabled = false; }
+};
+$("pin-guru").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-guru").click(); });
 $("akses").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-masuk").click(); });
 
 /* ----------------------------------------------------------- keluar halaman (Pengaturan → Halaman Latihan)

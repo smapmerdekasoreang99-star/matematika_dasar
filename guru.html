@@ -34,6 +34,9 @@
 .tab button:hover { background: var(--kertas-3); color: var(--gelap); }
 .tab button.on { background: var(--gelap); color: #fff; box-shadow: 0 4px 12px -4px rgba(29,42,58,.5); }
 .tab button.on svg { color: var(--emas); }
+/* Tujuh menu (admin): lebih rapat; ikon disembunyikan bila layar belum cukup lebar */
+@media (min-width: 641px) and (max-width: 1400px) { .tab button { padding: var(--j2) 10px; gap: 6px; } .tab.tujuh button svg { display: none; } }
+@media (min-width: 641px) and (max-width: 1300px) { .tab button svg { display: none; } }
 @media (max-width: 640px) { .tab { top: 61px; margin-left: calc(-1 * var(--j2)); margin-right: calc(-1 * var(--j2)); } .tab button { flex: 0 0 auto; padding: var(--j2) var(--j3); } }
 
 /* Kotak angka ringkasan: ikon, warna sesuai makna */
@@ -98,32 +101,100 @@
 .atur-siswa-isi small { font-size: 11px; color: var(--tinta-2); } .atur-siswa-isi b { font-size: var(--h-m); }
 .atur-siswa-isi span { font-size: 11px; color: var(--tinta-3); } .atur-siswa-isi .khusus span { color: var(--emas-teks); font-weight: 600; }
 .massal select#dl-profil { min-width: 150px; }
+/* Perkembangan Siswa: tab Per Siswa / Per Kelompok */
+.subtab { display: inline-flex; gap: 4px; padding: 4px; margin: 0 0 var(--j3); background: var(--kertas-2); border: 1px solid var(--garis); border-radius: var(--r-bulat); }
+.subtab button { background: transparent; color: var(--tinta-2); border: 0; box-shadow: none; padding: 8px 18px; border-radius: var(--r-bulat); font-weight: 700; font-size: var(--h-m); }
+.subtab button.on { background: var(--gelap); color: #fff; }
+.subtab button:focus-visible { outline: 2px solid var(--emas); outline-offset: 2px; }
+/* Pengaturan Umum: pilihan sasaran & asal tiap isian */
+.atur-sasaran { display: grid; gap: 4px; font-size: var(--h-xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--tinta-2); }
+.atur-sasaran select { min-width: 260px; padding: var(--j2) var(--j3); font-size: var(--h-m); text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--tinta); }
+.atur-asal { display: inline-block; margin-top: 6px; font-size: var(--h-xs); font-weight: 700; color: var(--tinta-3); }
+.atur-asal.khusus { color: var(--emas-teks); } .atur-asal a { color: inherit; }
+/* Pesan PIN sementara */
+#pin-sementara { margin: 0 0 var(--j3); background: var(--emas-kabut); border: 1px solid var(--emas-muda); color: var(--tinta); }
+/* Admin */
+.admin-aksi { display: flex; gap: var(--j2); flex-wrap: wrap; justify-content: flex-end; }
+.adm-tabel td { vertical-align: middle; } .adm-tabel td.kanan { text-align: right; }
+.adm-tabel tr.nonaktif td { color: var(--tinta-3); } .adm-tabel td > .kecil { display: block; }
+.pin-sel { display: inline-flex; align-items: center; gap: var(--j2); flex-wrap: wrap; }
+.pin-teks { font-size: var(--h-b); letter-spacing: .14em; font-variant-numeric: tabular-nums; }
+.kosongkan.dua { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; }
+@media (max-width: 640px) { .atur-sasaran select { min-width: 0; width: 100%; } .atur-sasaran { width: 100%; } }
+/* Sesi latihan per kelompok (Pelaksanaan Latihan) */
+.sesi-baris { display: grid; grid-template-columns: 150px minmax(0, 1fr) 130px 370px; gap: var(--j3) var(--j4); align-items: center;
+  padding: var(--j3) var(--j5); border-bottom: 1px solid var(--garis); }
+.sesi-baris:last-child { border-bottom: 0; }
+.sesi-baris.buka { background: var(--hadir-muda); background: color-mix(in srgb, var(--hadir-muda) 55%, transparent); }
+.sesi-nama, .sesi-status, .sesi-kode { display: grid; gap: 2px; justify-items: start; }
+.sesi-nama b { font-size: var(--h-b); } .sesi-baris small { font-size: var(--h-xs); color: var(--tinta-2); }
+.sesi-kode b { font-size: 26px; font-weight: 800; letter-spacing: .14em; font-variant-numeric: tabular-nums; color: var(--tinta); line-height: 1.1; }
+.sesi-aksi { display: flex; gap: var(--j2); flex-wrap: wrap; justify-content: flex-end; }
+.sesi-aksi select { width: auto; padding: var(--j2); font-size: var(--h-m); }
+.sesi-peringatan { margin: 0; padding: var(--j3) var(--j5); background: var(--emas-kabut); border-bottom: 1px solid var(--garis); font-size: var(--h-s); }
+@media (max-width: 720px) { .sesi-baris { grid-template-columns: 1fr auto; padding: var(--j3) var(--j4); } .sesi-status { grid-column: 1 / -1; grid-row: 2; } .sesi-aksi { grid-column: 1 / -1; justify-content: flex-start; } }
+.kode-layar { position: fixed; inset: 0; z-index: 1000; background: rgba(15, 23, 34, .94); display: flex; align-items: center; justify-content: center; padding: var(--j5); }
+.kl-isi { display: grid; justify-items: center; gap: var(--j3); text-align: center; color: #fff; }
+.kl-label { font-size: clamp(22px, 4vw, 40px); font-weight: 800; color: var(--emas); }
+.kl-ket { font-size: clamp(14px, 2vw, 20px); color: #d6dbe2; }
+#kl-kode { font-size: clamp(96px, 22vw, 260px); font-weight: 800; letter-spacing: .12em; line-height: 1; font-variant-numeric: tabular-nums; }
+.kl-isi button { margin-top: var(--j4); background: transparent; color: #fff; border-color: rgba(255,255,255,.4); }
 /* Asal aturan: siswa (emas), kelompok (biru), umum (abu) */
-span.ab-asal { justify-self: start; display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: var(--r-bulat); margin-top: 2px; }
+span.ab-asal { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: var(--r-bulat); white-space: nowrap; }
 span.ab-asal.a-siswa { background: var(--emas-muda); color: var(--emas-teks); }
-span.ab-asal.a-kel { background: var(--sakit-muda); color: var(--sakit-tua); }
-span.ab-asal.a-umum { background: var(--kertas-3); color: var(--tinta-2); border: 1px solid var(--garis-2); }
-.ab-tahapan { display: grid; padding: var(--j2) var(--j3); border-radius: 10px; background: var(--kertas-3); margin-top: var(--j3); }
-.ab-tahapan small { font-size: 11px; color: var(--tinta-2); } .ab-tahapan b { font-size: var(--h-m); }
+span.ab-asal.a-kelompok { background: var(--sakit-muda); color: var(--sakit-tua); }
+span.ab-asal.a-umum { background: var(--kertas-3); color: var(--tinta-2); box-shadow: inset 0 0 0 1px var(--garis-2); }
+.ab-ringkas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--j3); margin-top: var(--j3); }
+.ab-ring { display: grid; gap: 2px; align-content: start; justify-items: start; padding: var(--j3); border-radius: 12px; background: var(--kertas-3); border: 1px solid var(--garis); }
+.ab-ring small { font-size: 11px; color: var(--tinta-2); text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+.ab-ring b { font-size: var(--h-m); line-height: 1.35; margin-bottom: 4px; }
+.ab-grup { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--j4); margin-top: var(--j4); }
+.ab-judul { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--tinta-2); padding: 0 0 6px; border-bottom: 2px solid var(--garis); margin-bottom: 6px; }
+.ab-isi { display: flex; justify-content: space-between; align-items: center; gap: var(--j2); padding: 8px 10px; border-radius: 10px; margin-bottom: 4px; }
+.ab-isi > span:first-child { display: grid; min-width: 0; } .ab-isi small { font-size: 11px; color: var(--tinta-2); } .ab-isi b { font-size: var(--h-s); }
+.ab-isi.khusus { background: var(--emas-kabut); }
+@media (max-width: 900px) { .ab-grup { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .ab-grup, .ab-ringkas { grid-template-columns: 1fr; } }
+/* Isi seksi di halaman Aturan & Tahapan */
+.seksi-kepala .seksi-aksi { margin-left: auto; flex: none; }
+.seksi-isi { padding: var(--j4) var(--j5); }
+.seksi-tabel table.tabel { margin: 0; } .seksi-tabel th:first-child, .seksi-tabel td:first-child { padding-left: var(--j5); }
+.butir { padding: var(--j4) var(--j5); border-bottom: 1px solid var(--garis); margin: 0; }
+.butir:last-child { border-bottom: 0; }
+.butir .pr-chip { margin: var(--j3) 0; } .butir .jl-langkah { margin: var(--j3) 0; }
+.pr-editor, .jl-editor { padding: var(--j4) var(--j5); background: var(--emas-kabut); border-bottom: 1px solid var(--garis); box-shadow: inset 4px 0 0 var(--emas); scroll-margin-top: 140px; }
+.pr-editor h2, .jl-editor h2 { margin-top: 0; }
+.langkah-siswa { margin: 0; padding: var(--j4) var(--j5) var(--j4) calc(var(--j5) + 18px); display: grid; gap: var(--j2); }
 /* Cara sistem memilih: tiga lapis, yang atas menang */
-.lapis-kepala { display: flex; justify-content: space-between; align-items: center; gap: var(--j3); flex-wrap: wrap; }
-.lapis-kepala h2 { margin: 0; }
-.lapis { list-style: none; padding: 0; margin: var(--j3) 0 0; display: grid; gap: var(--j2); }
-.lapis li { display: grid; grid-template-columns: auto minmax(160px, 1fr) minmax(0, 2fr); gap: var(--j3); align-items: center; padding: var(--j2) var(--j3); border-radius: 10px; border: 1px solid var(--garis-2); }
-.lapis li div { display: grid; } .lapis li small { color: var(--tinta-2); font-size: var(--h-xs); }
-.lapis .l-isi { font-size: var(--h-s); color: var(--tinta); }
+.lapis { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--j2); }
+.lapis li { display: grid; grid-template-columns: 28px minmax(170px, 1fr) minmax(0, 2.4fr); gap: var(--j3); align-items: center; padding: var(--j3); border-radius: 12px; border: 1px solid var(--garis); }
+.lapis li > div { display: grid; } .lapis li > div small { color: var(--tinta-2); font-size: var(--h-xs); }
+.lapis .l-isi { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: var(--j3); font-size: var(--h-s); }
+.lapis .l-isi > span { display: grid; } .lapis .l-isi small { font-size: 11px; color: var(--tinta-2); text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
 .lapis .l-no { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; }
 .lapis .l-siswa { background: var(--emas-kabut); } .lapis .l-siswa .l-no { background: var(--emas-muda); color: var(--emas-teks); }
 .lapis .l-kel .l-no { background: var(--sakit-muda); color: var(--sakit-tua); }
 .lapis .l-umum { background: var(--kertas-3); } .lapis .l-umum .l-no { background: var(--garis-2); color: var(--tinta-2); }
-@media (max-width: 640px) { .lapis li { grid-template-columns: auto 1fr; } .lapis .l-isi { grid-column: 2; } }
+@media (max-width: 720px) { .lapis li { grid-template-columns: 28px 1fr; } .lapis .l-isi { grid-column: 2; grid-template-columns: 1fr; } }
 /* Cek aturan siswa */
-.cek-kartu h2 { margin-bottom: 2px; } .cek-kartu input[type=search] { max-width: 520px; }
-.ck-kepala { display: flex; justify-content: space-between; align-items: center; gap: var(--j3); flex-wrap: wrap; margin-top: var(--j3); }
+#ck-cari { max-width: 560px; }
+.ck-kepala { display: flex; justify-content: space-between; align-items: center; gap: var(--j3); flex-wrap: wrap; margin-top: var(--j4); padding-top: var(--j3); border-top: 1px solid var(--garis); }
 .ck-kepala > div { display: grid; }
 .kel-tabel select { min-width: 190px; padding: var(--j2); font-size: var(--h-m); }
-/* Bilah Daftar siswa: grup Aturan dan Tahapan */
-.massal .m-grup { display: inline-flex; align-items: center; gap: var(--j2); flex-wrap: wrap; }
+/* Lencana ringkas di tabel: satu baris, nama panjang dipotong (lengkap di judul) */
+.lencana.ringkas { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+.lencana-daftar { display: flex; flex-wrap: wrap; gap: 4px; max-width: 230px; }
+/* Bilah Daftar siswa: kepala, baris Aturan, baris Tahapan (tombol Terapkan sejajar di kanan) */
+#dl-massal.on { display: grid; gap: var(--j2); align-items: stretch; }
+/* Kolom posisi: nama tingkat lalu level di bawahnya */
+td.posisi { min-width: 200px; } td.posisi .pos-nm { display: block; font-weight: 600; line-height: 1.35; } td.posisi .pos-lv { display: block; font-size: var(--h-xs); color: var(--tinta-2); }
+.massal .m-kepala { display: flex; align-items: center; gap: var(--j3); flex-wrap: wrap; padding-bottom: var(--j2); border-bottom: 1px solid var(--gelap-2); }
+.massal .m-baris { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: var(--j3); align-items: start; }
+.massal .m-label { padding-top: 10px; }
+.massal .m-label { font-size: var(--h-xs); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--emas); }
+.massal .m-kendali { display: flex; align-items: center; gap: var(--j2); flex-wrap: wrap; min-width: 0; }
+.massal .m-kendali select { flex: 0 1 260px; }
+@media (max-width: 640px) { .massal .m-baris { grid-template-columns: 1fr auto; } .massal .m-label { grid-column: 1 / -1; } .massal .m-kendali select { flex: 1 1 100%; max-width: none; } }
 
 /* Tahapan khusus */
 .jl-kepala { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--j3); flex-wrap: wrap; }
@@ -336,12 +407,12 @@ body.lihat .ubah { display: none !important; }
     <div class="pin-sisi">
       <div class="simbol" aria-hidden="true"><span style="left:10%;top:12%">+</span><span style="right:14%;top:22%">×</span><span style="left:18%;bottom:20%">÷</span><span style="right:22%;bottom:34%">−</span><span style="left:52%;top:8%;font-size:24px">=</span></div>
       <div><img src="assets/logo.png" alt="Logo SMA Plus Merdeka Soreang"><div class="sek">SMA Plus Merdeka Soreang</div>
-        <h1>Matematika Dasar</h1><p>Ruang guru dan pengawas untuk memantau latihan berhitung siswa.</p></div>
-      <ul><li>Kemajuan per kelompok MD dan siswa yang perlu perhatian</li><li>Analisis kesalahan khas tiap siswa</li><li>Tingkat, level, dan uji coba soal</li></ul>
+        <h1>Matematika Dasar</h1><p>Ruang guru untuk melaksanakan dan memantau latihan berhitung kelompoknya.</p></div>
+      <ul><li>Buka sesi latihan dengan kode akses</li><li>Perkembangan dan analisis tiap siswa</li><li>Aturan dan tahapan khusus kelompok</li></ul>
     </div>
     <div class="pin-form">
-      <h2>Masuk guru / pengawas</h2>
-      <p class="redup kecil" style="margin:0">Gunakan PIN yang sama dengan aplikasi Tryout. PIN pengawas hanya bisa melihat.</p>
+      <h2>Masuk guru</h2>
+      <p class="redup kecil" style="margin:0">Gunakan PIN dari admin Matematika Dasar.</p>
       <label class="isian" for="pin">PIN</label>
       <input type="password" id="pin" autocomplete="off" placeholder="••••">
       <div id="pin-pesan" class="pesan buruk hidden" role="alert"></div>
@@ -352,20 +423,32 @@ body.lihat .ubah { display: none !important; }
 
   <section id="v-utama" class="hidden">
     <nav class="tab" id="tab">
-      <button data-v="kelas" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span id="tab-kelompok">Kemajuan kelompok</span></button>
-      <button data-v="daftar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg><span>Daftar siswa</span></button>
-      <button data-v="siswa"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Analisis siswa</span></button>
-      <button data-v="tingkat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h4v-4h4v-4h4V8h4V4"/></svg><span>Tingkat dan Level Soal</span></button>
+      <button data-v="daftar" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg><span>Pelaksanaan Latihan</span></button>
+      <button data-v="kelas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span>Perkembangan Siswa</span></button>
+      <button data-v="siswa"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Analisis Siswa</span></button>
+      <button data-v="jalur"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="6" r="2.5"/><path d="M7.5 18H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7.5"/></svg><span>Tahapan &amp; Aturan Khusus</span></button>
       <button data-v="atur"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span>Pengaturan Umum</span></button>
-      <button data-v="jalur"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="6" r="2.5"/><path d="M7.5 18H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7.5"/></svg><span>Aturan &amp; Tahapan Khusus</span></button>
+      <button data-v="tingkat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h4v-4h4v-4h4V8h4V4"/></svg><span>Tingkat dan Level Soal</span></button>
+      <button data-v="admin" class="hidden" id="tab-admin"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.1 7.5 9.5 4.3-1.4 7.5-4.9 7.5-9.5V6z"/><circle cx="12" cy="11" r="2.2"/><path d="M12 13.2V16"/></svg><span>Admin</span></button>
     </nav>
+    <!-- PIN sementara (nama kelompok): pengingat meminta PIN ke admin -->
+    <div class="pesan hidden" id="pin-sementara" role="note"></div>
     <!-- Kapan data siswa & kelompok MD terakhir ditarik dari Data Induk (lewat admin Tryout) -->
     <div class="kecil redup" id="info-sinkron" style="margin:0 0 var(--j2)"></div>
 
     <!-- Kemajuan per kelompok MD (sebelum kelompok pernah ditarik dari Data Induk: per kelas) -->
     <div id="p-kelas">
-      <div class="kepala-hal"><div><span class="eyebrow">Pemantauan</span><h1 id="judul-kelas">Kemajuan kelompok</h1>
+      <div class="kepala-hal"><div><span class="eyebrow">Pemantauan</span><h1 id="judul-kelas">Perkembangan Siswa</h1>
         <p>Posisi, kemajuan, dan siswa yang perlu perhatian. Ketuk nama siswa untuk melihat analisisnya.</p></div></div>
+      <div class="subtab" role="tablist" aria-label="Tampilan perkembangan">
+        <button role="tab" data-sub="siswa" class="on" aria-selected="true">Per Siswa</button>
+        <button role="tab" data-sub="kelompok" aria-selected="false">Per Kelompok</button>
+      </div>
+      <div id="pk-kelompok" class="hidden">
+        <div class="kartu"><div class="gulir"><table class="tabel" id="t-perkelompok"></table></div>
+          <p class="redup kecil">Ketuk baris kelompok untuk melihat siswanya. Macet: 3 kali atau lebih mengulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih 7 hari terakhir.</p></div>
+      </div>
+      <div id="pk-siswa">
       <div class="baris">
         <select id="pil-kelas" style="max-width:220px" aria-label="Pilih kelompok"></select>
         <select id="pil-urut" style="max-width:240px" aria-label="Urutkan">
@@ -388,12 +471,13 @@ body.lihat .ubah { display: none !important; }
         <div class="gulir"><table class="tabel" id="t-kelas"></table></div>
         <p class="redup kecil">Macet: sudah 3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih 7 hari terakhir. Ketuk nama untuk melihat analisisnya.</p>
       </div>
+      </div>
     </div>
 
     <!-- Daftar siswa: anggota kelompok MD, status masuk, kunci keluar halaman -->
     <div id="p-daftar" class="hidden">
-      <div class="kepala-hal"><div><span class="eyebrow">Siswa</span><h1>Daftar siswa</h1>
-        <p>Anggota kelompok MD, siapa yang sedang berlatih, dan siapa yang terkunci. Diperbarui otomatis tiap 30 detik.</p></div></div>
+      <div class="kepala-hal"><div><span class="eyebrow">Di kelas</span><h1>Pelaksanaan Latihan</h1>
+        <p>Buka sesi latihan, lihat siapa yang sedang berlatih atau terkunci, dan atur siswa terpilih. Diperbarui otomatis tiap 30 detik.</p></div></div>
       <div class="daftar-alat">
         <select id="dl-kelompok" aria-label="Pilih kelompok"></select>
         <select id="dl-tingkat" aria-label="Saring tingkat">
@@ -410,20 +494,26 @@ body.lihat .ubah { display: none !important; }
         <button class="garis kecil" id="dl-muat">Muat ulang</button>
         <button class="btn-unduh utama" data-fmt="xlsx" id="dl-unduh" title="Daftar sesuai saringan; Semua kelompok = satu lembar per kelompok">Unduh daftar</button>
       </div>
+      <!-- Sesi latihan per kelompok: buka dengan batas waktu dan kode akses -->
+      <section class="kartu seksi hidden" id="sesi-kartu">
+        <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg></span>
+          <div><h2>Sesi latihan</h2><p>Siswa hanya bisa masuk saat sesi kelompoknya dibuka, dengan kode dari guru. Halaman tertutup sendiri saat waktunya habis.</p></div></div>
+        <div id="sesi-isi"></div>
+      </section>
       <div class="ubin" id="dl-ubin"></div>
       <!-- Aksi massal (guru/operator): aturan & tahapan siswa terpilih, atau hapus data latihannya -->
       <div class="massal ubah" id="dl-massal" role="region" aria-label="Aksi untuk siswa terpilih">
-        <span class="jml"><b id="dl-n-pilih">0</b> siswa dipilih</span><span class="pisah"></span>
-        <span class="m-grup"><span class="ket">Aturan</span>
-          <select id="dl-profil" aria-label="Aturan untuk siswa terpilih"><option value="">Ikut kelompok / umum</option></select>
-          <button class="kecil" id="dl-terapkan-aturan">Terapkan</button></span><span class="pisah"></span>
-        <span class="m-grup"><span class="ket">Tahapan</span>
-          <select id="dl-jalur" aria-label="Tahapan untuk siswa terpilih"></select>
-          <span class="ket" id="dl-mulai-ket">Mulai dari</span>
-          <select id="dl-tk" aria-label="Mulai dari tingkat"></select><select id="dl-lv" aria-label="Mulai dari level"></select>
-          <label class="cek" id="dl-baru-l"><input type="checkbox" id="dl-baru"> hanya yang belum pernah masuk</label>
-          <button class="kecil" id="dl-terapkan">Terapkan</button></span>
-        <span class="ujung"><button class="kecil bahaya" id="dl-hapus">Hapus data latihan</button><button class="kecil tutup" id="dl-batal">Batal pilih</button></span>
+        <div class="m-kepala"><span class="jml"><b id="dl-n-pilih">0</b> siswa dipilih</span>
+          <span class="ujung"><button class="kecil bahaya" id="dl-hapus">Hapus data latihan</button><button class="kecil tutup" id="dl-batal">Batal pilih</button></span></div>
+        <div class="m-baris"><span class="m-label">Aturan</span>
+          <div class="m-kendali"><select id="dl-profil" aria-label="Aturan untuk siswa terpilih"><option value="">Ikut kelompok / umum</option></select></div>
+          <button class="kecil" id="dl-terapkan-aturan">Terapkan</button></div>
+        <div class="m-baris"><span class="m-label">Tahapan</span>
+          <div class="m-kendali"><select id="dl-jalur" aria-label="Tahapan untuk siswa terpilih"></select>
+            <span class="ket" id="dl-mulai-ket">Mulai dari</span>
+            <select id="dl-tk" aria-label="Mulai dari tingkat"></select><select id="dl-lv" aria-label="Mulai dari level"></select>
+            <label class="cek" id="dl-baru-l"><input type="checkbox" id="dl-baru"> hanya yang belum pernah masuk</label></div>
+          <button class="kecil" id="dl-terapkan">Terapkan</button></div>
       </div>
       <div class="kartu">
         <div class="gulir"><table class="tabel" id="t-daftar"></table></div>
@@ -441,7 +531,7 @@ body.lihat .ubah { display: none !important; }
       <div class="baris">
         <select id="pil-siswa" class="tumbuh" aria-label="Pilih siswa"></select>
       </div>
-      <div id="d-isi"><div class="kartu kosong-data">Pilih siswa dari daftar di atas, atau ketuk nama di tab Kemajuan kelompok.</div></div>
+      <div id="d-isi"><div class="kartu kosong-data">Pilih siswa dari daftar di atas, atau ketuk nama di Perkembangan Siswa.</div></div>
     </div>
 
     <!-- Tingkat -->
@@ -454,59 +544,76 @@ body.lihat .ubah { display: none !important; }
 
     <!-- Aturan & Tahapan Khusus: pengecualian dari Pengaturan Umum per kelompok atau per siswa -->
     <div id="p-jalur" class="hidden">
-      <div class="kepala-hal"><div><span class="eyebrow">Pengecualian dari Pengaturan Umum</span><h1>Aturan &amp; Tahapan Khusus</h1>
-        <p>Siapkan profil aturan dan tahapan khusus, lalu pasang ke kelompok di halaman ini atau ke siswa tertentu lewat <b>Daftar siswa</b>. Yang tidak diatur mengikuti <a href="#" id="ke-umum">Pengaturan Umum</a>.</p></div></div>
+      <div class="atur-kepala kepala-hal"><div><span class="eyebrow">Pengecualian dari Pengaturan Umum</span><h1>Tahapan &amp; Aturan Khusus</h1>
+        <p class="redup kecil">Pustaka profil aturan dan tahapan khusus yang dipakai bersama semua guru. Pasang ke siswa tertentu lewat <b>Pelaksanaan Latihan</b>, atau pilih tahapan untuk seluruh kelompok di <a href="#" id="ke-umum">Pengaturan Umum</a>.</p></div></div>
 
       <!-- Cara aturan & tahapan dipilih (bisa disembunyikan) -->
-      <div class="kartu lapis-kartu" id="lapis-kartu">
-        <div class="lapis-kepala"><h2>Cara sistem memilih aturan dan tahapan</h2><button class="garis kecil" id="lapis-tutup">Sembunyikan</button></div>
-        <ol class="lapis">
-          <li class="l-siswa"><span class="l-no">1</span><div><b>Siswa tertentu</b><small>diatur lewat Daftar siswa · paling kuat</small></div><span class="l-isi">Aturan: profil siswa<br>Tahapan: tahapan khusus, atau tahapan umum mulai dari tingkat/level pilihan</span></li>
-          <li class="l-kel"><span class="l-no">2</span><div><b>Kelompok</b><small>diatur di halaman ini, bagian 3</small></div><span class="l-isi">Aturan: profil kelompok<br>Tahapan: tahapan khusus kelompok</span></li>
-          <li class="l-umum"><span class="l-no">3</span><div><b>Pengaturan Umum</b><small>berlaku bila tidak ada yang di atas</small></div><span class="l-isi">Aturan: Pengaturan Umum<br>Tahapan: urutan Tingkat dan Level Soal</span></li>
-        </ol>
-        <p class="redup kecil" style="margin:var(--j2) 0 0">Yang lebih atas menang. Isian aturan yang tidak diisi profil di atas ikut lapisan di bawahnya, satu per satu. Contoh: profil siswa yang hanya mengubah jumlah soal tetap memakai lama sesi dari kelompoknya.</p>
-      </div>
-      <button class="garis kecil hidden" id="lapis-buka">Tampilkan cara sistem memilih aturan</button>
+      <section class="kartu seksi" id="lapis-kartu">
+        <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg></span>
+          <div><h2>Cara sistem memilih aturan dan tahapan</h2><p>Tiga lapis. Yang lebih atas menang.</p></div>
+          <button class="garis kecil seksi-aksi" id="lapis-tutup">Sembunyikan</button></div>
+        <div class="seksi-isi">
+          <ol class="lapis">
+            <li class="l-siswa"><span class="l-no">1</span><div><b>Siswa tertentu</b><small>Pelaksanaan Latihan · paling kuat</small></div><span class="l-isi"><span><small>Aturan</small>profil siswa</span><span><small>Tahapan</small>tahapan khusus, atau tahapan umum dengan Mulai dari</span></span></li>
+            <li class="l-kel"><span class="l-no">2</span><div><b>Kelompok</b><small>Pengaturan Umum kelompok, oleh guru</small></div><span class="l-isi"><span><small>Aturan</small>isian Pengaturan Umum kelompok</span><span><small>Tahapan</small>tahapan khusus kelompok</span></span></li>
+            <li class="l-umum"><span class="l-no">3</span><div><b>Bawaan sekolah</b><small>diatur admin</small></div><span class="l-isi"><span><small>Aturan</small>nilai bawaan sekolah</span><span><small>Tahapan</small>urutan Tingkat dan Level Soal</span></span></li>
+          </ol>
+        </div>
+        <p class="catatan-seksi"><span>Isian aturan yang tidak diisi profil di atas ikut lapisan di bawahnya, satu per satu. Contoh: profil siswa yang hanya mengubah jumlah soal tetap memakai lama sesi dari kelompoknya.</span></p>
+      </section>
+      <p id="lapis-buka-p" class="hidden" style="margin:0 0 var(--j4)"><button class="garis kecil" id="lapis-buka">Tampilkan cara sistem memilih aturan dan tahapan</button></p>
 
       <!-- Cek aturan satu siswa -->
-      <div class="kartu cek-kartu">
-        <h2>Cek aturan siswa</h2>
-        <p class="redup kecil" style="margin-top:0">Ketik nama atau NISN untuk melihat aturan dan tahapan yang sedang berlaku bagi siswa itu, beserta asalnya.</p>
-        <input type="search" id="ck-cari" list="ck-daftar" placeholder="Ketik nama atau NISN siswa…" aria-label="Cari siswa untuk dicek" autocomplete="off">
-        <datalist id="ck-daftar"></datalist>
-        <div id="ck-hasil"></div>
-      </div>
+      <section class="kartu seksi">
+        <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg></span>
+          <div><h2>Cek aturan siswa</h2><p>Aturan dan tahapan yang sedang berlaku bagi satu siswa, beserta asalnya.</p></div></div>
+        <div class="seksi-isi">
+          <input type="search" id="ck-cari" list="ck-daftar" placeholder="Ketik nama atau NISN siswa…" aria-label="Cari siswa untuk dicek" autocomplete="off">
+          <datalist id="ck-daftar"></datalist>
+          <div id="ck-hasil"></div>
+        </div>
+      </section>
 
-      <section class="khusus-bagian">
-        <div class="khusus-kepala"><div><h2>1. Profil aturan</h2><p class="redup kecil">Kumpulan aturan bernama yang bisa dipakai ulang, mis. "Santai 40 menit" atau "Remedial 15 soal". Isian yang dikosongkan mengikuti lapisan di bawahnya.</p></div>
-          <button class="ubah" id="pr-baru">+ Buat profil</button></div>
-        <div class="kartu pr-editor hidden" id="pr-editor"></div>
+      <section class="kartu seksi">
+        <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></span>
+          <div><h2>1. Profil aturan</h2><p>Kumpulan aturan bernama yang bisa dipakai ulang, mis. "Santai 40 menit".</p></div>
+          <button class="ubah kecil seksi-aksi" id="pr-baru">+ Buat profil</button></div>
+        <div class="pr-editor hidden" id="pr-editor"></div>
         <div id="pr-daftar"></div>
       </section>
 
-      <section class="khusus-bagian">
-        <div class="khusus-kepala"><div><h2>2. Tahapan khusus</h2><p class="redup kecil">Urutan tingkat dan level tertentu, mis. untuk remedial atau pengayaan. Tahapan hanya berisi urutan soal; aturannya mengikuti profil kelompok atau siswa.</p></div>
-          <button class="ubah" id="jl-baru">+ Buat tahapan</button></div>
-        <div class="kartu jl-editor hidden" id="jl-editor"></div>
+      <section class="kartu seksi">
+        <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="6" r="2.5"/><path d="M7.5 18H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7.5"/></svg></span>
+          <div><h2>2. Tahapan khusus</h2><p>Urutan tingkat dan level tertentu untuk remedial atau pengayaan. Hanya berisi urutan soal.</p></div>
+          <button class="ubah kecil seksi-aksi" id="jl-baru">+ Buat tahapan</button></div>
+        <div class="jl-editor hidden" id="jl-editor"></div>
         <div id="jl-daftar"></div>
       </section>
 
-      <section class="khusus-bagian">
-        <div class="khusus-kepala"><div><h2>3. Aturan dan tahapan per kelompok</h2><p class="redup kecil">Pilih profil aturan dan tahapan untuk tiap kelompok MD. Yang tidak dipilih memakai Pengaturan Umum dan urutan Tingkat dan Level Soal.</p></div></div>
-        <div class="kartu" id="pr-kelompok"></div>
+      <section class="kartu seksi">
+        <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>
+          <div><h2>3. Untuk siswa tertentu</h2><p>Diatur lewat menu Pelaksanaan Latihan. Pilihan siswa mengalahkan pilihan kelompok.</p></div></div>
+        <ol class="langkah-siswa">
+          <li>Buka <b>Pelaksanaan Latihan</b>, saring kelompok atau cari siswa, lalu centang.</li>
+          <li>Di bilah bawah, pilih <b>Aturan</b> atau <b>Tahapan</b>, lalu tekan <b>Terapkan</b> di barisnya.</li>
+          <li>Untuk mengembalikan, pilih <b>Ikut kelompok</b>.</li>
+        </ol>
       </section>
+    </div>
 
-      <section class="khusus-bagian">
-        <div class="khusus-kepala"><div><h2>4. Untuk siswa tertentu</h2><p class="redup kecil">Buka tab <b>Daftar siswa</b>, saring kelompok atau cari siswa, lalu centang. Di bilah bawah pilih <b>Aturan</b> dan <b>Tahapan</b>, lalu tekan <b>Terapkan</b>. Pilihan siswa mengalahkan pilihan kelompok. Pilih <b>Ikut kelompok</b> untuk mengembalikannya.</p></div></div>
-      </section>
+    <!-- Admin: guru & PIN, PIN admin, kosongkan data -->
+    <div id="p-admin" class="hidden">
+      <div class="atur-kepala kepala-hal"><div><span class="eyebrow">Khusus admin</span><h1>Admin</h1>
+        <p class="redup kecil">Guru dan PIN masuknya, PIN admin, serta pengosongan data latihan. Nilai bawaan sekolah diatur di <b>Pengaturan Umum → Bawaan sekolah</b>.</p></div></div>
+      <div id="f-admin"></div>
     </div>
 
     <!-- Pengaturan -->
     <div id="p-atur" class="hidden">
       <div class="atur-kepala kepala-hal">
-        <div><span class="eyebrow">Bawaan untuk semua siswa</span><h1>Pengaturan Umum (Bawaan)</h1>
-          <p class="redup kecil">Berlaku untuk semua siswa, <b>kecuali</b> yang diatur di <a href="#" id="ke-khusus">Aturan &amp; Tahapan Khusus</a> (per kelompok atau per siswa). Setiap perubahan langsung tersimpan.</p></div>
+        <div><span class="eyebrow">Aturan kelompok</span><h1>Pengaturan Umum</h1>
+          <p class="redup kecil" id="atur-ket">Berlaku untuk seluruh siswa kelompok, <b>kecuali</b> siswa yang diberi aturan sendiri di <a href="#" id="ke-khusus">Tahapan &amp; Aturan Khusus</a>. Setiap perubahan langsung tersimpan.</p></div>
+        <label class="atur-sasaran">Berlaku untuk<select id="atur-sasaran" aria-label="Pengaturan untuk"></select></label>
       </div>
       <div class="ringkas" id="atur-ringkas" aria-label="Ringkasan pengaturan"></div>
       <div id="f-atur"></div>
@@ -514,6 +621,11 @@ body.lihat .ubah { display: none !important; }
   </section>
 </main>
 <div class="toast" id="toast" role="status"></div>
+<!-- Kode akses sesi dalam ukuran besar, untuk diproyeksikan atau disalin ke papan -->
+<div class="kode-layar hidden" id="kode-layar" role="dialog" aria-modal="true" aria-labelledby="kl-kel">
+  <div class="kl-isi"><span class="kl-label" id="kl-kel"></span><span class="kl-ket">Kode akses latihan</span><b id="kl-kode"></b><span class="kl-ket" id="kl-sampai"></span>
+    <button class="garis" id="kl-tutup">Tutup tampilan</button></div>
+</div>
 
 <script src="assets/umum.js?v=7"></script>
 <script src="assets/excel.js?v=2"></script>
@@ -530,13 +642,14 @@ async function masuk(pin, diam) {
   try {
     G = await rpc("mtd_guru_masuk", { p_pin: pin });
     PIN = pin; PERAN = G.peran; ssSet(KUNCI_PIN, pin);
-    document.body.classList.toggle("lihat", PERAN === "pengawas");
-    $("hd-sub").textContent = `Masuk sebagai ${PERAN}`;
+    $("hd-sub").textContent = PERAN === "admin" ? "Masuk sebagai admin" : `${G.nama} · ${G.kelompok.join(", ") || "belum ada kelompok"}`;
+    $("tab-admin").classList.toggle("hidden", PERAN !== "admin"); $("tab").classList.toggle("tujuh", PERAN === "admin");
+    $("pin-sementara").classList.toggle("hidden", !G.sementara);
+    $("pin-sementara").innerHTML = G.sementara ? `Anda masuk dengan <b>PIN sementara</b> untuk kelompok ${esc(G.kelompok.join(", "))}. Minta PIN pribadi kepada admin Matematika Dasar. Dengan PIN pribadi, semua kelompok yang Anda ampu tampil sekaligus.` : "";
     $("v-pin").classList.add("hidden"); $("v-utama").classList.remove("hidden"); $("btn-keluar").classList.remove("hidden");
     MODE_MD = (G.kelompok || []).length > 0;
-    $("tab-kelompok").textContent = $("judul-kelas").textContent = MODE_MD ? "Kemajuan kelompok" : "Kemajuan kelas";
     $("pil-kelas").innerHTML = MODE_MD
-      ? G.kelompok.map((k) => `<option>${esc(k)}</option>`).join("") + (G.ada_tanpa_kelompok ? '<option value="-">Tanpa kelompok MD</option>' : "") + '<option value="">Semua kelompok</option>'
+      ? G.kelompok.map((k) => `<option>${esc(k)}</option>`).join("") + (G.ada_tanpa_kelompok ? '<option value="-">Tanpa kelompok MD</option>' : "") + (G.kelompok.length > 1 || PERAN === "admin" ? `<option value="">${PERAN === "admin" ? "Semua kelompok" : "Semua kelompok saya"}</option>` : "")
       : G.kelas.map((k) => `<option>${esc(k)}</option>`).join("") + '<option value="">Semua kelas</option>';
     const kSimpan = ssGet("mtd_kelas", null);
     if (kSimpan !== null && [...$("pil-kelas").options].some((o) => o.value === kSimpan)) $("pil-kelas").value = kSimpan;
@@ -544,7 +657,8 @@ async function masuk(pin, diam) {
     const opsi = [...$("pil-kelas").options];
     $("dl-kelompok").innerHTML = opsi.filter((o) => o.value === "").concat(opsi.filter((o) => o.value !== "")).map((o) => o.outerHTML).join("");
     $("dl-kelompok").value = "";
-    muatKelas(); gambarTingkat(); gambarAtur(); gambarSinkron(); isiPilihPosisi(); muatJalur(true); muatProfil(true);
+    if ($("dl-kelompok").selectedIndex < 0) $("dl-kelompok").selectedIndex = 0;
+    isiSasaranAtur(); bukaTab("daftar"); muatKelas(); gambarTingkat(); gambarSinkron(); isiPilihPosisi(); muatJalur(true); muatProfil(true);
   } catch (e) {
     if (diam) return;
     $("pin-pesan").textContent = e.message; $("pin-pesan").classList.remove("hidden");
@@ -573,10 +687,13 @@ $("btn-keluar").onclick = () => { ssSet(KUNCI_PIN, null); location.reload(); };
 $("tab").querySelectorAll("button").forEach((b) => b.onclick = () => bukaTab(b.dataset.v));
 function bukaTab(v) {
   $("tab").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.v === v));
-  ["kelas", "daftar", "siswa", "tingkat", "jalur", "atur"].forEach((x) => $("p-" + x).classList.toggle("hidden", x !== v));
+  ["kelas", "daftar", "siswa", "tingkat", "jalur", "atur", "admin"].forEach((x) => $("p-" + x).classList.toggle("hidden", x !== v));
   clearInterval(daftarT);
   if (v === "jalur") { muatProfil(); muatJalur(); muatSemua(); }
-  if (v === "daftar") { muatDaftar(); daftarT = setInterval(() => { if (!document.hidden) muatDaftar(true); }, 30000); }
+  if (v === "atur") muatAtur();
+  if (v === "admin") muatAdmin();
+  if (v === "kelas" && SUB === "kelompok") muatPerKelompok();
+  if (v === "daftar") { muatDaftar(); muatSesi(); daftarT = setInterval(() => { if (!document.hidden) { muatDaftar(true); muatSesi(); } }, 30000); }
 }
 
 /* Kotak angka ringkasan: [[nilai, label, ikon, warna]] → HTML (ikon & warna sesuai makna). */
@@ -601,7 +718,7 @@ function status(r) {
   const s = [];
   if (!r.tingkat) return [{ t: "Belum mulai", c: "" , bobot: 2 }];
   if (r.terkunci) s.push({ t: "Terkunci", c: "buruk", bobot: 5 });
-  if (r.jalur) s.push({ t: "Jalur: " + r.jalur, c: "biru", bobot: 0 });
+  if (r.jalur) s.push({ t: "Tahapan: " + r.jalur, c: "biru", bobot: 0 });
   if (r.aturan) s.push({ t: "Aturan: " + r.aturan, c: "emas", bobot: 0 });
   else if (r.aturan_kelompok) s.push({ t: "Aturan kelompok: " + r.aturan_kelompok, c: "", bobot: 0 });
   if (r.selesai) s.push({ t: "Tamat", c: "baik", bobot: 0 });
@@ -656,10 +773,10 @@ function gambarKelas() {
     (R.length ? R.map((r, i) => {
       const ak = r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) + "%" : "–";
       return `<tr class="klik" data-n="${esc(r.nisn)}"><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>${semua ? `<td>${esc(MODE_MD ? r.kelompok || "–" : r.kelas)}</td>` : ""}
-        <td>${r.tingkat ? `${esc(r.nama_tingkat)} · <span class="nm">Lv ${r.level}</span>` : '<span class="redup">–</span>'}</td>
+        <td class="posisi">${r.tingkat ? `<span class="pos-nm">${esc(r.nama_tingkat)}</span><span class="pos-lv">Level ${r.level}</span>` : '<span class="redup">–</span>'}</td>
         <td><div class="maju"><div class="batang"><i style="width:${100 * r.lewat / Math.max(1, jumlah)}%"></i></div><span>${r.lewat}/${jumlah}</span></div></td>
         <td class="angka">${r.tuntas_7}</td><td class="angka">${ak}</td><td class="angka">${r.detik ? lamaTeks(r.detik) : "–"}</td>
-        <td>${sejakTeks(r.terakhir)}</td><td>${status(r).map((s) => `<span class="lencana ${s.c}">${s.t}</span>`).join(" ")}</td></tr>`;
+        <td>${sejakTeks(r.terakhir)}</td><td><span class="lencana-daftar">${status(r).map((s) => `<span class="lencana ringkas ${s.c}" title="${esc(s.t)}">${esc(s.t)}</span>`).join("")}</span></td></tr>`;
     }).join("") : '<tr><td colspan="10" class="kosong-data">Tidak ada siswa.</td></tr>') + "</tbody>";
   $("t-kelas").querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = () => bukaSiswa(tr.dataset.n));
 }
@@ -712,7 +829,7 @@ async function muatDaftar(diam) {
   catch (e) { if (!diam) $("t-daftar").innerHTML = `<tr><td class="kosong-data">${esc(e.message)}</td></tr>`; return; }
   gambarDaftar();
 }
-$("dl-kelompok").onchange = () => muatDaftar();
+$("dl-kelompok").onchange = () => { muatDaftar(); gambarSesi(); };
 $("dl-muat").onclick = () => muatDaftar();
 $("dl-status").onchange = () => gambarDaftar();
 $("dl-tingkat").onchange = () => gambarDaftar();
@@ -721,9 +838,9 @@ const PILIH = new Set();
 $("dl-cari").oninput = () => gambarDaftar();
 
 const statusDaftar = (r) => r.terkunci ? '<span class="lencana buruk">Terkunci</span>'
-  : r.jalur && !r.online ? `<span class="lencana biru" title="${r.jalur_siswa ? "Tahapan khusus dipilih untuk siswa ini" : "Tahapan khusus kelompok"}">Tahapan: ${esc(r.jalur)}</span>`
+  : r.jalur && !r.online ? `<span class="lencana ringkas biru" title="${r.jalur_siswa ? "Tahapan khusus dipilih untuk siswa ini" : "Tahapan khusus kelompok"}">Tahapan: ${esc(r.jalur)}</span>`
   : r.jalur_siswa && r.tahapan_kelompok && !r.online ? `<span class="lencana" title="Tahapan umum dipilih untuk siswa ini; tidak ikut tahapan kelompok">Tahapan umum (siswa)</span>`
-  : r.aturan && !r.online ? `<span class="lencana emas" title="Profil aturan khusus siswa">Aturan: ${esc(r.aturan)}</span>`
+  : r.aturan && !r.online ? `<span class="lencana ringkas emas" title="Profil aturan khusus siswa: ${esc(r.aturan)}">Aturan: ${esc(r.aturan)}</span>`
   : r.online ? '<span class="lencana baik"><span class="titik-on"></span>Sedang berlatih</span>'
   : !r.tingkat ? '<span class="lencana">Belum pernah masuk</span>'
   : r.selesai ? '<span class="lencana baik">Tamat</span>'
@@ -762,7 +879,7 @@ function gambarDaftar() {
       <td class="nisn">${esc(r.nisn)}</td><td class="nisn">${esc(r.nis || "–")}</td><td>${esc(r.kelas)}</td>
       ${semua && MODE_MD ? `<td>${esc(r.kelompok || "–")}</td>` : ""}
       <td>${statusDaftar(r)}</td>
-      <td>${r.tingkat ? `${esc(r.nama_tingkat)} · <span class="nm">Lv ${r.level}</span>` : '<span class="redup">–</span>'}</td>
+      <td class="posisi">${r.tingkat ? `<span class="pos-nm">${esc(r.nama_tingkat)}</span><span class="pos-lv">Level ${r.level}</span>` : '<span class="redup">–</span>'}</td>
       <td class="angka">${r.keluar_7 || '<span class="redup">0</span>'}</td>
       <td>${r.terkunci ? `<button class="kecil" data-buka="${esc(r.nisn)}">Buka kunci</button>` : ""}</td></tr>`).join("")
       : `<tr><td colspan="11" class="kosong-data">${D.length ? "Tidak ada siswa yang cocok dengan pencarian." : "Tidak ada siswa."}</td></tr>`) + "</tbody>";
@@ -872,13 +989,77 @@ $("dl-terapkan").onclick = async () => {
   catch (e) { toast(e.message); }
 };
 
+/* ----------------------------------------------------------- sesi latihan per kelompok */
+// BUKA = { umum_aktif, sekarang, kelompok: [{ kelompok, buka, sampai, kode, n_siswa, n_online }] }
+let BUKA = null, sesiT = null;
+const LAMA_SESI = [30, 45, 60, 90, 120];
+async function muatSesi() {
+  if (!MODE_MD) return;
+  try { BUKA = await rpc("mtd_buka_daftar", { p_pin: PIN }); BUKA.selisih = Date.now() - new Date(BUKA.sekarang).getTime(); }
+  catch (e) { $("sesi-kartu").classList.remove("hidden"); $("sesi-isi").innerHTML = `<p class="butir redup">${esc(e.message)}</p>`; return; }
+  gambarSesi();
+}
+const sisaSesi = (k) => Math.max(0, Math.ceil((new Date(k.sampai).getTime() - (Date.now() - BUKA.selisih)) / 60000));
+const jamTeks = (iso) => new Date(iso).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+function gambarSesi() {
+  if (!BUKA) return;
+  const pilih = $("dl-kelompok").value, boleh = true;
+  const L = BUKA.kelompok.filter((k) => !pilih || k.kelompok === pilih);
+  $("sesi-kartu").classList.toggle("hidden", !L.length);
+  if (L.some((k) => k.buka && sisaSesi(k) === 0)) { setTimeout(muatSesi, 1500); }
+  $("sesi-isi").innerHTML = (BUKA.umum_aktif ? `<p class="sesi-peringatan">Halaman latihan sedang <b>dibuka untuk semua kelompok</b> oleh admin, jadi siswa bisa masuk kapan saja dan dari mana saja${PERAN === "admin" ? `. <a href="#" id="sesi-ke-umum">Tutup di Pengaturan Umum → Bawaan sekolah</a> agar siswa hanya bisa masuk saat sesi kelompoknya dibuka.` : ". Minta admin menutupnya agar siswa hanya bisa masuk saat sesi kelompoknya dibuka."}</p>` : "") +
+    L.map((k) => {
+      const buka = k.buka && sisaSesi(k) > 0;
+      return `<div class="sesi-baris ${buka ? "buka" : ""}">
+        <div class="sesi-nama"><b>${esc(k.kelompok)}</b><small>${k.n_siswa} siswa</small></div>
+        <div class="sesi-status">${buka ? `<span class="lencana baik"><span class="titik-on"></span>Dibuka · sisa ${sisaSesi(k)} menit</span><small>sampai pukul ${jamTeks(k.sampai)} · ${k.n_online} sedang berlatih</small>`
+          : '<span class="lencana">Ditutup</span><small>siswa tidak bisa masuk</small>'}</div>
+        <div class="sesi-kode">${buka ? `<small>Kode akses</small><b>${esc(k.kode)}</b>` : ""}</div>
+        <div class="sesi-aksi">${!boleh ? "" : buka
+          ? `<button class="garis kecil" data-layar="${esc(k.kelompok)}">Tampilkan kode</button><button class="garis kecil" data-tambah="${esc(k.kelompok)}">+15 menit</button><button class="kecil bahaya" data-tutup="${esc(k.kelompok)}">Tutup sekarang</button>`
+          : `<select data-menit="${esc(k.kelompok)}" aria-label="Lama sesi ${esc(k.kelompok)}">${LAMA_SESI.map((m) => `<option value="${m}" ${m === 90 ? "selected" : ""}>${m} menit</option>`).join("")}</select><button class="kecil" data-buka="${esc(k.kelompok)}">Buka sesi</button>`}</div></div>`;
+    }).join("");
+  if ($("sesi-ke-umum")) $("sesi-ke-umum").onclick = (e) => { e.preventDefault(); $("atur-sasaran").value = ""; bukaTab("atur"); };
+  const cari = (k) => BUKA.kelompok.find((x) => x.kelompok === k);
+  $("sesi-isi").querySelectorAll("[data-buka]").forEach((b) => b.onclick = async () => {
+    const k = b.dataset.buka, m = +$("sesi-isi").querySelector(`[data-menit="${CSS.escape(k)}"]`).value;
+    const sampai = new Date(Date.now() + m * 60000);
+    if (!confirm(`Buka latihan untuk ${k} selama ${m} menit?\n\nSiswa ${k} memasukkan kode akses yang muncul setelah ini. Halaman tertutup sendiri pukul ${jamTeks(sampai)}, dan siswa yang masih berlatih saat itu ikut selesai.`)) return;
+    try { const r = await rpc("mtd_buka_kelompok", { p_pin: PIN, p_kelompok: [k], p_menit: m }); await muatSesi(); tampilKode(k); toast(`Sesi ${k} dibuka, kode ${r.kelompok[0].kode}`); }
+    catch (e) { toast(e.message); }
+  });
+  $("sesi-isi").querySelectorAll("[data-tambah]").forEach((b) => b.onclick = async () => {
+    const k = cari(b.dataset.tambah);
+    try { await rpc("mtd_buka_kelompok", { p_pin: PIN, p_kelompok: [k.kelompok], p_menit: Math.min(300, sisaSesi(k) + 15) }); toast(`Sesi ${k.kelompok} diperpanjang 15 menit, kode tetap`); muatSesi(); }
+    catch (e) { toast(e.message); }
+  });
+  $("sesi-isi").querySelectorAll("[data-tutup]").forEach((b) => b.onclick = async () => {
+    const k = cari(b.dataset.tutup);
+    if (!confirm(`Tutup sesi ${k.kelompok} sekarang?\n\n${k.n_online ? `${k.n_online} siswa yang sedang berlatih akan dikeluarkan. ` : ""}Kemajuan siswa tetap tersimpan. Kode ${k.kode} tidak berlaku lagi.`)) return;
+    try { const r = await rpc("mtd_tutup_kelompok", { p_pin: PIN, p_kelompok: [k.kelompok] }); toast(`Sesi ${k.kelompok} ditutup${r.dikeluarkan ? `, ${r.dikeluarkan} siswa dikeluarkan` : ""}`); muatSesi(); muatKelas(); }
+    catch (e) { toast(e.message); }
+  });
+  $("sesi-isi").querySelectorAll("[data-layar]").forEach((b) => b.onclick = () => tampilKode(b.dataset.layar));
+}
+// Kode dalam ukuran besar untuk diproyeksikan; Esc atau tombol menutupnya.
+function tampilKode(nama) {
+  const k = BUKA && BUKA.kelompok.find((x) => x.kelompok === nama);
+  if (!k || !k.kode) return;
+  $("kl-kel").textContent = k.kelompok; $("kl-kode").textContent = k.kode; $("kl-sampai").textContent = `Berlaku sampai pukul ${jamTeks(k.sampai)}`;
+  $("kode-layar").classList.remove("hidden"); $("kl-tutup").focus();
+}
+$("kl-tutup").onclick = () => $("kode-layar").classList.add("hidden");
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("kode-layar").classList.add("hidden"); });
+// Hitung mundur diperbarui tiap 20 detik; data diambil ulang tiap menit selama tab Kemajuan terbuka.
+setInterval(() => { if (BUKA && !document.hidden && !$("p-daftar").classList.contains("hidden")) gambarSesi(); }, 20000);
+
 /* ----------------------------------------------------------- profil aturan khusus */
 let PROFIL = [], PROFIL_KEL = {}, TAHAPAN_KEL = {}, SEMUA = [];
 // Pengaturan yang boleh dibuat khusus, dikelompokkan seperti Pengaturan Umum.
 const ATUR_KHUSUS = [
   { g: "Halaman latihan", f: [
-    { k: "aktif", l: "Halaman latihan", t: "ya", on: "Dibuka", off: "Ditutup" },
-    { k: "kode_akses", l: "Kode akses", t: "kode" },
+    { k: "aktif", l: "Halaman latihan", t: "ya", on: "Dibuka", off: "Ditutup", ro: true },
+    { k: "kode_akses", l: "Kode akses", t: "kode", ro: true },
     { k: "tampil_kunci", l: "Jawaban benar saat salah", t: "ya", on: "Ditampilkan", off: "Disembunyikan" } ] },
   { g: "Naik level", f: [
     { k: "n_benar", l: "Soal benar per level", t: "angka", sat: "soal", min: 1, maks: 50 },
@@ -916,11 +1097,11 @@ function gambarProfil() {
   const boleh = PERAN !== "pengawas";
   $("pr-daftar").innerHTML = PROFIL.length ? PROFIL.map((p) => {
     const pakai = dipakaiTeks(p.kelompok, p.n_kelompok_siswa, p.n_siswa);
-    return `<div class="kartu pr-kartu"><div class="jl-kepala"><div><h2>${esc(p.nama)}</h2>${p.catatan ? `<span class="redup kecil">${esc(p.catatan)}</span>` : ""}</div>
-      ${boleh ? `<span class="jl-aksi"><button class="garis kecil" data-ubah-profil="${p.id}">Ubah</button><button class="kecil bahaya" data-hapus-profil="${p.id}">Hapus</button></span>` : ""}</div>
+    return `<div class="butir"><div class="jl-kepala"><div><h2>${esc(p.nama)}</h2>${p.catatan ? `<span class="redup kecil">${esc(p.catatan)}</span>` : ""}</div>
+      ${p.boleh_ubah ? `<span class="jl-aksi"><button class="garis kecil" data-ubah-profil="${p.id}">Ubah</button><button class="kecil bahaya" data-hapus-profil="${p.id}">Hapus</button></span>` : `<span class="redup kecil">dibuat ${esc(p.pemilik || "admin")}</span>`}</div>
       <div class="pr-chip">${SEMUA_KHUSUS.filter((x) => p.aturan[x.k] !== undefined).map((x) => `<span><small>${x.l}</small><b>${esc(nilaiAturTeks(x, p.aturan[x.k]))}</b></span>`).join("")}</div>
       <div class="pr-pakai ${pakai ? "" : "redup"}">${pakai ? "<b>Dipakai oleh:</b> " + esc(pakai) : "Belum dipakai kelompok atau siswa"}</div></div>`;
-  }).join("") : '<div class="kartu kosong-data">Belum ada profil aturan. Semua siswa memakai Pengaturan Umum.</div>';
+  }).join("") : '<p class="butir kosong-data">Belum ada profil aturan. Semua siswa memakai Pengaturan Umum.</p>';
   $("pr-daftar").querySelectorAll("[data-ubah-profil]").forEach((b) => b.onclick = () => bukaEditorProfil(PROFIL.find((p) => p.id === +b.dataset.ubahProfil)));
   $("pr-daftar").querySelectorAll("[data-hapus-profil]").forEach((b) => b.onclick = async () => {
     const p = PROFIL.find((x) => x.id === +b.dataset.hapusProfil), pakai = dipakaiTeks(p.kelompok, p.n_kelompok_siswa, p.n_siswa);
@@ -930,10 +1111,11 @@ function gambarProfil() {
 }
 // Aturan & tahapan per kelompok: dua pilihan per baris, masing-masing dengan konfirmasi akibatnya.
 function gambarKelompokAturan() {
+  if (!$("pr-kelompok")) return;
   const boleh = PERAN !== "pengawas", kel = G.kelompok || [];
-  if (!kel.length) { $("pr-kelompok").innerHTML = '<p class="redup" style="margin:0">Kelompok MD belum ditarik dari Data Induk. Setelah operator menariknya di admin Aplikasi Tryout Guru, daftar kelompok muncul di sini.</p>'; return; }
+  if (!kel.length) { $("pr-kelompok").innerHTML = '<p class="butir redup">Kelompok MD belum ditarik dari Data Induk. Setelah operator menariknya di admin Aplikasi Tryout Guru, daftar kelompok muncul di sini.</p>'; return; }
   const anggota = (k) => SEMUA.filter((r) => r.kelompok === k);
-  $("pr-kelompok").innerHTML = `<div class="gulir"><table class="tabel kel-tabel"><thead><tr><th>Kelompok</th><th class="angka">Anggota</th><th>Profil aturan</th><th>Tahapan</th><th>Yang berbeda dari umum</th></tr></thead><tbody>${kel.map((k) => {
+  $("pr-kelompok").innerHTML = `<div class="gulir seksi-tabel"><table class="tabel kel-tabel"><thead><tr><th>Kelompok</th><th class="angka">Anggota</th><th>Profil aturan</th><th>Tahapan</th><th>Yang berbeda dari umum</th></tr></thead><tbody>${kel.map((k) => {
     const pid = PROFIL_KEL[k], p = PROFIL.find((x) => x.id === pid), tid = TAHAPAN_KEL[k];
     return `<tr><td><b>${esc(k)}</b></td><td class="angka">${SEMUA.length ? anggota(k).length : "–"}</td>
       <td><select data-kel="${esc(k)}" ${boleh ? "" : "disabled"} aria-label="Profil aturan ${esc(k)}"><option value="">— Pengaturan Umum —</option>${PROFIL.map((x) => `<option value="${x.id}" ${x.id === pid ? "selected" : ""}>${esc(x.nama)}</option>`).join("")}</select></td>
@@ -959,7 +1141,7 @@ function gambarKelompokAturan() {
       ? `Pasang tahapan "${j.nama}" untuk kelompok ${k}?\n\n` + [
           masuk ? `• ${masuk} siswa yang sudah pernah masuk dipindah ke awal tahapan (${langkahTeks(j.langkah[0])}); sesi yang berjalan ditutup.` : "",
           belum ? `• ${belum} siswa yang belum pernah masuk langsung mulai dari tahapan ini.` : "",
-          sendiri ? `• ${sendiri} siswa punya tahapan sendiri (dipilih lewat Daftar siswa) dan tidak ikut.` : ""].filter(Boolean).join("\n")
+          sendiri ? `• ${sendiri} siswa punya tahapan sendiri (dipilih lewat Pelaksanaan Latihan) dan tidak ikut.` : ""].filter(Boolean).join("\n")
       : `Kelompok ${k} kembali ke urutan Tingkat dan Level Soal?\n\n` + (lama ? `Siswa yang sedang di tahapan "${lama}" melanjutkan urutan umum dari posisinya sekarang.` : "");
     if (!confirm(pesan)) return gambarKelompokAturan();
     try { const r = await rpc("mtd_tahapan_kelompok", { p_pin: PIN, p_kelompok: k, p_jalur: j ? j.id : null });
@@ -979,13 +1161,14 @@ function bukaEditorProfil(p) {
     <div class="pr-identitas"><label>Nama profil<input type="text" id="pr-nama" maxlength="80" placeholder="mis. Santai 40 menit" value="${esc(p ? p.nama : "")}"></label>
       <label>Catatan (opsional)<input type="text" id="pr-catatan" maxlength="300" placeholder="mis. Bu Rina — kelompok yang perlu waktu lebih" value="${esc(p && p.catatan || "")}"></label></div>
     <p class="redup kecil">Isi hanya yang ingin dibedakan. Kotak kosong mengikuti aturan di bawahnya; angka samar = Pengaturan Umum. Untuk kode, ketik <b>-</b> bila sengaja tanpa kode.</p>
-    ${ATUR_KHUSUS.map((g) => `<div class="pr-grup"><div class="ds-sub-judul">${g.g}</div><div class="pr-isian">${g.f.map((x) => `<label><span>${x.l}</span>${kendali(x)}</label>`).join("")}</div></div>`).join("")}
+    ${ATUR_KHUSUS.map((g) => `<div class="pr-grup"><div class="ds-sub-judul">${g.g}</div><div class="pr-isian">${g.f.filter((x) => !x.ro).map((x) => `<label><span>${x.l}</span>${kendali(x)}</label>`).join("")}</div></div>`).join("")}
+    <p class="redup kecil">Buka/tutup halaman dan kode akses diatur lewat <b>Sesi latihan</b> di Pelaksanaan Latihan.</p>
     <div class="baris" style="margin-top:var(--j4)"><button id="pr-simpan">Simpan profil</button><button class="garis" id="pr-batal">Batal</button></div>`;
   $("pr-batal").onclick = () => ed.classList.add("hidden");
   $("pr-simpan").onclick = async () => {
     const nama = $("pr-nama").value.trim(), aturan = {};
     if (!nama) return toast("Isi nama profil dulu.");
-    for (const x of SEMUA_KHUSUS) {
+    for (const x of SEMUA_KHUSUS.filter((y) => !y.ro)) {
       const el = ed.querySelector(`[data-pk="${x.k}"]`), v = el.value.trim();
       if (v === "") continue;
       if (x.t === "ya") aturan[x.k] = v === "true";
@@ -1007,7 +1190,7 @@ $("ke-khusus").onclick = (e) => { e.preventDefault(); bukaTab("jalur"); };
 /* ---- Cara sistem memilih (bisa disembunyikan; diingat di perangkat ini) */
 const LAPIS_KUNCI = "mtd_lapis_tutup";
 function aturLapis(tutup) {
-  $("lapis-kartu").classList.toggle("hidden", tutup); $("lapis-buka").classList.toggle("hidden", !tutup);
+  $("lapis-kartu").classList.toggle("hidden", tutup); $("lapis-buka-p").classList.toggle("hidden", !tutup);
   try { localStorage.setItem(LAPIS_KUNCI, tutup ? "1" : ""); } catch (e) { /* penyimpanan diblokir: abaikan */ }
 }
 $("lapis-tutup").onclick = () => aturLapis(true);
@@ -1015,16 +1198,22 @@ $("lapis-buka").onclick = () => aturLapis(false);
 try { if (localStorage.getItem(LAPIS_KUNCI)) aturLapis(true); } catch (e) { /* abaikan */ }
 
 /* ---- Aturan & tahapan yang berlaku bagi satu siswa (Cek aturan siswa dan Analisis siswa) */
-const asalKelas = (s) => !s ? "a-umum" : s.startsWith("siswa") ? "a-siswa" : "a-kel";
-function tahapanBerlakuHtml(t) {
-  if (!t) return "";
-  const [isi, asal, kls] = t.asal === "siswa" ? [t.nama ? `Tahapan khusus "${t.nama}"` : "Tahapan umum, mulai dari tingkat dan level pilihan guru", "siswa", "a-siswa"]
-    : t.asal === "kelompok" ? [`Tahapan "${t.nama}"${t.selesai ? " (sudah dituntaskan, kini urutan umum)" : ""}`, `kelompok ${t.kelompok}`, "a-kel"]
-    : ["Urutan Tingkat dan Level Soal", "umum", "a-umum"];
-  return `<div class="ab-tahapan"><small>Tahapan</small><b>${esc(isi)}</b><span class="ab-asal ${kls}">${esc(asal)}</span></div>`;
+const asalJenis = (s) => !s ? "umum" : s.startsWith("siswa") ? "siswa" : "kelompok";
+const asalProfil = (s) => (String(s || "").match(/\(([^)]*)\)\s*$/) || [])[1] || "";
+function aturanBerlakuHtml(A) {
+  const as = A.asal || {}, t = A.tahapan || { asal: "umum" };
+  const pSiswa = Object.values(as).find((x) => asalJenis(x) === "siswa"), pKel = Object.values(as).find((x) => String(x).startsWith("kelompok"));
+  const tahapan = t.asal === "siswa" ? (t.nama ? `"${t.nama}"` : "Tahapan umum, Mulai dari pilihan guru")
+    : t.asal === "kelompok" ? `"${t.nama}"${t.selesai ? " (sudah dituntaskan)" : ""}` : "Urutan Tingkat dan Level Soal";
+  const sel = (judul, isi, jenis, ket) => `<div class="ab-ring"><small>${judul}</small><b>${esc(isi)}</b><span class="ab-asal a-${jenis}">${esc(ket)}</span></div>`;
+  return `<div class="ab-ringkas">
+      ${sel("Tahapan", tahapan, t.asal, t.asal === "kelompok" ? "kelompok " + t.kelompok : t.asal)}
+      ${sel("Profil siswa", pSiswa ? asalProfil(pSiswa) : "Tidak ada", pSiswa ? "siswa" : "umum", pSiswa ? "siswa" : "—")}
+      ${sel("Pengaturan kelompok", pKel ? `${Object.values(as).filter((v) => String(v).startsWith("kelompok")).length} isian diubah guru` : "Sama dengan bawaan sekolah", pKel ? "kelompok" : "umum", pKel || "bawaan")}
+    </div>
+    <div class="ab-grup">${ATUR_KHUSUS.map((g) => `<div><div class="ab-judul">${g.g}</div>${g.f.map((x) => { const j = asalJenis(as[x.k]);
+      return `<div class="ab-isi ${j !== "umum" ? "khusus" : ""}"><span><small>${x.l}</small><b>${esc(nilaiAturTeks(x, A.atur[x.k]))}</b></span><span class="ab-asal a-${j}" title="${esc(as[x.k] || "Pengaturan Umum")}">${j}</span></div>`; }).join("")}</div>`).join("")}</div>`;
 }
-const aturanBerlakuHtml = (A) => `${tahapanBerlakuHtml(A.tahapan)}<div class="atur-siswa-isi">${SEMUA_KHUSUS.map((x) => { const s = (A.asal || {})[x.k];
-  return `<div class="${s ? "khusus" : ""}"><small>${x.l}</small><b>${esc(nilaiAturTeks(x, A.atur[x.k]))}</b><span class="ab-asal ${asalKelas(s)}">${s ? esc(s) : "umum"}</span></div>`; }).join("")}</div>`;
 async function cekSiswa() {
   const q = $("ck-cari").value.trim(), m = q.match(/·\s*(\S+)\s*$/), nisn = m ? m[1] : q;
   const r = SEMUA.find((x) => x.nisn === nisn);
@@ -1034,7 +1223,7 @@ async function cekSiswa() {
     const A = await rpc("mtd_aturan_siswa", { p_pin: PIN, p_nisn: r.nisn }), n = Object.keys(A.asal || {}).length;
     $("ck-hasil").innerHTML = `<div class="ck-kepala"><div><b>${esc(r.nama)}</b><span class="redup kecil">${esc(r.kelompok || "tanpa kelompok")} · ${A.posisi ? esc(A.posisi) : "belum pernah masuk"}</span></div>
       <span class="lencana ${n ? "emas" : ""}">${n ? n + " aturan khusus" : "Semua aturan dari Pengaturan Umum"}</span></div>${aturanBerlakuHtml(A)}
-      <p class="redup kecil" style="margin:var(--j2) 0 0">Label di tiap kotak menunjukkan asal aturannya: <span class="ab-asal a-siswa">siswa</span> <span class="ab-asal a-kel">kelompok</span> <span class="ab-asal a-umum">umum</span></p>`;
+      <p class="redup kecil" style="margin:var(--j3) 0 0">Label menunjukkan asal aturan: <span class="ab-asal a-siswa">siswa</span> <span class="ab-asal a-kelompok">kelompok</span> <span class="ab-asal a-umum">umum</span>. Arahkan penunjuk ke label untuk melihat nama profilnya.</p>`;
   } catch (e) { $("ck-hasil").innerHTML = `<p class="redup kecil">${esc(e.message)}</p>`; }
 }
 $("ck-cari").oninput = cekSiswa;
@@ -1050,13 +1239,13 @@ async function muatJalur(diam) {
 function gambarJalur() {
   const boleh = PERAN !== "pengawas";
   $("jl-daftar").innerHTML = JALUR.length ? JALUR.map((j) => { const pakai = dipakaiTeks(j.kelompok, j.n_kelompok_siswa, j.n_sendiri);
-    return `<div class="kartu jl-kartu">
+    return `<div class="butir">
       <div class="jl-kepala"><div><h2>${esc(j.nama)}</h2><span class="redup kecil">${j.langkah.reduce((a, l) => a + (l.sampai - l.dari + 1), 0)} level · ${j.n_siswa} siswa sedang di tahapan ini · ujung: ${j.akhir === "lanjut" ? "lanjut ke urutan umum" : "berhenti"}</span></div>
-        ${boleh ? `<span class="jl-aksi"><button class="garis kecil" data-ubah-jalur="${j.id}">Ubah</button><button class="kecil bahaya" data-hapus-jalur="${j.id}">Hapus</button></span>` : ""}</div>
+        ${j.boleh_ubah ? `<span class="jl-aksi"><button class="garis kecil" data-ubah-jalur="${j.id}">Ubah</button><button class="kecil bahaya" data-hapus-jalur="${j.id}">Hapus</button></span>` : `<span class="redup kecil">dibuat ${esc(j.pemilik || "admin")}</span>`}</div>
       <ol class="jl-langkah">${j.langkah.map((l) => `<li><b>${esc(namaTingkat(l.tingkat))}</b><span>Level ${l.dari === l.sampai ? l.dari : l.dari + "–" + l.sampai}</span></li>`).join("")}
         <li class="jl-ujung">${j.akhir === "lanjut" ? "Lanjut ke urutan umum" : "Selesai"}</li></ol>
-      <div class="pr-pakai ${pakai ? "" : "redup"}" style="margin-top:var(--j3)">${pakai ? "<b>Dipakai oleh:</b> " + esc(pakai) : "Belum dipakai kelompok atau siswa"}</div></div>`; }).join("")
-    : '<div class="kartu kosong-data">Belum ada tahapan khusus. Tekan <b>+ Buat tahapan</b> untuk menyusun tahapan remedial atau pengayaan.</div>';
+      <div class="pr-pakai ${pakai ? "" : "redup"}">${pakai ? "<b>Dipakai oleh:</b> " + esc(pakai) : "Belum dipakai kelompok atau siswa"}</div></div>`; }).join("")
+    : '<p class="butir kosong-data">Belum ada tahapan khusus. Tekan <b>+ Buat tahapan</b> untuk menyusun tahapan remedial atau pengayaan.</p>';
   $("jl-daftar").querySelectorAll("[data-ubah-jalur]").forEach((b) => b.onclick = () => bukaEditorJalur(JALUR.find((j) => j.id === +b.dataset.ubahJalur)));
   $("jl-daftar").querySelectorAll("[data-hapus-jalur]").forEach((b) => b.onclick = async () => {
     const j = JALUR.find((x) => x.id === +b.dataset.hapusJalur);
@@ -1318,7 +1507,7 @@ function gambarSiswa() {
           <td class="angka">${x.percobaan}</td><td class="angka">${x.n_salah}</td><td class="angka">${x.detik ? lamaTeks(x.detik) : "–"}</td></tr>`).join("")}</tbody></table></div>` : '<p class="redup">Belum ada level yang dituntaskan.</p>'}
     </div>
     ${bolehUbah ? `<div class="kartu ubah"><h2>Pindahkan posisi</h2>
-      <p class="redup kecil" style="margin-top:0">Untuk siswa yang sudah lancar (lompat ke depan) atau perlu mengulang materi. Siswa lalu memakai tahapan umum mulai dari tingkat dan level ini, dan tidak ikut tahapan kelompok sampai dipilih <b>Ikut tahapan kelompok</b> di Daftar siswa. Sesi yang sedang berjalan akan ditutup.</p>
+      <p class="redup kecil" style="margin-top:0">Untuk siswa yang sudah lancar (lompat ke depan) atau perlu mengulang materi. Siswa lalu memakai tahapan umum mulai dari tingkat dan level ini, dan tidak ikut tahapan kelompok sampai dipilih <b>Ikut tahapan kelompok</b> di Pelaksanaan Latihan. Sesi yang sedang berjalan akan ditutup.</p>
       <div class="baris"><select id="pp-tingkat" class="tumbuh">${G.tingkat.map((t) => `<option value="${t.kode}" ${p && p.tingkat === t.kode ? "selected" : ""}>${esc(t.nama)}${t.aktif ? "" : " (ditutup)"}</option>`).join("")}</select>
       <select id="pp-level" style="max-width:260px"></select><button id="pp-simpan">Pindahkan</button></div></div>
     <div class="kartu ubah bahaya-kartu"><h2>Hapus data latihan</h2>
@@ -1358,7 +1547,7 @@ function gambarTingkat() {
     }
     h += `<details class="tk-baris"><summary><span class="tk-no">${t.urut}</span><span class="tk-nama"><b>${esc(t.nama)}</b><span>${t.level.length} level</span></span>
         ${t.aktif ? "" : '<span class="lencana buruk">ditutup</span>'}<span class="tk-panah" aria-hidden="true"></span></summary><div class="tk-isi">
-      ${bolehUbah ? `<p class="ubah tk-alat"><button class="garis kecil" data-aktif="${t.kode}" data-nilai="${!t.aktif}">${t.aktif ? "Tutup tingkat ini" : "Buka tingkat ini"}</button></p>` : ""}
+      ${PERAN === "admin" ? `<p class="ubah tk-alat"><button class="garis kecil" data-aktif="${t.kode}" data-nilai="${!t.aktif}">${t.aktif ? "Tutup tingkat ini" : "Buka tingkat ini"}</button></p>` : ""}
       ${t.level.map((l) => `<div class="lv-baris"><span class="no">Level ${l.level}</span><span class="kt">${esc(l.ket)}</span>
         <button class="garis kecil" data-contoh="${t.kode}|${l.level}">Contoh</button><button class="kecil" data-coba="${t.kode}|${l.level}" title="Kerjakan level ini seperti siswa">Coba</button></div><div class="contoh hidden" id="c-${t.kode}-${l.level}"></div>`).join("")}
       </div></details>`;
@@ -1418,17 +1607,17 @@ const IKON = {
 };
 const SEKSI = [
   { ikon: "layar", judul: "Halaman Latihan", ket: "Siapa yang boleh masuk dan apa yang dilihat siswa.", baris: [
-    { k: "aktif", jenis: "ya", l: "Halaman latihan dibuka", s: "Bila ditutup, siswa tidak bisa masuk. Kemajuan siswa tetap tersimpan.", on: "Dibuka", off: "Ditutup" },
-    { k: "peserta", jenis: "pilih", l: "Yang boleh masuk", s: "Kelompok MD diambil dari Data Induk lewat admin Aplikasi Tryout Guru.",
+    { k: "aktif", umum: true, jenis: "ya", l: "Dibuka untuk semua kelompok", s: "Sebaiknya ditutup. Bila dibuka, siswa bisa masuk kapan saja dan dari mana saja. Untuk latihan di kelas, guru membuka sesi kelompoknya di Pelaksanaan Latihan.", on: "Dibuka", off: "Ditutup" },
+    { k: "peserta", umum: true, jenis: "pilih", l: "Yang boleh masuk", s: "Kelompok MD diambil dari Data Induk lewat admin Aplikasi Tryout Guru.",
       pilih: [["md", "Anggota kelompok MD saja", "MD10-1, MD11-2, … di Data Induk → Kelompok Belajar"], ["semua", "Semua siswa aktif", "Siapa pun yang terdaftar di Tryout boleh berlatih"]] },
     { k: "tampil_kunci", jenis: "ya", l: "Tampilkan jawaban benar saat siswa salah", s: "Bila dimatikan, siswa hanya diberi tahu jawabannya belum tepat (beserta saran bila kesalahannya dikenali).", on: "Ditampilkan", off: "Disembunyikan" },
-    { k: "kode_akses", jenis: "kode", l: "Kode akses latihan", s: "Diminta saat siswa masuk, misalnya agar latihan hanya dikerjakan di kelas. Kosongkan lalu Simpan untuk menonaktifkan." },
+    { k: "kode_akses", umum: true, jenis: "kode", l: "Kode akses saat dibuka untuk semua", s: "Hanya berlaku bila halaman dibuka untuk semua kelompok. Sesi latihan kelompok selalu memakai kodenya sendiri. Kosongkan lalu Simpan untuk menonaktifkan." },
   ] },
   { ikon: "perisai", judul: "Pengawasan keluar halaman", ket: "Seperti Tryout: setiap kali siswa meninggalkan halaman latihan, alarm berbunyi (dan HP bergetar), muncul peringatan, dan kejadiannya dicatat.", baris: [
-    { k: "maks_keluar", jenis: "angka", satuan: "kali", maks: 20, l: "Batas keluar halaman", s: "Saat batas tercapai, latihan dikunci sampai dibuka pengawas. 0 = tanpa batas (tetap dicatat)." },
+    { k: "maks_keluar", jenis: "angka", satuan: "kali", maks: 20, l: "Batas keluar halaman", s: "Saat batas tercapai, latihan dikunci sampai dibuka guru. 0 = tanpa batas (tetap dicatat)." },
     { k: "toleransi_keluar", jenis: "angka", satuan: "detik", maks: 120, l: "Abaikan keluar yang lebih singkat dari", s: "Mis. notifikasi diketuk atau telepon ditolak: hanya dicatat, tidak dihitung." },
-    { k: "kode_buka", jenis: "kode", l: "Kode buka kunci untuk pengawas", s: "Diketik pengawas di perangkat siswa yang terkunci. Kosong = memakai kode akses; bila keduanya kosong, pakai PIN Tryout." },
-  ], catatan: "Kunci tetap berlaku walau siswa keluar lalu masuk lagi, sampai dibuka atau waktu sesinya habis. Guru dan pengawas juga bisa membuka kunci dari tab <b>Daftar siswa</b>, yang juga menampilkan jumlah keluar halaman tiap siswa." },
+    { k: "kode_buka", jenis: "kode", l: "Kode buka kunci", s: "Diketik guru di perangkat siswa yang terkunci. Kosong = PIN guru atau PIN admin." },
+  ], catatan: "Kunci tetap berlaku walau siswa keluar lalu masuk lagi, sampai dibuka atau waktu sesinya habis. Guru juga bisa membuka kunci dari <b>Pelaksanaan Latihan</b>, yang juga menampilkan jumlah keluar halaman tiap siswa." },
   { ikon: "tangga", judul: "Aturan naik level", ket: "Kapan siswa tuntas satu level dan kapan level diulang.", baris: [
     { k: "n_benar", jenis: "angka", satuan: "soal", min: 1, maks: 50, l: "Soal benar untuk tuntas satu level", s: "Bawaan 10." },
     { k: "batas_salah", jenis: "angka", satuan: "kali", maks: 50, l: "Batas salah per level", s: "Lebih dari batas ini, level diulang dari nomor 1. 0 = tanpa batas." },
@@ -1439,17 +1628,15 @@ const SEKSI = [
     { k: "durasi_menit", jenis: "angka", satuan: "menit", min: 5, maks: 180, l: "Lama satu sesi", s: "Setelah waktu habis, saat masuk lagi siswa mulai dari nomor 1 di levelnya." },
     { k: "mulai", jenis: "pilih", l: "Titik awal siswa baru", s: "Hanya berlaku untuk siswa yang belum pernah masuk.",
       pilih: [["awal", "Dari Penjumlahan Dasar", "Semua siswa mulai dari tingkat pertama MD10"], ["kelas", "Sesuai tingkat kelompoknya", "Mis. kelompok MD11 mulai dari tingkat pertama MD11"]] },
-  ], catatan: "Ingin satu tingkat, satu kelompok, atau beberapa siswa mulai dari tingkat dan level tertentu? Buka tab <b>Daftar siswa</b>, saring tingkat/kelompok, centang siswanya, lalu di bilah bawah pilih <b>Tahapan umum</b> dan <b>Mulai dari</b>. Centang <i>hanya yang belum pernah masuk</i> agar siswa yang sudah maju tidak tergeser. Untuk satu siswa juga bisa lewat <b>Analisis siswa → Pindahkan posisi</b>." },
+  ], catatan: "Ingin satu tingkat, satu kelompok, atau beberapa siswa mulai dari tingkat dan level tertentu? Buka <b>Pelaksanaan Latihan</b>, saring tingkat/kelompok, centang siswanya, lalu di bilah bawah pilih <b>Tahapan umum</b> dan <b>Mulai dari</b>. Centang <i>hanya yang belum pernah masuk</i> agar siswa yang sudah maju tidak tergeser. Untuk satu siswa juga bisa lewat <b>Analisis siswa → Pindahkan posisi</b>." },
 ];
 const SEMUA_ATUR = SEKSI.flatMap((s) => s.baris);
 
-function ringkasAtur() {
-  const a = G.atur;
+function ringkasAtur(a) {
   const c = (kls, l, v) => `<span class="chip ${kls}"><i></i>${l}: <b>${esc(v)}</b></span>`;
   $("atur-ringkas").innerHTML = [
-    c(a.aktif ? "on" : "off", "Halaman latihan", a.aktif ? "Dibuka" : "Ditutup"),
-    c("info", "Peserta", a.peserta === "semua" ? "Semua siswa" : "Kelompok MD"),
-    c(a.kode_akses ? "on" : "", "Kode akses", a.kode_akses || "tidak dipakai"),
+    ...(ATUR_KEL ? [] : [c(a.aktif ? "on" : "off", "Dibuka untuk semua", a.aktif ? "Ya" : "Tidak"),
+      c("info", "Peserta", a.peserta === "semua" ? "Semua siswa" : "Kelompok MD")]),
     c(a.maks_keluar > 0 ? "on" : "", "Batas keluar", a.maks_keluar > 0 ? `${a.maks_keluar}×` : "tanpa batas"),
     c("info", "Tuntas", `${a.n_benar} soal benar`),
     c("info", "Sesi", `${a.durasi_menit} menit`),
@@ -1466,26 +1653,232 @@ function kendaliAtur(x, a, boleh) {
     `<label><input type="radio" name="r-${x.k}" value="${v}" data-k="${x.k}" ${a[x.k] === v ? "checked" : ""} ${dis}><span><b>${esc(t)}</b><span>${esc(k)}</span></span></label>`).join("")}</div>`;
 }
 
+/* ----------------------------------------------------------- Pengaturan Umum (bawaan sekolah / per kelompok) */
+// ATUR_KEL: null = bawaan sekolah (hanya admin); objek dari mtd_atur_kelompok bila sasarannya satu kelompok.
+let ATUR_KEL = null;
+function isiSasaranAtur() {
+  const kel = G.kelompok || [];
+  $("atur-sasaran").innerHTML = (PERAN === "admin" ? '<option value="">Bawaan sekolah (semua kelompok)</option>' : "") +
+    kel.map((k) => `<option value="${esc(k)}">Kelompok ${esc(k)}</option>`).join("");
+  $("atur-sasaran").closest("label").classList.toggle("hidden", PERAN !== "admin" && kel.length < 2);
+}
+$("atur-sasaran").onchange = () => muatAtur();
+async function muatAtur() {
+  const k = $("atur-sasaran").value;
+  if (!k) {
+    if (PERAN !== "admin") { $("f-atur").innerHTML = '<p class="pesan">Belum ada kelompok yang Anda ampu. Hubungi admin Matematika Dasar.</p>'; return; }
+    ATUR_KEL = null;
+    try { G.atur = (await rpc("mtd_guru_masuk", { p_pin: PIN })).atur; } catch (e) { /* pakai yang ada */ }
+    return gambarAtur();
+  }
+  try { ATUR_KEL = await rpc("mtd_atur_kelompok", { p_pin: PIN, p_kelompok: k }); } catch (e) { toast(e.message); return; }
+  gambarAtur();
+}
+// Teks nilai untuk penanda "kembalikan ke bawaan (…)"
+function nilaiBawaan(x, v) {
+  if (x.jenis === "ya") return v ? x.on : x.off;
+  if (x.jenis === "kode") return v || "tidak dipakai";
+  if (x.jenis === "pilih") return ((x.pilih.find((p) => p[0] === v) || [])[1]) || v;
+  return `${v} ${x.satuan}`;
+}
+const IKON_TAHAPAN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="6" r="2.5"/><path d="M7.5 18H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7.5"/></svg>';
 function gambarAtur() {
-  const a = G.atur, boleh = PERAN !== "pengawas";
-  ringkasAtur();
-  $("f-atur").innerHTML = (boleh ? "" : '<p class="pesan">Masuk dengan PIN pengawas: pengaturan hanya bisa dilihat. Gunakan PIN guru/operator untuk mengubahnya.</p>') +
-    SEKSI.map((s) => `<section class="kartu seksi">
-      <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true">${IKON[s.ikon]}</span><div><h2>${s.judul}</h2><p>${s.ket}</p></div></div>
-      ${s.baris.map((x) => `<div class="atur-baris ${x.jenis === "pilih" ? "susun" : ""}">
-        <div class="l"><b>${x.l}</b><span>${x.s}</span></div>
+  const kel = ATUR_KEL, a = kel ? { ...kel.bawaan, ...kel.aturan } : G.atur, boleh = true;
+  $("atur-ket").innerHTML = kel
+    ? `Berlaku untuk seluruh siswa <b>${esc(kel.kelompok)}</b> (${kel.n_siswa} siswa), <b>kecuali</b> siswa yang diberi aturan sendiri di <a href="#" id="ke-khusus">Tahapan &amp; Aturan Khusus</a>. Isian yang belum diubah mengikuti bawaan sekolah. Setiap perubahan langsung tersimpan.`
+    : `Nilai awal untuk <b>semua kelompok</b>. Guru dapat mengubahnya untuk kelompoknya; isian yang belum diubah guru mengikuti nilai di sini. Setiap perubahan langsung tersimpan.`;
+  if ($("ke-khusus")) $("ke-khusus").onclick = (e) => { e.preventDefault(); bukaTab("jalur"); };
+  ringkasAtur(a);
+  const tanda = (x) => !kel ? "" : kel.aturan[x.k] !== undefined
+    ? `<span class="atur-asal khusus">Diubah untuk ${esc(kel.kelompok)} · <a href="#" data-reset="${x.k}">kembalikan ke bawaan (${esc(nilaiBawaan(x, kel.bawaan[x.k]))})</a></span>`
+    : '<span class="atur-asal">Bawaan sekolah</span>';
+  const daftar = SEKSI.map((sx) => ({ ...sx, baris: sx.baris.filter((x) => !kel || !x.umum) })).filter((sx) => sx.baris.length);
+  $("f-atur").innerHTML = (kel ? `<section class="kartu seksi">
+      <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true">${IKON_TAHAPAN}</span><div><h2>Tahapan kelompok</h2><p>Urutan tingkat dan level yang dikerjakan seluruh siswa ${esc(kel.kelompok)}.</p></div></div>
+      <div class="atur-baris"><div class="l"><b>Tahapan</b><span>Tahapan khusus disusun di Tahapan &amp; Aturan Khusus. Siswa yang diberi tahapan sendiri tidak ikut.</span></div>
+        <div class="kendali"><select id="atur-tahapan" aria-label="Tahapan kelompok"><option value="">Tingkat dan Level Soal (urutan umum)</option>${JALUR.map((j) => `<option value="${j.id}" ${j.id === kel.jalur ? "selected" : ""}>${esc(j.nama)}</option>`).join("")}</select></div></div>
+    </section>` : "") +
+    daftar.map((sx) => `<section class="kartu seksi">
+      <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true">${IKON[sx.ikon]}</span><div><h2>${sx.judul}</h2><p>${sx.ket}</p></div></div>
+      ${sx.baris.map((x) => `<div class="atur-baris ${x.jenis === "pilih" ? "susun" : ""}">
+        <div class="l"><b>${x.l}</b><span>${x.s}</span>${tanda(x)}</div>
         <div class="kendali"><span class="ok-simpan" data-ok="${x.k}">✓ Tersimpan</span>${kendaliAtur(x, a, boleh)}</div></div>`).join("")}
-      ${s.catatan ? `<p class="catatan-seksi"><span>${s.catatan}</span></p>` : ""}
-    </section>`).join("") +
-    // Bukan pengaturan biasa: memakai PIN kepala sekolah, bukan PIN guru, jadi tampil untuk semua peran.
-    `<section class="kartu seksi bahaya">
-      <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true">${IKON.sampah}</span><div><h2>Kosongkan data latihan</h2><p>Untuk memulai dari nol, misalnya setelah uji coba atau di awal tahun ajaran.</p></div></div>
-      <div class="atur-baris susun"><div class="l"><b>Kosongkan semua data latihan</b><span>Menghapus posisi, riwayat jawaban, level tuntas, dan sesi <strong>semua siswa</strong>. Data siswa, pengaturan, serta tingkat &amp; level tetap. Hanya dengan <strong>PIN kepala sekolah</strong>. Tidak bisa dibatalkan.</span></div>
-        <div class="kendali"><div class="kosongkan"><input type="password" id="ks-pin" autocomplete="off" placeholder="PIN kepala sekolah" aria-label="PIN kepala sekolah">
-          <input type="text" id="ks-ketik" autocomplete="off" spellcheck="false" placeholder="Ketik KOSONGKAN untuk memastikan" aria-label="Ketik KOSONGKAN">
-          <button class="bahaya" id="ks-tombol" disabled>Kosongkan semua</button></div></div></div>
-      <p class="catatan-seksi"><span>Hanya beberapa siswa? Hapus satu siswa di <b>Analisis siswa</b>; beberapa siswa atau satu kelompok di <b>Daftar siswa</b> → centang → <b>Hapus data latihan</b> (PIN guru/operator).</span></p>
-    </section>`;
+      ${sx.catatan ? `<p class="catatan-seksi"><span>${sx.catatan}</span></p>` : ""}
+    </section>`).join("");
+
+  const tandaiTersimpan = (k) => { const ok = $("f-atur").querySelector(`[data-ok="${k}"]`); if (!ok) return;
+    ok.classList.add("show"); clearTimeout(ok._t); ok._t = setTimeout(() => ok.classList.remove("show"), 2200); };
+  const simpan = async (k, v) => {
+    const x = SEMUA_ATUR.find((y) => y.k === k);
+    try {
+      if (ATUR_KEL) {
+        ATUR_KEL = await rpc("mtd_set_atur_kelompok", { p_pin: PIN, p_kelompok: ATUR_KEL.kelompok, p_k: k, p_v: v });
+        gambarAtur(); tandaiTersimpan(k);
+        toast(`Tersimpan untuk ${ATUR_KEL.kelompok}: ${x.l}`);
+        return;
+      }
+      G.atur = await rpc("mtd_set_atur", { p_pin: PIN, p_k: k, p_v: v });
+      ringkasAtur(G.atur);
+      const t = $("f-atur").querySelector(`[data-teks="${k}"]`);
+      if (t) t.textContent = G.atur[k] ? x.on : x.off;
+      if (x.jenis === "kode") $("f-atur").querySelector(`[data-kode="${k}"]`).value = G.atur[k] || "";
+      tandaiTersimpan(k);
+      toast(x.jenis === "kode" ? (G.atur[k] ? `${x.l}: ${G.atur[k]}` : `${x.l} tidak dipakai`) : "Tersimpan: " + x.l);
+    } catch (e) { toast(e.message); gambarAtur(); }
+  };
+  $("f-atur").querySelectorAll("[data-k]").forEach((el) => el.onchange = () => {
+    const x = SEMUA_ATUR.find((y) => y.k === el.dataset.k);
+    if (x.jenis === "angka") {
+      const n = Number(el.value);
+      if (el.value === "" || !Number.isInteger(n) || n < (x.min || 0) || n > x.maks) { toast(`${x.l}: isi ${x.min || 0}–${x.maks}`); el.value = a[x.k]; return; }
+      return simpan(x.k, n);
+    }
+    simpan(x.k, x.jenis === "ya" ? el.checked : el.value);
+  });
+  $("f-atur").querySelectorAll("[data-simpan]").forEach((b) => {
+    const inp = $("f-atur").querySelector(`[data-kode="${b.dataset.simpan}"]`);
+    b.onclick = () => simpan(b.dataset.simpan, inp.value.trim().toUpperCase());
+    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") b.click(); });
+  });
+  $("f-atur").querySelectorAll("[data-reset]").forEach((l) => l.onclick = async (e) => {
+    e.preventDefault();
+    const x = SEMUA_ATUR.find((y) => y.k === l.dataset.reset);
+    try { ATUR_KEL = await rpc("mtd_set_atur_kelompok", { p_pin: PIN, p_kelompok: ATUR_KEL.kelompok, p_k: x.k, p_v: null }); gambarAtur(); toast(`${x.l} kembali ke bawaan sekolah`); }
+    catch (er) { toast(er.message); }
+  });
+  if ($("atur-tahapan")) $("atur-tahapan").onchange = async (e) => {
+    const sel = e.target, k = ATUR_KEL.kelompok, j = JALUR.find((x) => x.id === +sel.value), lama = namaTahapan(ATUR_KEL.jalur);
+    let A = []; try { A = await rpc("mtd_rekap", { p_pin: PIN, p_kelas: k }); } catch (er) { /* hitungan tidak tersedia */ }
+    const sendiri = A.filter((r) => r.jalur_siswa).length, masuk = A.filter((r) => r.tingkat && !r.jalur_siswa).length, belum = A.filter((r) => !r.tingkat && !r.jalur_siswa).length;
+    const pesan = j
+      ? `Pasang tahapan "${j.nama}" untuk kelompok ${k}?\n\n` + [
+          masuk ? `• ${masuk} siswa yang sudah pernah masuk dipindah ke awal tahapan (${langkahTeks(j.langkah[0])}); sesi yang berjalan ditutup.` : "",
+          belum ? `• ${belum} siswa yang belum pernah masuk langsung mulai dari tahapan ini.` : "",
+          sendiri ? `• ${sendiri} siswa punya tahapan sendiri (dipilih lewat Pelaksanaan Latihan) dan tidak ikut.` : ""].filter(Boolean).join("\n")
+      : `Kelompok ${k} kembali ke urutan Tingkat dan Level Soal?\n\n` + (lama ? `Siswa yang sedang di tahapan "${lama}" melanjutkan urutan umum dari posisinya sekarang.` : "");
+    if (!confirm(pesan)) { sel.value = ATUR_KEL.jalur || ""; return; }
+    try { const r = await rpc("mtd_tahapan_kelompok", { p_pin: PIN, p_kelompok: k, p_jalur: j ? j.id : null });
+      toast(j ? `Tahapan ${k}: "${j.nama}" (${r.dipindah} siswa dipindah)` : `${k} kembali ke urutan Tingkat dan Level Soal`); muatAtur(); muatJalur(true); muatKelas(); }
+    catch (er) { toast(er.message); sel.value = ATUR_KEL.jalur || ""; }
+  };
+}
+
+/* ----------------------------------------------------------- Perkembangan Siswa: Per Siswa / Per Kelompok */
+let SUB = "siswa";
+document.querySelectorAll(".subtab [data-sub]").forEach((b) => b.onclick = () => bukaSub(b.dataset.sub));
+function bukaSub(v) {
+  SUB = v;
+  document.querySelectorAll(".subtab [data-sub]").forEach((b) => { b.classList.toggle("on", b.dataset.sub === v); b.setAttribute("aria-selected", String(b.dataset.sub === v)); });
+  $("pk-siswa").classList.toggle("hidden", v !== "siswa"); $("pk-kelompok").classList.toggle("hidden", v !== "kelompok");
+  if (v === "kelompok") muatPerKelompok();
+}
+async function muatPerKelompok() {
+  $("t-perkelompok").innerHTML = '<tr><td class="kosong-data">Memuat…</td></tr>';
+  let R;
+  try { R = await rpc("mtd_rekap", { p_pin: PIN, p_kelas: null }); if (!BUKA) await muatSesi(); }
+  catch (e) { $("t-perkelompok").innerHTML = `<tr><td class="kosong-data">${esc(e.message)}</td></tr>`; return; }
+  const m = new Map();
+  R.forEach((r) => { const k = r.kelompok || "Tanpa kelompok"; if (!m.has(k)) m.set(k, []); m.get(k).push(r); });
+  const baris = [...m].sort((x, y) => x[0].localeCompare(y[0], "id", { numeric: true })).map(([k, L]) => {
+    const mulai = L.filter((r) => r.tingkat), nJ = L.reduce((t, r) => t + r.n_jawab, 0), nB = L.reduce((t, r) => t + r.n_benar, 0);
+    const macet = L.filter((r) => status(r).some((x) => x.t === "Macet")).length, diam = L.filter((r) => r.tingkat && hariSejak(r.terakhir) >= 7).length;
+    const rata = mulai.length ? mulai.reduce((t, r) => t + r.lewat, 0) / mulai.length : 0, aktif7 = L.filter((r) => hariSejak(r.terakhir) < 7).length;
+    const sesi = BUKA && BUKA.kelompok.find((x) => x.kelompok === k), buka = sesi && sesi.buka && sisaSesi(sesi) > 0;
+    return `<tr class="klik" data-kel="${esc(k)}"><td><b>${esc(k)}</b></td><td class="angka">${L.length}</td><td class="angka">${mulai.length}</td><td class="angka">${aktif7}</td>
+      <td class="angka">${rata.toLocaleString("id-ID", { maximumFractionDigits: 1 })}</td><td class="angka">${nJ ? Math.round(100 * nB / nJ) + "%" : "–"}</td>
+      <td class="angka">${macet ? `<span class="lencana buruk">${macet}</span>` : '<span class="redup">0</span>'}</td>
+      <td class="angka">${diam ? `<span class="lencana emas">${diam}</span>` : '<span class="redup">0</span>'}</td>
+      <td>${buka ? `<span class="lencana baik"><span class="titik-on"></span>Dibuka · ${sisaSesi(sesi)} mnt</span>` : '<span class="redup kecil">Ditutup</span>'}</td></tr>`;
+  });
+  $("t-perkelompok").innerHTML = `<thead><tr><th>Kelompok</th><th class="angka">Siswa</th><th class="angka">Sudah mulai</th><th class="angka">Berlatih 7 hari</th>
+    <th class="angka">Rata-rata level tuntas</th><th class="angka">Akurasi</th><th class="angka">Macet</th><th class="angka">Tidak aktif</th><th>Sesi latihan</th></tr></thead>
+    <tbody>${baris.join("") || '<tr><td colspan="9" class="kosong-data">Tidak ada siswa.</td></tr>'}</tbody>`;
+  $("t-perkelompok").querySelectorAll("[data-kel]").forEach((tr) => tr.onclick = () => {
+    if ([...$("pil-kelas").options].some((o) => o.value === tr.dataset.kel)) $("pil-kelas").value = tr.dataset.kel;
+    bukaSub("siswa"); muatKelas();
+  });
+}
+
+/* ----------------------------------------------------------- Admin: guru & PIN, PIN admin, kosongkan data */
+let ADM = null;
+async function muatAdmin() {
+  try { ADM = await rpc("mtd_admin_guru", { p_pin: PIN }); }
+  catch (e) { $("f-admin").innerHTML = `<p class="pesan buruk">${esc(e.message)}</p>`; return; }
+  gambarAdmin();
+}
+const statusPin = (g) => g.status === "acak" ? `<span class="lencana baik">PIN pribadi</span><b class="pin-teks">${esc(g.pin)}</b>`
+  : g.status === "hp" ? `<span class="lencana emas">Sementara: 4 digit HP</span><b class="pin-teks">${esc(g.hp4)}</b>`
+  : '<span class="lencana buruk">Sementara: nama kelompok</span>';
+function gambarAdmin() {
+  const L = ADM.guru, belum = L.filter((g) => g.aktif && g.status !== "acak").length;
+  $("f-admin").innerHTML = `
+  <section class="kartu seksi">
+    <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 20a6.5 6.5 0 0 0-3-5.5"/></svg></span>
+      <div><h2>Guru dan PIN masuk</h2><p>Guru pengampu kelompok MD menurut jadwal KBM di Data Induk. ${ADM.disinkron ? "Terakhir ditarik " + esc(tglTeks(ADM.disinkron, true)) + "." : "Belum pernah ditarik."}</p></div>
+      <span class="seksi-aksi admin-aksi"><button class="garis kecil" id="adm-tarik">Tarik guru dari Data Induk</button>${belum ? `<button class="kecil" id="adm-acak-semua">Buat PIN untuk ${belum} guru</button>` : ""}</span></div>
+    ${ADM.sementara.length ? `<p class="sesi-peringatan"><b>${ADM.sementara.length} kelompok</b> masih bisa dimasuki dengan nama kelompoknya (${esc(ADM.sementara.join(", "))}), karena ada gurunya yang belum punya PIN pribadi maupun nomor HP. Buat PIN pribadi agar nama kelompok tidak bisa dipakai lagi.</p>` : ""}
+    ${L.length ? `<div class="gulir seksi-tabel"><table class="tabel adm-tabel"><thead><tr><th>Guru</th><th>Kelompok</th><th>PIN masuk</th><th></th></tr></thead><tbody>${L.map((g) => `<tr class="${g.aktif ? "" : "nonaktif"}">
+        <td><b>${esc(g.nama)}</b>${g.aktif ? "" : '<span class="kecil redup">Tidak ada lagi di jadwal KBM</span>'}</td>
+        <td>${esc(g.kelompok.join(", ") || "–")}</td>
+        <td><span class="pin-sel">${statusPin(g)}</span></td>
+        <td class="kanan">${g.aktif ? `<span class="jl-aksi"><button class="garis kecil" data-acak="${esc(g.id)}">${g.status === "acak" ? "Buat ulang" : "Buat PIN"}</button>${g.status === "acak" ? `<button class="kecil tutup-merah" data-hapus-pin="${esc(g.id)}">Hapus PIN</button>` : ""}</span>` : ""}</td></tr>`).join("")}</tbody></table></div>`
+      : '<p class="butir redup">Belum ada guru. Tekan <b>Tarik guru dari Data Induk</b>.</p>'}
+    <p class="catatan-seksi"><span>PIN guru: PIN pribadi 6 angka buatan admin. Sebelum dibuat: 4 digit terakhir nomor HP di Data Induk. Bila nomor HP juga kosong: nama kelompok (mis. MD10-1), hanya untuk kelompok itu. Bagikan PIN pribadi langsung ke guru yang bersangkutan.</span></p>
+  </section>
+  <section class="kartu seksi">
+    <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
+      <div><h2>PIN admin</h2><p>Dipakai untuk masuk sebagai admin. Ganti PIN bawaan dengan yang hanya diketahui admin.</p></div></div>
+    <div class="atur-baris"><div class="l"><b>PIN admin baru</b><span>Paling sedikit 8 karakter. Setelah diganti, gunakan PIN baru untuk masuk berikutnya.</span></div>
+      <div class="kendali"><div class="kosongkan dua"><input type="password" id="adm-pin-baru" autocomplete="new-password" placeholder="PIN baru" aria-label="PIN admin baru">
+        <input type="password" id="adm-pin-ulang" autocomplete="new-password" placeholder="Ulangi PIN baru" aria-label="Ulangi PIN admin baru">
+        <button class="gelap" id="adm-pin-simpan">Ganti PIN</button></div></div></div>
+  </section>
+  <section class="kartu seksi bahaya">
+    <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true">${IKON.sampah}</span><div><h2>Kosongkan data latihan</h2><p>Untuk memulai dari nol, misalnya setelah uji coba atau di awal tahun ajaran.</p></div></div>
+    <div class="atur-baris susun"><div class="l"><b>Kosongkan semua data latihan</b><span>Menghapus posisi, riwayat jawaban, level tuntas, dan sesi <strong>semua siswa</strong>. Data siswa, pengaturan, serta tingkat &amp; level tetap. Hanya dengan <strong>PIN kepala sekolah</strong>. Tidak bisa dibatalkan.</span></div>
+      <div class="kendali"><div class="kosongkan"><input type="password" id="ks-pin" autocomplete="off" placeholder="PIN kepala sekolah" aria-label="PIN kepala sekolah">
+        <input type="text" id="ks-ketik" autocomplete="off" spellcheck="false" placeholder="Ketik KOSONGKAN untuk memastikan" aria-label="Ketik KOSONGKAN">
+        <button class="bahaya" id="ks-tombol" disabled>Kosongkan semua</button></div></div></div>
+    <p class="catatan-seksi"><span>Hanya beberapa siswa? Hapus satu siswa di <b>Analisis Siswa</b>; beberapa siswa atau satu kelompok di <b>Pelaksanaan Latihan</b> → centang → <b>Hapus data latihan</b>.</span></p>
+  </section>`;
+
+  $("adm-tarik").onclick = async (ev) => {
+    const b = ev.currentTarget, t = b.textContent; b.disabled = true; b.textContent = "Menarik…";
+    try {
+      const I = await rpc("mtd_induk_ambil", { p_pin: PIN });
+      if (!I.url || !I.key || !I.pin) throw new Error("Alamat Data Induk belum tersimpan. Simpan dulu lewat admin Aplikasi Tryout (Data siswa → Tarik dari data induk, centang simpan di server).");
+      const r = await fetch(`${I.url}/rest/v1/rpc/guru_matdas_ekspor`, { method: "POST",
+        headers: { "Content-Type": "application/json", apikey: I.key, Authorization: "Bearer " + I.key }, body: JSON.stringify({ p_pin: I.pin }) });
+      const j = await r.json();
+      if (!r.ok) throw new Error(/guru_matdas_ekspor/.test(j.message || "") ? "Fungsi guru_matdas_ekspor belum ada di Data Induk. Terapkan migrasinya dulu." : (j.message || "Data Induk menolak permintaan"));
+      const nKel = new Set(j.flatMap((g) => g.kelompok)).size, nHp = j.filter((g) => g.hp4).length;
+      if (!confirm(`Tertarik ${j.length} guru pengampu ${nKel} kelompok MD dari jadwal KBM (${nHp} punya nomor HP).\n\nSimpan? Guru yang tidak ada lagi di jadwal KBM dinonaktifkan. PIN pribadi yang sudah dibuat tetap berlaku.`)) return;
+      const h = await rpc("mtd_sinkron_guru", { p_pin: PIN, p_rows: j });
+      toast(`${h.jumlah} guru disimpan (${h.baru} baru${h.dinonaktifkan ? `, ${h.dinonaktifkan} dinonaktifkan` : ""})`); muatAdmin();
+    } catch (e) { toast(e.message); } finally { b.disabled = false; b.textContent = t; }
+  };
+  const acak = async (ids, pesan) => {
+    if (!confirm(pesan)) return;
+    try { const r = await rpc("mtd_admin_acak", { p_pin: PIN, p_guru: ids }); toast(`PIN pribadi dibuat untuk ${r.guru.length} guru`); muatAdmin(); }
+    catch (e) { toast(e.message); }
+  };
+  if ($("adm-acak-semua")) $("adm-acak-semua").onclick = () => acak(null, `Buat PIN pribadi untuk ${belum} guru yang belum punya?\n\nSetelah itu 4 digit HP dan nama kelompok tidak bisa dipakai lagi oleh guru-guru tersebut. Bagikan PIN masing-masing kepada gurunya.`);
+  $("f-admin").querySelectorAll("[data-acak]").forEach((b) => b.onclick = () => {
+    const g = L.find((x) => x.id === b.dataset.acak);
+    acak([g.id], g.status === "acak" ? `Buat ulang PIN ${g.nama}?\n\nPIN lama (${g.pin}) tidak berlaku lagi.` : `Buat PIN pribadi untuk ${g.nama}?`);
+  });
+  $("f-admin").querySelectorAll("[data-hapus-pin]").forEach((b) => b.onclick = async () => {
+    const g = L.find((x) => x.id === b.dataset.hapusPin);
+    if (!confirm(`Hapus PIN pribadi ${g.nama}?\n\nGuru ini kembali masuk dengan ${g.hp4 ? "4 digit terakhir nomor HP" : "nama kelompoknya"}.`)) return;
+    try { await rpc("mtd_admin_hapus_pin", { p_pin: PIN, p_guru: g.id }); toast("PIN pribadi dihapus"); muatAdmin(); } catch (e) { toast(e.message); }
+  });
+  $("adm-pin-simpan").onclick = async () => {
+    const p1 = $("adm-pin-baru").value.trim(), p2 = $("adm-pin-ulang").value.trim();
+    if (p1.length < 8) return toast("PIN admin paling sedikit 8 karakter.");
+    if (p1 !== p2) return toast("Kedua isian PIN baru belum sama.");
+    try { await rpc("mtd_admin_ganti_pin", { p_pin: PIN, p_baru: p1 }); PIN = p1; ssSet(KUNCI_PIN, p1); $("adm-pin-baru").value = $("adm-pin-ulang").value = ""; toast("PIN admin diganti"); }
+    catch (e) { toast(e.message); }
+  };
   const siapKosong = () => { $("ks-tombol").disabled = !($("ks-pin").value.trim() && $("ks-ketik").value.trim().toUpperCase() === "KOSONGKAN"); };
   $("ks-pin").oninput = siapKosong; $("ks-ketik").oninput = siapKosong;
   $("ks-tombol").onclick = async () => {
@@ -1497,34 +1890,6 @@ function gambarAtur() {
       $("ks-pin").value = ""; $("ks-ketik").value = ""; muatKelas(); if (DAFTAR.length) muatDaftar(true);
     } catch (e) { toast(e.message); siapKosong(); }
   };
-
-  const simpan = async (k, v) => {
-    const x = SEMUA_ATUR.find((y) => y.k === k);
-    try {
-      G.atur = await rpc("mtd_set_atur", { p_pin: PIN, p_k: k, p_v: v });
-      ringkasAtur();
-      const t = $("f-atur").querySelector(`[data-teks="${k}"]`);
-      if (t) t.textContent = G.atur[k] ? x.on : x.off;
-      if (x.jenis === "kode") $("f-atur").querySelector(`[data-kode="${k}"]`).value = G.atur[k] || "";
-      const ok = $("f-atur").querySelector(`[data-ok="${k}"]`);
-      ok.classList.add("show"); clearTimeout(ok._t); ok._t = setTimeout(() => ok.classList.remove("show"), 2200);
-      toast(x.jenis === "kode" ? (G.atur[k] ? `${x.l}: ${G.atur[k]}` : `${x.l} tidak dipakai`) : "Tersimpan: " + x.l);
-    } catch (e) { toast(e.message); gambarAtur(); }
-  };
-  $("f-atur").querySelectorAll("[data-k]").forEach((el) => el.onchange = () => {
-    const x = SEMUA_ATUR.find((y) => y.k === el.dataset.k);
-    if (x.jenis === "angka") {
-      const n = Number(el.value);
-      if (el.value === "" || !Number.isInteger(n) || n < (x.min || 0) || n > x.maks) { toast(`${x.l}: isi ${x.min || 0}–${x.maks}`); el.value = G.atur[x.k]; return; }
-      return simpan(x.k, n);
-    }
-    simpan(x.k, x.jenis === "ya" ? el.checked : el.value);
-  });
-  $("f-atur").querySelectorAll("[data-simpan]").forEach((b) => {
-    const inp = $("f-atur").querySelector(`[data-kode="${b.dataset.simpan}"]`);
-    b.onclick = () => simpan(b.dataset.simpan, inp.value.trim().toUpperCase());
-    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") b.click(); });
-  });
 }
 
 /* Grafik digambar selebar wadahnya; gambar ulang bila lebar layar berubah (HP diputar). */
