@@ -77,8 +77,15 @@ Isi saat ini:
   bergantian, dua pola berselang/Fibonacci; 1–2 kotak suku yang hilang). Soal
   disusun mundur dari jawaban bulat acak, jadi tiap level punya ratusan sampai
   ribuan kemungkinan. Kesalahan x/y tertukar dan sebagian benar dikenali.
+- **MD12**, tahap B: Soal Cerita Sistem Persamaan Linear (4 level: harga satu barang,
+  harga gabungan, umur, umur dengan "… tahun yang lalu/lagi"; dirangkai dari kumpulan
+  barang, nama, harga, dan umur acak) dan Penarikan Kesimpulan (4 level, pilihan ganda
+  A–E: modus ponens/tollens, silogisme & kontraposisi, kuantor semua/sebagian,
+  kesetaraan & ingkaran). Pengecoh dibuat dari kesalahan logika umum (membalik
+  implikasi, menyangkal tanpa membalik, kuantor keliru) dan dikenali sebagai jenis
+  kesalahan; urutan pilihan diacak.
 - Menyusul: MD11 tahap B (mengurutkan bilangan, persentase dalam kehidupan, notasi
-  baku & eksponen) dan MD12 tahap B (soal cerita SPLDV, penarikan kesimpulan).
+  baku & eksponen).
 Tab **Tingkat dan Level Soal** di `guru.html` menampilkan 10 soal acak beserta
 kuncinya untuk setiap level, supaya guru bisa memeriksa kesesuaiannya dengan
 modul.

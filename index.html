@@ -19,7 +19,7 @@
 <!-- /pratinjau -->
 <link rel="icon" href="assets/logo.png">
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=4">
+<link rel="stylesheet" href="assets/matdas.css?v=5">
 <script src="config.js"></script>
 <style>
 /* ---- Masuk ---- */
@@ -150,6 +150,18 @@
 .papan button.lebar { grid-column: span 2; }
 .papan .kosong { visibility: hidden; }
 .soal-teks.soal-kecil { font-size: clamp(22px, 6.2vw, 34px); }
+.soal-teks.soal-baca { font-size: var(--h-b); font-weight: 500; margin: var(--j3) 0 var(--j4); }
+.satuan-jawab { font-size: 22px; font-weight: 700; color: var(--tinta-2); margin: 0 6px; }
+.jawab.jawab-opsi { display: block; background: transparent; padding: 0; }
+.opsi-daftar { display: grid; gap: var(--j2); text-align: left; }
+.opsi { display: flex; gap: var(--j3); align-items: flex-start; width: 100%; text-align: left; font-size: var(--h-n); font-weight: 500; line-height: 1.45;
+  background: #fff; color: var(--tinta); border: 1.5px solid var(--garis-2); border-radius: var(--r2); padding: var(--j3) var(--j4); min-height: 0; }
+.opsi:hover { background: var(--kertas-3); color: var(--tinta); border-color: var(--gelap); }
+.opsi b { flex: none; width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--kertas-3); color: var(--gelap); font-size: var(--h-m); }
+.opsi[aria-checked="true"] { border-color: var(--gelap); background: var(--emas-kabut); box-shadow: inset 0 0 0 1px var(--gelap); }
+.opsi[aria-checked="true"] b { background: var(--gelap); color: var(--tinta-terang); }
+.papan button.kirim.penuh { grid-column: 1 / -1; }
 .isi-var { display: inline-flex; align-items: center; gap: var(--j1); margin: 0 var(--j2); }
 .papan button.tanda { font-size: 24px; font-weight: 800; color: var(--gelap); }
 .papan button.pindah { font-size: var(--h-m); font-weight: 700; color: var(--gelap); line-height: 1.15; }
@@ -310,7 +322,7 @@ details.peta[open] summary::before { transform: rotate(90deg); }
 <div class="benar-kilat" id="kilat" aria-hidden="true">Benar ✓</div>
 <div class="toast" id="toast" role="status"></div>
 
-<script src="assets/umum.js?v=5"></script>
+<script src="assets/umum.js?v=6"></script>
 <script>
 "use strict";
 const KUNCI_SESI = "mtd_token", KUNCI_NISN = "mtd_nisn";
@@ -371,23 +383,35 @@ function isiPetunjuk() {
     ? "Tulis bilangan yang hilang (pengganti kotak). Tekan ± bila jawabannya negatif."
     : A.pv
     ? `Tulis nilai ${A.pv}. Tekan ± bila jawabannya negatif.`
+    : A.pl
+    ? "Ketuk satu pilihan yang paling tepat, lalu tekan Jawab."
+    : A.ct
+    ? "Tulis jawabannya dengan angka saja, tanpa titik."
     : A.mb && A.pola
     ? "Isi bilangan pengganti setiap kotak, berurutan dari kiri. Tekan ± bila negatif."
     : A.mb
     ? "Isi nilai x dan y. Ketuk kotak atau tombol Pindah untuk berpindah; ± untuk negatif."
     : "Isi bilangan bulat (boleh kosong), pembilang, lalu penyebut. Tulis dalam bentuk paling sederhana.";
-  $("s-petunjuk").classList.toggle("hidden", !A.pc && !A.ss && !A.ds && !A.hl && !A.pv && !A.mb);
+  $("s-petunjuk").classList.toggle("hidden", !A.pc && !A.ss && !A.ds && !A.hl && !A.pv && !A.mb && !A.pl && !A.ct);
 }
 
 function isiSoal() {
   const s = S.soal;
   $("s-no").textContent = `Soal nomor ${S.nomor} dari ${S.atur.n_benar}`;
   // Soal yang sudah memuat "=" atau berupa sistem/pola tidak ditambah "= …"
-  $("s-teks").innerHTML = ["hilang", "persamaan", "spldv", "pola"].includes(s.bentuk) ? soalHtml(s.teks) : soalHtml(s.teks) + ' <span class="op">=</span> …';
+  // Soal yang sudah memuat "=" atau berupa sistem/pola/cerita/pilihan tidak ditambah "= …"
+  const tanpaSama = ["hilang", "persamaan", "spldv", "pola", "cerita", "pilihan"].includes(s.bentuk);
+  $("s-teks").innerHTML = s.bentuk === "pilihan"
+    ? (() => { const u = uraiPilihan(s.teks); return `<span class="cerita">${esc(u.premis)}</span><span class="cerita-tanya">${esc(u.tanya)}</span>`; })()
+    : tanpaSama ? soalHtml(s.teks) : soalHtml(s.teks) + ' <span class="op">=</span> …';
   $("s-teks").classList.toggle("soal-kecil", ["spldv", "pola", "persamaan"].includes(s.bentuk));
+  $("s-teks").classList.toggle("soal-baca", ["cerita", "pilihan"].includes(s.bentuk));
   A = s.bentuk === "pecahan" ? { pc: true, neg: false, w: "", n: "", d: "", f: "n" }
     : s.bentuk === "sisa" ? { ss: true, neg: false, q: "", r: "", f: "q" }
     : s.bentuk === "desimal" ? { ds: true, m: BENTUK_DS, neg: false, v: "", w: "", n: "", d: "", f: "n" }
+    : s.bentuk === "pilihan" ? { pl: true, v: "", opsi: uraiPilihan(s.teks).opsi }
+    : s.bentuk === "cerita" ? { pc: false, neg: false, v: "", ct: true,
+        pre: /Rp/.test(s.teks) && /harga/i.test(s.teks) ? "Rp" : "", suf: /umur/i.test(s.teks) ? "tahun" : "" }
     : s.bentuk === "spldv" ? { mb: true, lb: ["x", "y"], vals: ["", ""], ng: [false, false], f: 0 }
     : s.bentuk === "pola" ? (() => { const n = (s.teks.match(/□/g) || []).length || 1;
         return { mb: true, pola: true, lb: n > 1 ? Array.from({ length: n }, (_, i) => "kotak ke-" + (i + 1)) : ["kotak"], vals: Array(n).fill(""), ng: Array(n).fill(false), f: 0 }; })()
@@ -421,6 +445,11 @@ function gambarJawab() {
     ? `<span class="kotak-soal">□</span><span class="op">=</span>${neg}${k("v", A.v)}`
     : A.pv
     ? `<i class="var">${A.pv}</i><span class="op">=</span>${neg}${k("v", A.v)}`
+    : A.pl
+    ? `<div class="opsi-daftar" role="radiogroup" aria-label="Pilihan jawaban">${A.opsi.map(([h, t]) =>
+        `<button type="button" class="opsi" role="radio" aria-checked="${A.v === h}" data-opsi="${h}"><b>${h}</b><span>${esc(t)}</span></button>`).join("")}</div>`
+    : A.ct
+    ? `${A.pre ? `<span class="satuan-jawab">${A.pre}</span>` : ""}${neg}${k("v", A.v, "lebar-isi")}${A.suf ? `<span class="satuan-jawab">${A.suf}</span>` : ""}`
     : A.mb
     ? A.lb.map((l, i) => {
         const kotak = `<span class="kotak ${A.f === i ? "fokus" : ""}" data-k="${i}" role="textbox" aria-label="${l}">${A.ng[i] ? "−" : ""}${esc(A.vals[i])}</span>`;
@@ -432,6 +461,8 @@ function gambarJawab() {
     if (A.pc || A.ss || A.m === "pec") { A.f = el.dataset.k; gambarJawab(); }
   });
   $("s-bentuk").querySelectorAll("[data-bentuk]").forEach((b) => b.onclick = () => gantiBentuk(b.dataset.bentuk));
+  $("s-jawab").querySelectorAll("[data-opsi]").forEach((b) => b.onclick = () => { if (!sibuk && !menungguLanjut && !menungguNaik) { A.v = b.dataset.opsi; gambarJawab(); } });
+  $("s-jawab").classList.toggle("jawab-opsi", !!A.pl);
   // Tombol pindah menunjukkan ke mana kotak berikutnya
   const tp = $("papan").querySelector('[data-a="pindah"]');
   if (tp && A.mb) tp.innerHTML = "Pindah<br>→";
@@ -451,6 +482,12 @@ function gantiBentuk(m) {
 
 function gambarPapan() {
   const b = (t, act, cls) => `<button type="button" data-a="${act}" class="${cls || ""}">${t}</button>`;
+  // Pilihan ganda: tidak perlu papan angka, cukup tombol Jawab.
+  if (A.pl) {
+    $("papan").innerHTML = b("Jawab", "kirim", "kirim penuh");
+    $("papan").querySelectorAll("button").forEach((x) => x.onclick = () => tombol(x.dataset.a));
+    return;
+  }
   // Soal desimal (jawaban tidak pernah negatif): Desimal/Persen memakai tombol koma; Pecahan memakai kotak bertingkat.
   if (A.ds) {
     $("papan").innerHTML =
@@ -514,6 +551,7 @@ function tombolDesimal(a) {
 }
 
 function teksJawaban() {
+  if (A.pl) return A.v;
   if (A.mb) {
     if (A.vals.every((v) => !v)) return "";
     if (A.vals.some((v) => !v)) return null;
@@ -545,6 +583,10 @@ document.addEventListener("keydown", (e) => {
     if (A.m === "pec" && (e.key === " " || e.key === "Tab" || e.key === "ArrowRight" || e.key === "ArrowDown")) { e.preventDefault(); return tombol("pindah"); }
   }
   if (e.key === "-" || e.key === "−") { e.preventDefault(); return tombol("neg"); }
+  if (A && A.pl) {
+    const h = /^[1-5]$/.test(e.key) ? "ABCDE"[+e.key - 1] : e.key.toUpperCase();
+    if (/^[A-E]$/.test(h) && A.opsi.some((o) => o[0] === h)) { e.preventDefault(); A.v = h; return gambarJawab(); }
+  }
   if (A && A.mb && (e.key === "Tab" || e.key === " " || e.key === "ArrowRight" || e.key === "ArrowDown")) { e.preventDefault(); return tombol("pindah"); }
   if (A && A.ss) {
     if (e.key === " " || e.key.toLowerCase() === "s") { e.preventDefault(); A.f = "r"; return gambarJawab(); }
@@ -562,7 +604,7 @@ async function kirim(waktuHabis) {
   if (sibuk) return;
   const j = teksJawaban();
   if (j === null && !waktuHabis) return toast(A.mb ? "Isi semua kotak jawaban." : A.ss ? "Isi hasil bagi dan sisanya." : A.ds ? "Lengkapi jawabanmu (angka setelah koma atau garis pecahan)." : "Lengkapi pembilang dan penyebutnya.");
-  if (j === "" && !waktuHabis) return toast("Tulis jawabanmu dulu.");
+  if (j === "" && !waktuHabis) return toast(A.pl ? "Pilih salah satu jawaban dulu." : "Tulis jawabanmu dulu.");
   sibuk = true;
   try {
     const r = await rpc("mtd_jawab", { p_token: S.token, p_jawaban: j || "" });
@@ -613,12 +655,14 @@ function salah(h) {
   menungguLanjut = true;
   $("s-setara").classList.add("hidden");
   $("k-soal").classList.add("hidden");
-  $("f-soal").innerHTML = soalHtml(h.soal);
-  $("f-jawab").innerHTML = h.jenis === "waktu" && !String(h.jawaban || "").trim() ? '<span class="redup">(waktu habis)</span>' : jawabHtml(h.jawaban);
+  const pil = h.bentuk === "pilihan" ? uraiPilihan(h.soal) : null;
+  const teksOpsi = (x) => { const o = pil && pil.opsi.find((p) => p[0] === String(x || "").toUpperCase()); return o ? `<b>${o[0]}.</b> ${esc(o[1])}` : esc(x || ""); };
+  $("f-soal").innerHTML = pil ? `<span class="cerita">${esc(pil.premis)}</span>` : soalHtml(h.soal);
+  $("f-jawab").innerHTML = h.jenis === "waktu" && !String(h.jawaban || "").trim() ? '<span class="redup">(waktu habis)</span>' : pil ? teksOpsi(h.jawaban) : jawabHtml(h.jawaban);
   // Kunci tidak dikirim server bila guru mematikan "Tampilkan jawaban benar" (Pengaturan → Halaman Latihan).
   const adaKunci = h.kunci != null;
   const st = adaKunci && h.bentuk === "desimal" ? bentukSetara(h.kunci) : null;
-  $("f-kunci").innerHTML = adaKunci ? kunciHtml(h.kunci, h.bentuk) + (st ? `<span class="setara-kunci">= ${st}</span>` : "") : "";
+  $("f-kunci").innerHTML = !adaKunci ? "" : pil ? teksOpsi(h.kunci) : kunciHtml(h.kunci, h.bentuk) + (st ? `<span class="setara-kunci">= ${st}</span>` : "");
   $("f-kunci").classList.toggle("hidden", !adaKunci);
   $("f-kunci-lbl").classList.toggle("hidden", !adaKunci);
   const sr = (JENIS[h.jenis] || {}).saran;

@@ -73,8 +73,20 @@ function aljabarHtml(teks) {
 /* Teks soal dari server → HTML. Pecahan "3/4", campuran "1_1/2", negatif "(−7)",
    desimal "2486,72", persen "185%", persamaan "3(x − 1) = 7", sistem "pers1 ; pers2",
    pola "3, 7, □, 15". */
+/* Soal pilihan ganda "premis ¶ pertanyaan ¶ A) … ¶ B) …" → {premis, tanya, opsi: [[huruf, teks]]}. */
+function uraiPilihan(teks) {
+  const b = String(teks || "").split(" ¶ ");
+  return { premis: b[0] || "", tanya: b[1] || "", opsi: b.slice(2).map((o) => [o.slice(0, 1), o.slice(3)]) };
+}
+
 function soalHtml(teks) {
   teks = String(teks || "");
+  if (teks.includes(" ¶ ")) {                                   // pilihan ganda (tampilan baca saja)
+    const u = uraiPilihan(teks);
+    return `<span class="cerita">${esc(u.premis)}</span><span class="cerita-tanya">${esc(u.tanya)}</span>` +
+      `<span class="opsi-statis">${u.opsi.map(([h, t]) => `<span><b>${h}.</b> ${esc(t)}</span>`).join("")}</span>`;
+  }
+  if (/[A-Za-z]{3,}/.test(teks)) return `<span class="cerita">${esc(teks)}</span>`;   // soal cerita
   if (teks.includes(" ; ")) return `<span class="sistem">${teks.split(" ; ").map((p) => `<span>${aljabarHtml(p)}</span>`).join("")}</span>`;
   if (/^[−\d□]/.test(teks) && teks.includes(", "))
     return '<span class="deret">' + teks.split(", ").map((t) => t === "□" ? '<span class="kotak-soal" aria-label="suku yang dicari">□</span>'
@@ -158,6 +170,11 @@ const JENIS = {
   kosong:    { label: "Tidak menjawab",             saran: "" },
   format:    { label: "Tulisan tidak terbaca",      saran: "Tulis jawaban berupa angka, misalnya 12, −5, 3/4, 1 1/2, 0,75, atau 75%." },
   balik_op:  { label: "Operasi tidak dibalik",      saran: "Untuk mencari □, pakai operasi kebalikannya. Contoh: □ + 14 = 29, maka □ = 29 − 14 = 15." },
+  konvers:   { label: "Membalik implikasi",         saran: "\"Jika p, maka q\" tidak sama dengan \"Jika q, maka p\". Yang setara adalah kontraposisinya: \"Jika tidak q, maka tidak p\"." },
+  invers:    { label: "Menyangkal tanpa membalik",   saran: "\"Jika tidak p, maka tidak q\" belum tentu benar. Ingat: yang setara adalah \"Jika tidak q, maka tidak p\"." },
+  kuantor:   { label: "Kuantor tidak tepat",         saran: "Perhatikan kata \"semua\" dan \"sebagian\". Bila hanya sebagian yang termasuk, simpulannya pun hanya \"sebagian\"." },
+  tidak_sah: { label: "Tidak dapat disimpulkan",     saran: "Pilihan itu tidak mengikuti dari premis. Cari pernyataan yang pasti benar bila semua premis benar." },
+  ingkaran:  { label: "Ingkaran/kesetaraan keliru",  saran: "Ingkaran \"Jika p, maka q\" adalah \"p dan tidak q\"; kesetaraannya adalah \"tidak p atau q\"." },
   tertukar:  { label: "Jawaban tertukar",           saran: "Nilainya sudah benar, tetapi urutannya tertukar. Periksa lagi kotak mana untuk apa." },
   sebagian:  { label: "Sebagian benar",             saran: "Sebagian jawabanmu sudah benar. Periksa lagi kotak yang lain." },
   koma:      { label: "Letak koma salah",           saran: "Angkanya sudah benar, tetapi letak komanya bergeser. Hitung lagi banyaknya angka di belakang koma." },
