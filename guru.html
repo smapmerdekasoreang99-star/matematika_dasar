@@ -73,6 +73,27 @@
 
 .catatan { margin: 0; padding-left: 1.2em; }
 #t-kelas td:nth-child(2), #t-daftar td:nth-child(3) { white-space: nowrap; }
+/* Jalur latihan khusus */
+.jl-kepala { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--j3); flex-wrap: wrap; }
+.jl-kepala h2 { margin: 0 0 2px; } .jl-aksi { display: flex; gap: var(--j2); }
+.jl-langkah { list-style: none; counter-reset: lk; display: flex; flex-wrap: wrap; align-items: center; gap: var(--j2); padding: 0; margin: var(--j3) 0 0; }
+.jl-langkah li { counter-increment: lk; display: inline-flex; align-items: center; gap: var(--j2); padding: 6px 12px 6px 6px; border-radius: var(--r-bulat);
+  background: var(--kertas-3); border: 1px solid var(--garis); font-size: var(--h-s); }
+.jl-langkah li::before { content: counter(lk); width: 24px; height: 24px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--gelap); color: var(--emas); font-weight: 800; font-size: 12px; }
+.jl-langkah li span { color: var(--tinta-2); }
+.jl-langkah li + li { position: relative; margin-left: 14px; }
+.jl-langkah li + li::after { content: "→"; position: absolute; left: -17px; color: var(--emas-teks); font-weight: 800; }
+.jl-langkah li.jl-ujung { background: var(--hadir-muda); border-color: transparent; color: var(--hadir-tua); font-weight: 700; padding-left: 12px; }
+.jl-langkah li.jl-ujung::before { display: none; }
+.jl-editor { border-top: 4px solid var(--emas); scroll-margin-top: 140px; }
+.jl-baris-daftar { display: grid; gap: var(--j2); }
+.jl-baris { display: flex; align-items: center; gap: var(--j2); flex-wrap: wrap; padding: var(--j2); background: var(--kertas-3); border-radius: var(--r2); }
+.jl-baris select { width: auto; flex: 1 1 160px; padding: var(--j2); font-size: var(--h-m); }
+.jl-baris select[data-f="dari"], .jl-baris select[data-f="sampai"] { flex: 0 1 110px; }
+.jl-no { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--gelap); color: var(--emas); font-weight: 800; font-size: 12px; flex: none; }
+button.tutup-merah { background: var(--absen-muda); color: var(--absen-tua); }
+.massal select#dl-jalur { min-width: 160px; }
 .avatar { flex: none; width: 52px; height: 52px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
   font-family: "Fraunces", Georgia, serif; font-weight: 700; font-size: 20px; color: var(--emas); background: linear-gradient(150deg, #26374B, var(--gelap));
   box-shadow: 0 0 0 3px var(--emas-muda); }
@@ -280,6 +301,7 @@ body.lihat .ubah { display: none !important; }
       <button data-v="daftar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg><span>Daftar siswa</span></button>
       <button data-v="siswa"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Analisis siswa</span></button>
       <button data-v="tingkat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h4v-4h4v-4h4V8h4V4"/></svg><span>Tingkat dan Level Soal</span></button>
+      <button data-v="jalur"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="6" r="2.5"/><path d="M7.5 18H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7.5"/></svg><span>Jalur Khusus</span></button>
       <button data-v="atur"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span>Pengaturan</span></button>
     </nav>
     <!-- Kapan data siswa & kelompok MD terakhir ditarik dari Data Induk (lewat admin Tryout) -->
@@ -340,7 +362,8 @@ body.lihat .ubah { display: none !important; }
         <span class="ket">Atur posisi ke</span>
         <select id="dl-tk" aria-label="Tingkat"></select><select id="dl-lv" aria-label="Level"></select>
         <label class="cek"><input type="checkbox" id="dl-baru"> hanya yang belum pernah masuk</label>
-        <button class="kecil" id="dl-terapkan">Terapkan</button>
+        <button class="kecil" id="dl-terapkan">Terapkan</button><span class="pisah"></span>
+        <select id="dl-jalur" aria-label="Jalur latihan khusus"><option value="">Pilih jalur…</option></select><button class="kecil" id="dl-pasang">Pasang jalur</button><button class="kecil tutup" id="dl-lepas">Lepas jalur</button>
         <span class="ujung"><button class="kecil bahaya" id="dl-hapus">Hapus data latihan</button><button class="kecil tutup" id="dl-batal">Batal pilih</button></span>
       </div>
       <div class="kartu">
@@ -368,6 +391,17 @@ body.lihat .ubah { display: none !important; }
         <p>Susunan MD10, MD11, dan MD12. Lihat contoh soal, coba kerjakan sendiri, atau tutup tingkat yang belum dipakai.</p></div></div>
       <p class="redup kecil">Soal dibuat acak oleh server dari aturan tiap level. Tekan <b>Contoh</b> untuk melihat 10 soal acak beserta kuncinya, atau <b>Coba</b> untuk mengerjakannya sendiri seperti siswa (uji coba guru: terbuka di tab baru, tidak memakai akun siswa, tidak masuk rekap, tetap bisa walau Halaman Latihan ditutup). Tingkat yang ditutup dilewati siswa.</p>
       <div id="t-tingkat"></div>
+    </div>
+
+    <!-- Jalur latihan khusus (remedial / pengayaan) -->
+    <div id="p-jalur" class="hidden">
+      <div class="kepala-hal"><div><span class="eyebrow">Remedial &amp; pengayaan</span><h1>Jalur Latihan Khusus</h1>
+        <p>Susun urutan tingkat dan level tertentu untuk sebagian siswa. Siswa yang dipasangi jalur naik mengikuti jalurnya saja; siswa lain tetap memakai urutan biasa.</p></div>
+        <button class="ubah" id="jl-baru">+ Buat jalur baru</button></div>
+      <div class="kartu jl-editor hidden" id="jl-editor"></div>
+      <div id="jl-daftar"></div>
+      <p class="redup kecil">Cara memasang: buka tab <b>Daftar siswa</b>, saring kelompok atau cari siswa, centang, lalu pilih jalur di bilah bawah dan tekan <b>Pasang jalur</b>. Siswa langsung ditempatkan di awal jalur.
+        Tingkat yang sedang ditutup untuk umum tetap bisa dipakai di jalur. <b>Pindahkan posisi</b> secara manual melepas jalur siswa itu.</p>
     </div>
 
     <!-- Pengaturan -->
@@ -411,7 +445,7 @@ async function masuk(pin, diam) {
     const opsi = [...$("pil-kelas").options];
     $("dl-kelompok").innerHTML = opsi.filter((o) => o.value === "").concat(opsi.filter((o) => o.value !== "")).map((o) => o.outerHTML).join("");
     $("dl-kelompok").value = "";
-    muatKelas(); gambarTingkat(); gambarAtur(); gambarSinkron(); isiPilihPosisi();
+    muatKelas(); gambarTingkat(); gambarAtur(); gambarSinkron(); isiPilihPosisi(); muatJalur(true);
   } catch (e) {
     if (diam) return;
     $("pin-pesan").textContent = e.message; $("pin-pesan").classList.remove("hidden");
@@ -440,8 +474,9 @@ $("btn-keluar").onclick = () => { ssSet(KUNCI_PIN, null); location.reload(); };
 $("tab").querySelectorAll("button").forEach((b) => b.onclick = () => bukaTab(b.dataset.v));
 function bukaTab(v) {
   $("tab").querySelectorAll("button").forEach((x) => x.classList.toggle("on", x.dataset.v === v));
-  ["kelas", "daftar", "siswa", "tingkat", "atur"].forEach((x) => $("p-" + x).classList.toggle("hidden", x !== v));
+  ["kelas", "daftar", "siswa", "tingkat", "jalur", "atur"].forEach((x) => $("p-" + x).classList.toggle("hidden", x !== v));
   clearInterval(daftarT);
+  if (v === "jalur") muatJalur();
   if (v === "daftar") { muatDaftar(); daftarT = setInterval(() => { if (!document.hidden) muatDaftar(true); }, 30000); }
 }
 
@@ -467,6 +502,7 @@ function status(r) {
   const s = [];
   if (!r.tingkat) return [{ t: "Belum mulai", c: "" , bobot: 2 }];
   if (r.terkunci) s.push({ t: "Terkunci", c: "buruk", bobot: 5 });
+  if (r.jalur) s.push({ t: "Jalur: " + r.jalur, c: "biru", bobot: 0 });
   if (r.selesai) s.push({ t: "Tamat", c: "baik", bobot: 0 });
   if (!r.selesai && (r.percobaan >= 3 || r.salah_sini >= 8)) s.push({ t: "Macet", c: "buruk", bobot: 4 });
   if (hariSejak(r.terakhir) >= 7) s.push({ t: "Tidak aktif", c: "emas", bobot: 3 });
@@ -584,6 +620,7 @@ const PILIH = new Set();
 $("dl-cari").oninput = () => gambarDaftar();
 
 const statusDaftar = (r) => r.terkunci ? '<span class="lencana buruk">Terkunci</span>'
+  : r.jalur && !r.online ? `<span class="lencana biru" title="Jalur latihan khusus">Jalur: ${esc(r.jalur)}</span>`
   : r.online ? '<span class="lencana baik"><span class="titik-on"></span>Sedang berlatih</span>'
   : !r.tingkat ? '<span class="lencana">Belum pernah masuk</span>'
   : r.selesai ? '<span class="lencana baik">Tamat</span>'
@@ -664,6 +701,91 @@ function isiPilihPosisi() {
 const namaTerpilih = () => { const nm = DAFTAR.filter((r) => PILIH.has(r.nisn)).map((r) => r.nama);
   return nm.slice(0, 5).join(", ") + (nm.length > 5 ? `, dan ${nm.length - 5} lainnya` : ""); };
 $("dl-batal").onclick = () => { PILIH.clear(); gambarDaftar(); };
+$("dl-pasang").onclick = async () => {
+  const id = +$("dl-jalur").value, j = JALUR.find((x) => x.id === id);
+  if (!j) return toast("Pilih jalur dulu (tab Jalur Khusus untuk membuatnya).");
+  if (!confirm(`Pasang jalur "${j.nama}" untuk ${PILIH.size} siswa?\n\n${namaTerpilih()}\n\nMereka langsung ditempatkan di awal jalur (${langkahTeks(j.langkah[0])}); sesi yang sedang berjalan ditutup.`)) return;
+  try { const r = await rpc("mtd_jalur_pasang", { p_pin: PIN, p_nisn: [...PILIH], p_jalur: id }); toast(`Jalur dipasang untuk ${r.dipasang} siswa`); PILIH.clear(); muatDaftar(true); muatKelas(); }
+  catch (e) { toast(e.message); }
+};
+$("dl-lepas").onclick = async () => {
+  if (!confirm(`Lepas jalur khusus dari ${PILIH.size} siswa terpilih? Mereka melanjutkan urutan biasa dari posisinya sekarang.`)) return;
+  try { const r = await rpc("mtd_jalur_pasang", { p_pin: PIN, p_nisn: [...PILIH], p_jalur: null }); toast(`Jalur dilepas dari ${r.dilepas} siswa`); PILIH.clear(); muatDaftar(true); muatKelas(); }
+  catch (e) { toast(e.message); }
+};
+
+/* ----------------------------------------------------------- jalur latihan khusus */
+let JALUR = [];
+const namaTingkat = (k) => (G.tingkat.find((t) => t.kode === k) || {}).nama || k;
+const langkahTeks = (l) => `${namaTingkat(l.tingkat)} · Lv ${l.dari === l.sampai ? l.dari : l.dari + "–" + l.sampai}`;
+async function muatJalur(diam) {
+  try { JALUR = await rpc("mtd_jalur_daftar", { p_pin: PIN }); } catch (e) { if (!diam) toast(e.message); return; }
+  $("dl-jalur").innerHTML = '<option value="">Pilih jalur…</option>' + JALUR.map((j) => `<option value="${j.id}">${esc(j.nama)}</option>`).join("");
+  gambarJalur();
+}
+function gambarJalur() {
+  const boleh = PERAN !== "pengawas";
+  $("jl-daftar").innerHTML = JALUR.length ? JALUR.map((j) => `<div class="kartu jl-kartu">
+      <div class="jl-kepala"><div><h2>${esc(j.nama)}</h2><span class="redup kecil">${j.langkah.reduce((a, l) => a + (l.sampai - l.dari + 1), 0)} level · ${j.n_siswa} siswa memakai · ujung: ${j.akhir === "lanjut" ? "lanjut ke urutan biasa" : "berhenti"}</span></div>
+        ${boleh ? `<span class="jl-aksi"><button class="garis kecil" data-ubah-jalur="${j.id}">Ubah</button><button class="kecil bahaya" data-hapus-jalur="${j.id}">Hapus</button></span>` : ""}</div>
+      <ol class="jl-langkah">${j.langkah.map((l) => `<li><b>${esc(namaTingkat(l.tingkat))}</b><span>Level ${l.dari === l.sampai ? l.dari : l.dari + "–" + l.sampai}</span></li>`).join("")}
+        <li class="jl-ujung">${j.akhir === "lanjut" ? "Lanjut ke urutan biasa" : "Selesai"}</li></ol></div>`).join("")
+    : '<div class="kartu kosong-data">Belum ada jalur. Tekan <b>+ Buat jalur baru</b> untuk menyusun jalur remedial atau pengayaan.</div>';
+  $("jl-daftar").querySelectorAll("[data-ubah-jalur]").forEach((b) => b.onclick = () => bukaEditorJalur(JALUR.find((j) => j.id === +b.dataset.ubahJalur)));
+  $("jl-daftar").querySelectorAll("[data-hapus-jalur]").forEach((b) => b.onclick = async () => {
+    const j = JALUR.find((x) => x.id === +b.dataset.hapusJalur);
+    if (!confirm(`Hapus jalur "${j.nama}"?${j.n_siswa ? `\n\n${j.n_siswa} siswa yang memakainya akan melanjutkan urutan biasa dari posisinya sekarang.` : ""}`)) return;
+    try { await rpc("mtd_jalur_hapus", { p_pin: PIN, p_id: j.id }); toast("Jalur dihapus"); muatJalur(); muatKelas(); } catch (e) { toast(e.message); }
+  });
+}
+// Penyusun jalur: nama, langkah (tingkat + level dari–sampai), ujung jalur.
+function bukaEditorJalur(j) {
+  const ed = $("jl-editor"), langkah = j ? j.langkah.map((l) => ({ ...l })) : [{ tingkat: G.tingkat[0].kode, dari: 1, sampai: G.tingkat[0].level.length }];
+  const opsiTingkat = (pilih) => [10, 11, 12].map((m) => {
+    const ts = G.tingkat.filter((t) => t.modul === m);
+    return ts.length ? `<optgroup label="MD${m}">${ts.map((t) => `<option value="${t.kode}" ${t.kode === pilih ? "selected" : ""}>${esc(t.nama)}${t.aktif ? "" : " (ditutup)"}</option>`).join("")}</optgroup>` : "";
+  }).join("");
+  const opsiLevel = (k, pilih) => (G.tingkat.find((t) => t.kode === k) || { level: [] }).level.map((l) => `<option value="${l.level}" ${l.level === pilih ? "selected" : ""}>Level ${l.level}</option>`).join("");
+  const gambar = () => {
+    ed.innerHTML = `<h2>${j ? "Ubah jalur" : "Jalur baru"}</h2>
+      <label class="isian" for="jl-nama">Nama jalur</label><input type="text" id="jl-nama" maxlength="80" placeholder="mis. Remedial Pembagian MD10" value="${esc(j ? j.nama : $("jl-nama")?.value || "")}">
+      <div class="isian">Langkah (berurutan)</div>
+      <div class="jl-baris-daftar">${langkah.map((l, i) => `<div class="jl-baris"><span class="jl-no">${i + 1}</span>
+        <select data-i="${i}" data-f="tingkat" aria-label="Tingkat">${opsiTingkat(l.tingkat)}</select>
+        <span class="redup kecil">dari</span><select data-i="${i}" data-f="dari" aria-label="Dari level">${opsiLevel(l.tingkat, l.dari)}</select>
+        <span class="redup kecil">sampai</span><select data-i="${i}" data-f="sampai" aria-label="Sampai level">${opsiLevel(l.tingkat, l.sampai)}</select>
+        <button class="kecil garis" data-naik="${i}" title="Naikkan" ${i ? "" : "disabled"}>↑</button><button class="kecil tutup-merah" data-hapus="${i}" title="Hapus langkah" ${langkah.length > 1 ? "" : "disabled"}>✕</button></div>`).join("")}</div>
+      <p><button class="garis kecil" id="jl-tambah">+ Tambah langkah</button></p>
+      <div class="isian">Setelah langkah terakhir</div>
+      <div class="pilihan"><label><input type="radio" name="jl-akhir" value="berhenti" ${(j ? j.akhir : "berhenti") === "berhenti" ? "checked" : ""}><span><b>Berhenti</b><span>Siswa selesai; guru memutuskan langkah berikutnya</span></span></label>
+        <label><input type="radio" name="jl-akhir" value="lanjut" ${j && j.akhir === "lanjut" ? "checked" : ""}><span><b>Lanjut ke urutan biasa</b><span>Meneruskan tingkat/level berikutnya; jalur dilepas otomatis</span></span></label></div>
+      <div class="baris" style="margin-top:var(--j4)"><button id="jl-simpan">Simpan jalur</button><button class="garis" id="jl-batal">Batal</button></div>`;
+    ed.querySelectorAll("select[data-i]").forEach((s) => s.onchange = () => {
+      const l = langkah[+s.dataset.i], f = s.dataset.f;
+      if (f === "tingkat") { const t = G.tingkat.find((x) => x.kode === s.value); l.tingkat = s.value; l.dari = 1; l.sampai = t.level.length; }
+      else l[f] = +s.value;
+      if (l.dari > l.sampai) [l.dari, l.sampai] = [l.sampai, l.dari];
+      simpanNama(); gambar();
+    });
+    ed.querySelectorAll("[data-hapus]").forEach((b) => b.onclick = () => { simpanNama(); langkah.splice(+b.dataset.hapus, 1); gambar(); });
+    ed.querySelectorAll("[data-naik]").forEach((b) => b.onclick = () => { simpanNama(); const i = +b.dataset.naik; [langkah[i - 1], langkah[i]] = [langkah[i], langkah[i - 1]]; gambar(); });
+    $("jl-tambah").onclick = () => { simpanNama(); const akhir = langkah[langkah.length - 1], t = G.tingkat[Math.min(G.tingkat.length - 1, G.tingkat.findIndex((x) => x.kode === akhir.tingkat) + 1)];
+      langkah.push({ tingkat: t.kode, dari: 1, sampai: t.level.length }); gambar(); };
+    $("jl-batal").onclick = () => { ed.classList.add("hidden"); };
+    $("jl-simpan").onclick = async () => {
+      const nama = $("jl-nama").value.trim(), akhir = ed.querySelector('[name="jl-akhir"]:checked').value;
+      if (!nama) return toast("Isi nama jalur dulu.");
+      try { await rpc("mtd_jalur_simpan", { p_pin: PIN, p_nama: nama, p_langkah: langkah, p_akhir: akhir, p_id: j ? j.id : null });
+        toast("Jalur disimpan"); ed.classList.add("hidden"); muatJalur(); } catch (e) { toast(e.message); }
+    };
+  };
+  let namaSementara = j ? j.nama : "";
+  const simpanNama = () => { namaSementara = $("jl-nama").value; if (j) j = { ...j, nama: namaSementara }; };
+  gambar();
+  if (!j) $("jl-nama").value = namaSementara;
+  ed.classList.remove("hidden"); ed.scrollIntoView({ behavior: "smooth", block: "start" }); $("jl-nama").focus();
+}
+$("jl-baru").onclick = () => bukaEditorJalur(null);
 $("dl-terapkan").onclick = async () => {
   const t = $("dl-tk"), l = $("dl-lv"), baru = $("dl-baru").checked, n = PILIH.size;
   if (!confirm(`Atur posisi ${n} siswa ke ${t.options[t.selectedIndex].text}, level ${l.value}?\n\n${namaTerpilih()}\n\n` +
@@ -835,6 +957,7 @@ function gambarSiswa() {
   $("d-isi").innerHTML = `
     <div class="kartu">
       <div class="baris"><span class="avatar" aria-hidden="true">${esc(D.siswa.nama.split(/\s+/).slice(0, 2).map((x) => x[0]).join("").toUpperCase())}</span><div class="tumbuh"><h1 style="margin:0">${esc(D.siswa.nama)}</h1><div class="redup">${D.siswa.kelompok ? esc(D.siswa.kelompok) + " · " : ""}Rombel ${esc(D.siswa.kelas)} · NISN ${esc(D.siswa.nisn)}</div></div>
+      ${p && p.jalur ? `<span class="lencana emas" title="Jalur latihan khusus">Jalur: ${esc((JALUR.find((x) => x.id === p.jalur) || {}).nama || "khusus")}</span>` : ""}
       ${p ? `<span class="lencana ${p.selesai ? "baik" : "biru"}">${p.selesai ? "Tamat" : `${esc(p.nama_tingkat)} · Level ${p.level}`}</span>` : '<span class="lencana">Belum mulai</span>'}</div>
       ${p ? `<div class="maju" style="margin-top:var(--j3)"><div class="batang"><i style="width:${100 * p.lewat / Math.max(1, p.total)}%"></i></div><span>${p.lewat} dari ${p.total} level</span></div>` : ""}
     </div>

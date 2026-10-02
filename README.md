@@ -127,6 +127,12 @@ memindahkan posisi siswa. PIN pengawas hanya bisa melihat.
   jawaban siswa, kunci), dan riwayat level tuntas. Di sini juga ada
   **Pindahkan posisi**, misalnya untuk siswa yang sudah lancar agar bisa
   melompat ke depan. Juga **Hapus data latihan** satu siswa (mis. setelah uji coba).
+- **Jalur Khusus** (remedial/pengayaan): guru menyusun jalur berupa langkah-langkah
+  tingkat + rentang level (mis. Pembagian Dasar lv 5–9 → Penjumlahan Pecahan lv 1–3),
+  dengan ujung *berhenti* atau *lanjut ke urutan biasa*. Jalur dipasang lewat Daftar
+  siswa (centang → Pasang jalur); siswa naik mengikuti jalurnya saja, siswa lain tetap
+  urutan biasa. Tingkat yang ditutup untuk umum tetap bisa dipakai di jalur.
+  Pindahkan posisi manual melepas jalur.
 - **Pengaturan**, dikelompokkan seperti *Pengaturan ujian* di Dasbor Hasil Tryout:
   - *Halaman Latihan*: dibuka/ditutup, yang boleh masuk (anggota kelompok MD
     saja / semua siswa aktif), tampilkan jawaban benar saat salah, kode akses.
