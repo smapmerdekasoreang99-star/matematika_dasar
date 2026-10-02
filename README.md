@@ -70,8 +70,15 @@ Isi saat ini:
   berhenti. Jawaban dinilai dari nilainya: 0,75 = 3/4 = 75% sama-sama benar
   (papan angka soal desimal punya tombol **,** **/** **%**). Kesalahan letak koma
   dan persen yang belum diubah dikenali.
-- Menyusul: Kelas 11 tahap B (mengurutkan bilangan, persentase dalam kehidupan,
-  notasi baku & eksponen) dan MD12.
+- **MD12** (Modul Kelas 12), tahap A: 3 tingkat, 19 level: Persamaan Linear Satu
+  Variabel (8 level, dari x + a = b sampai pecahan dan kurung di kedua ruas),
+  Sistem Persamaan Linear Dua Variabel (5 level; jawaban dua kotak x dan y), dan
+  Pola Bilangan (6 level: aritmetika, geometri, selisih bertingkat, ×m + c, operasi
+  bergantian, dua pola berselang/Fibonacci; 1–2 kotak suku yang hilang). Soal
+  disusun mundur dari jawaban bulat acak, jadi tiap level punya ratusan sampai
+  ribuan kemungkinan. Kesalahan x/y tertukar dan sebagian benar dikenali.
+- Menyusul: MD11 tahap B (mengurutkan bilangan, persentase dalam kehidupan, notasi
+  baku & eksponen) dan MD12 tahap B (soal cerita SPLDV, penarikan kesimpulan).
 Tab **Tingkat dan Level Soal** di `guru.html` menampilkan 10 soal acak beserta
 kuncinya untuk setiap level, supaya guru bisa memeriksa kesesuaiannya dengan
 modul.

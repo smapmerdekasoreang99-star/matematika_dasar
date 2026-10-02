@@ -60,9 +60,26 @@ function pecHtml(w, n, d, neg) {
     `<span class="pc-f"><span class="pc-n">${n}</span><span class="pc-d">${d}</span></span></span>`;
 }
 
+/* Satu ruas aljabar → HTML: pecahan "2/3" bersusun, variabel miring, angka rapi. */
+function aljabarHtml(teks) {
+  return esc(teks).split(" ").map((tok) => {
+    const m = tok.match(/^(\d+)\/(\d+)$/);
+    if (m) return pecHtml("", m[1], m[2]);
+    if (/^[+−×÷=]$/.test(tok)) return `<span class="op">${tok}</span>`;
+    return tok.replace(/[a-z]/g, (v) => `<i class="var">${v}</i>`);
+  }).join(" ");
+}
+
 /* Teks soal dari server → HTML. Pecahan "3/4", campuran "1_1/2", negatif "(−7)",
-   desimal "2486,72", persen "185%". */
+   desimal "2486,72", persen "185%", persamaan "3(x − 1) = 7", sistem "pers1 ; pers2",
+   pola "3, 7, □, 15". */
 function soalHtml(teks) {
+  teks = String(teks || "");
+  if (teks.includes(" ; ")) return `<span class="sistem">${teks.split(" ; ").map((p) => `<span>${aljabarHtml(p)}</span>`).join("")}</span>`;
+  if (/^[−\d□]/.test(teks) && teks.includes(", "))
+    return '<span class="deret">' + teks.split(", ").map((t) => t === "□" ? '<span class="kotak-soal" aria-label="suku yang dicari">□</span>'
+      : `<span class="nm">${esc(t.startsWith("−") ? "−" + bil(t.slice(1)) : bil(t))}</span>`).join('<span class="koma-deret">,</span> ') + "</span>";
+  if (/[a-z]/.test(teks)) return aljabarHtml(teks);
   return esc(teks).split(" ").map((tok) => {
     let m = tok.match(/^(\d+)_(\d+)\/(\d+)$/);
     if (m) return pecHtml(m[1], m[2], m[3]);
@@ -85,6 +102,11 @@ const soalPolos = (teks) => String(teks || "").replace(/_/g, " ");
    pecahan tak wajar ditampilkan juga sebagai pecahan campuran. */
 function kunciHtml(k, bentuk) {
   k = String(k);
+  // Jawaban ganda: SPLDV "x;y", pola "a;b"
+  if (k.includes(";")) {
+    const b = k.split(";").map((x) => `<span class="nm">${x.startsWith("-") ? "−" + bil(x.slice(1)) : bil(x)}</span>`);
+    return bentuk === "spldv" ? `<i class="var">x</i> = ${b[0]}, <i class="var">y</i> = ${b[1]}` : b.join(' <span class="redup">;</span> ');
+  }
   if (k.includes(" sisa ")) return sisaHtml(k);
   if (!k.includes("/")) return `<span class="nm">${bil(k)}</span>`;
   let [p, q] = k.split("/").map(Number);
@@ -115,6 +137,7 @@ function jawabHtml(j) {
   j = String(j == null ? "" : j).trim();
   if (!j) return '<span class="redup">(kosong)</span>';
   if (/^\d+ sisa \d+$/.test(j)) return sisaHtml(j);
+  if (j.includes(";")) return j.split(";").map((x) => `<span class="nm">${esc(x.startsWith("-") ? "−" + bil(x.slice(1)) : bil(x))}</span>`).join(' <span class="redup">;</span> ');
   let m = j.match(/^(-)?(\d+) (\d+)\/(\d+)$/);
   if (m) return pecHtml(m[2], m[3], m[4], !!m[1]);
   m = j.match(/^(-)?(\d+)\/(\d+)$/);
@@ -135,6 +158,8 @@ const JENIS = {
   kosong:    { label: "Tidak menjawab",             saran: "" },
   format:    { label: "Tulisan tidak terbaca",      saran: "Tulis jawaban berupa angka, misalnya 12, −5, 3/4, 1 1/2, 0,75, atau 75%." },
   balik_op:  { label: "Operasi tidak dibalik",      saran: "Untuk mencari □, pakai operasi kebalikannya. Contoh: □ + 14 = 29, maka □ = 29 − 14 = 15." },
+  tertukar:  { label: "Jawaban tertukar",           saran: "Nilainya sudah benar, tetapi urutannya tertukar. Periksa lagi kotak mana untuk apa." },
+  sebagian:  { label: "Sebagian benar",             saran: "Sebagian jawabanmu sudah benar. Periksa lagi kotak yang lain." },
   koma:      { label: "Letak koma salah",           saran: "Angkanya sudah benar, tetapi letak komanya bergeser. Hitung lagi banyaknya angka di belakang koma." },
   persen:    { label: "Persen belum diubah",        saran: "Ubah persen dulu sebelum menghitung: 185% = 1,85 = 185/100." },
   sisa:      { label: "Sisa pembagian salah",       saran: "Hasil baginya sudah tepat. Sisa = yang dibagi − (hasil bagi × pembagi)." },

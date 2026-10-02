@@ -71,6 +71,12 @@ input[type=text], input[type=date], input[type=number], input[type=password], se
 /* □ bilangan yang dicari: digambar CSS (karakter □ di banyak huruf tampil kecil) */
 .kotak-soal { display: inline-block; width: .8em; height: .8em; border: .09em solid var(--emas-teks); border-radius: .12em; vertical-align: -.06em;
   margin: 0 .08em; background: var(--emas-kabut); color: transparent; overflow: hidden; line-height: 0; }
+/* Aljabar: variabel miring, sistem persamaan bertumpuk dengan kurung kurawal sederhana, deret pola */
+.var { font-family: "Fraunces", Georgia, serif; font-style: italic; font-weight: 600; padding: 0 .02em; }
+.sistem { display: inline-flex; flex-direction: column; align-items: flex-start; gap: .1em; text-align: left; line-height: 1.25;
+  border-left: .09em solid currentColor; border-radius: .35em 0 0 .35em; padding: .05em 0 .05em .4em; }
+.deret { display: inline-flex; flex-wrap: wrap; justify-content: center; align-items: baseline; gap: .15em .1em; }
+.koma-deret { color: var(--tinta-3); margin-right: .2em; }
 .op.sisa-kata { font-size: .72em; font-weight: 700; color: var(--tinta-2); letter-spacing: .02em; }
 .nm { font-variant-numeric: tabular-nums; white-space: nowrap; }
 

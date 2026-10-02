@@ -19,7 +19,7 @@
 <!-- /pratinjau -->
 <link rel="icon" href="assets/logo.png">
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=3">
+<link rel="stylesheet" href="assets/matdas.css?v=4">
 <script src="config.js"></script>
 <style>
 .tab { display: flex; gap: var(--j1); flex-wrap: wrap; margin: var(--j3) 0; }
@@ -297,7 +297,7 @@ body.lihat .ubah { display: none !important; }
 </main>
 <div class="toast" id="toast" role="status"></div>
 
-<script src="assets/umum.js?v=4"></script>
+<script src="assets/umum.js?v=5"></script>
 <script src="assets/excel.js?v=2"></script>
 <script>
 "use strict";
@@ -812,6 +812,10 @@ function gambarTingkat() {
       const soal = await rpc("mtd_contoh", { p_pin: PIN, p_tingkat: kode, p_level: +lv, p_n: 10 });
       box.innerHTML = soal.map((s) => s.bentuk === "hilang"
         ? `<div>${soalHtml(s.teks)} <span class="redup">→</span> <span class="k"><span class="kotak-soal">□</span> = ${kunciHtml(s.kunci)}</span></div>`
+        : s.bentuk === "persamaan"
+        ? `<div>${soalHtml(s.teks)} <span class="redup">→</span> <span class="k"><i class="var">${esc(s.var || "x")}</i> = ${kunciHtml(s.kunci)}</span></div>`
+        : ["spldv", "pola"].includes(s.bentuk)
+        ? `<div>${soalHtml(s.teks)} <span class="redup">→</span> <span class="k">${kunciHtml(s.kunci, s.bentuk)}</span></div>`
         : `<div>${soalHtml(s.teks)} <span class="op">=</span> <span class="k">${kunciHtml(s.kunci)}</span></div>`).join("");
       box.classList.remove("hidden"); b.textContent = "Contoh lain";
     } catch (e) { toast(e.message); }
