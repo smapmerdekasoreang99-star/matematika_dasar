@@ -103,6 +103,21 @@
 .kotak.fokus { border-color: var(--gelap); box-shadow: 0 0 0 4px var(--emas-muda); }
 .kotak.kecil { font-size: 26px; min-width: 2.2em; min-height: 1.4em; }
 .kotak:empty::after { content: "\00a0"; }
+/* Petunjuk samar di kotak pecahan yang masih kosong (bulat / pembilang / penyebut) */
+.kotak[data-ph]:empty::after { content: attr(data-ph); font-size: 11px; font-weight: 600; color: var(--tinta-3); letter-spacing: .02em; }
+/* Pilihan bentuk jawaban untuk soal desimal (MD11) */
+.bentuk-pilih { display: inline-flex; gap: 2px; padding: 3px; margin: 0 auto var(--j3); background: var(--kertas-3); border: 1px solid var(--garis);
+  border-radius: var(--r-bulat); }
+.bentuk-pilih button { min-height: 34px; padding: var(--j1) var(--j4); font-size: var(--h-m); font-weight: 700; border-radius: var(--r-bulat);
+  background: transparent; color: var(--tinta-2); }
+.bentuk-pilih button:hover { background: #fff; color: var(--gelap); }
+.bentuk-pilih button[aria-checked="true"] { background: var(--gelap); color: var(--tinta-terang); box-shadow: var(--bayang-1); }
+.persen-tanda { font-size: 34px; font-weight: 800; color: var(--tinta); margin-left: 4px; }
+/* Kesetaraan setelah jawaban benar: 3/4 = 0,75 = 75% */
+.setara-info { display: flex; width: fit-content; max-width: 100%; align-items: center; gap: var(--j2); flex-wrap: wrap; justify-content: center; margin: var(--j3) auto 0;
+  padding: var(--j2) var(--j4); border-radius: var(--r-bulat); background: var(--hadir-muda); color: var(--hadir-tua); font-size: var(--h-n); font-weight: 600; }
+.setara-info .pc-f { font-size: .8em; }
+.setara-kunci { display: block; margin-top: var(--j1); font-size: var(--h-s); font-weight: 600; color: var(--tinta-2); }
 .susun { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; }
 .susun .garis-pc { width: 100%; height: 3px; background: var(--tinta); border-radius: 2px; }
 .neg-tanda { color: var(--tinta); }
@@ -135,6 +150,7 @@
 .papan button.lebar { grid-column: span 2; }
 .papan .kosong { visibility: hidden; }
 .papan button.tanda { font-size: 24px; font-weight: 800; color: var(--gelap); }
+.papan button.pindah { font-size: var(--h-m); font-weight: 700; color: var(--gelap); line-height: 1.15; }
 .kotak.lebar-isi { min-width: 5.5em; justify-content: flex-end; padding: 0 .4em; }
 
 /* ---- Umpan balik ---- */
@@ -235,8 +251,10 @@ details.peta[open] summary::before { transform: rotate(90deg); }
 
     <div class="kartu soal-kartu" id="k-soal">
       <div class="soal-no" id="s-no">Soal nomor 1</div>
+      <div class="setara-info hidden" id="s-setara" role="status"></div>
       <div class="soal-teks" id="s-teks" aria-live="polite"></div>
       <div class="waktu-soal hidden" id="s-waktu"><i></i></div>
+      <div class="bentuk-pilih hidden" id="s-bentuk" role="radiogroup" aria-label="Bentuk jawaban"></div>
       <div class="jawab" id="s-jawab"></div>
       <div class="petunjuk-pc hidden" id="s-petunjuk">Ketuk kotak untuk memilih. Bilangan bulat boleh kosong. Tulis dalam bentuk paling sederhana.</div>
       <div class="papan" id="papan"></div>
@@ -335,22 +353,33 @@ function isiPosisi() {
     `<span>${esc(x.nama)}</span><span class="nl">${x.status === "sekarang" ? `level ${S.posisi.level}/` : ""}${x.n_level} level</span></li>`).join("");
 }
 
+/* Bentuk jawaban soal desimal yang terakhir dipilih siswa (diingat di perangkat ini). */
+let BENTUK_DS = (() => { try { return localStorage.getItem("mtd_bentuk") || "des"; } catch (e) { return "des"; } })();
+const PETUNJUK_DS = {
+  des: "Tulis desimal, mis. 0,75. Pakai tombol , untuk koma.",
+  pec: "Isi bilangan bulat (boleh kosong), pembilang, lalu penyebut.",
+  pers: "Tulis angka persennya saja, mis. 75 untuk 75%.",
+};
+function isiPetunjuk() {
+  $("s-petunjuk").textContent = A.ss
+    ? "Isi hasil bagi, lalu ketuk kotak sisa (atau tombol Pindah). Sisa harus lebih kecil dari pembagi."
+    : A.ds
+    ? "Boleh dijawab dalam bentuk mana pun yang senilai. " + PETUNJUK_DS[A.m]
+    : A.hl
+    ? "Tulis bilangan yang hilang (pengganti kotak). Tekan ± bila jawabannya negatif."
+    : "Isi bilangan bulat (boleh kosong), pembilang, lalu penyebut. Tulis dalam bentuk paling sederhana.";
+  $("s-petunjuk").classList.toggle("hidden", !A.pc && !A.ss && !A.ds && !A.hl);
+}
+
 function isiSoal() {
   const s = S.soal;
   $("s-no").textContent = `Soal nomor ${S.nomor} dari ${S.atur.n_benar}`;
   $("s-teks").innerHTML = s.bentuk === "hilang" ? soalHtml(s.teks) : soalHtml(s.teks) + ' <span class="op">=</span> …';
   A = s.bentuk === "pecahan" ? { pc: true, neg: false, w: "", n: "", d: "", f: "n" }
     : s.bentuk === "sisa" ? { ss: true, neg: false, q: "", r: "", f: "q" }
-    : s.bentuk === "desimal" ? { ds: true, neg: false, v: "" }
+    : s.bentuk === "desimal" ? { ds: true, m: BENTUK_DS, neg: false, v: "", w: "", n: "", d: "", f: "n" }
     : { pc: false, neg: false, v: "", hl: s.bentuk === "hilang" };
-  $("s-petunjuk").textContent = A.ss
-    ? "Isi hasil bagi, lalu ketuk kotak sisa (atau tombol Pindah). Sisa harus lebih kecil dari pembagi."
-    : A.ds
-    ? "Pakai tombol , untuk koma. Jawaban boleh desimal (0,75), pecahan (3/4), atau persen (75%)."
-    : A.hl
-    ? "Tulis bilangan yang hilang (pengganti kotak). Tekan ± bila jawabannya negatif."
-    : "Ketuk kotak untuk memilih. Bilangan bulat boleh kosong. Tulis dalam bentuk paling sederhana.";
-  $("s-petunjuk").classList.toggle("hidden", !A.pc && !A.ss && !A.ds && !A.hl);
+  isiPetunjuk();
   gambarJawab(); gambarPapan();
   // batas waktu per soal
   const bw = S.atur.batas_waktu_soal;
@@ -361,38 +390,61 @@ function isiSoal() {
 
 function gambarJawab() {
   const NAMA = { w: "bilangan bulat", n: "pembilang", d: "penyebut", q: "hasil bagi", r: "sisa", v: "jawaban" };
-  const k = (nama, isi, cls) => `<span class="kotak ${cls || ""} ${A.f === nama ? "fokus" : ""}" data-k="${nama}" role="textbox" aria-label="${NAMA[nama]}">${esc(isi)}</span>`;
+  const PH = { w: "bulat", n: "pembilang", d: "penyebut" };
+  const k = (nama, isi, cls) => `<span class="kotak ${cls || ""} ${A.f === nama ? "fokus" : ""}" data-k="${nama}" role="textbox" aria-label="${NAMA[nama]}"${PH[nama] && (A.pc || A.m === "pec") ? ` data-ph="${PH[nama]}"` : ""}>${esc(isi)}</span>`;
   const neg = A.neg ? '<span class="neg-tanda">−</span>' : "";
+  const susunPc = () => `${k("w", A.w)}<span class="susun">${k("n", A.n, "kecil")}<span class="garis-pc"></span>${k("d", A.d, "kecil")}</span>`;
+  // Pilihan bentuk jawaban (soal desimal MD11)
+  $("s-bentuk").classList.toggle("hidden", !A.ds);
+  if (A.ds) $("s-bentuk").innerHTML = [["des", "Desimal"], ["pec", "Pecahan"], ["pers", "Persen"]]
+    .map(([m, t]) => `<button type="button" role="radio" aria-checked="${A.m === m}" data-bentuk="${m}">${t}</button>`).join("");
   $("s-jawab").innerHTML = A.pc
-    ? `${neg}${k("w", A.w)}<span class="susun">${k("n", A.n, "kecil")}<span class="garis-pc"></span>${k("d", A.d, "kecil")}</span>`
+    ? `${neg}${susunPc()}`
     : A.ss
     ? `<span class="isi-lbl">${k("q", A.q)}<small>hasil bagi</small></span><span class="kata-sisa">sisa</span><span class="isi-lbl">${k("r", A.r)}<small>sisa</small></span>`
     : A.ds
-    ? k("v", A.v, "lebar-isi")
+    ? (A.m === "pec" ? susunPc() : k("v", A.v, "lebar-isi") + (A.m === "pers" ? '<span class="persen-tanda">%</span>' : ""))
     : A.hl
     ? `<span class="kotak-soal">□</span><span class="op">=</span>${neg}${k("v", A.v)}`
     : `${neg}${k("v", A.v)}`;
-  $("s-jawab").querySelectorAll("[data-k]").forEach((el) => el.onclick = () => { if (A.pc || A.ss) { A.f = el.dataset.k; gambarJawab(); } });
+  $("s-jawab").querySelectorAll("[data-k]").forEach((el) => el.onclick = () => { if (A.pc || A.ss || A.m === "pec") { A.f = el.dataset.k; gambarJawab(); } });
+  $("s-bentuk").querySelectorAll("[data-bentuk]").forEach((b) => b.onclick = () => gantiBentuk(b.dataset.bentuk));
+  // Tombol pindah menunjukkan ke mana kotak berikutnya
+  const tp = $("papan").querySelector('[data-a="pindah"]');
+  if (tp && !A.ss) tp.innerHTML = A.f === "w" ? "→<br>pembilang" : A.f === "n" ? "↓<br>penyebut" : "←<br>bulat";
+}
+
+/* Ganti bentuk jawaban soal desimal. Angka yang sudah diketik ikut dibawa bila masuk akal. */
+function gantiBentuk(m) {
+  if (!A || !A.ds || A.m === m) return;
+  const dari = A.m;
+  if (m === "pec") { A.n = dari !== "pec" && /^\d+$/.test(A.v) ? A.v : ""; A.w = ""; A.d = ""; A.f = A.n ? "d" : "n"; }
+  else if (dari === "pec") A.v = "";
+  A.m = BENTUK_DS = m;
+  try { localStorage.setItem("mtd_bentuk", m); } catch (e) { /* abaikan */ }
+  isiPetunjuk(); gambarPapan(); gambarJawab();
 }
 
 function gambarPapan() {
   const b = (t, act, cls) => `<button type="button" data-a="${act}" class="${cls || ""}">${t}</button>`;
-  // Desimal: koma, garis pecahan, dan persen menggantikan ± dan Pindah (jawaban desimal tidak pernah negatif).
+  // Soal desimal (jawaban tidak pernah negatif): Desimal/Persen memakai tombol koma; Pecahan memakai kotak bertingkat.
   if (A.ds) {
     $("papan").innerHTML =
       b(7, 7) + b(8, 8) + b(9, 9) + b("⌫", "hapus", "fn") +
-      b(4, 4) + b(5, 5) + b(6, 6) + b(",", "koma", "fn tanda") +
-      b(1, 1) + b(2, 2) + b(3, 3) + b("/", "garis", "fn tanda") +
-      b(0, 0) + b("%", "persen", "fn tanda") + b("Jawab", "kirim", "kirim");
+      b(4, 4) + b(5, 5) + b(6, 6) + (A.m === "pec" ? '<span class="kosong"></span>' : b(",", "koma", "fn tanda")) +
+      b(1, 1) + b(2, 2) + b(3, 3) + (A.m === "pec" ? b("Pindah", "pindah", "fn pindah") : '<span class="kosong"></span>') +
+      b(0, 0, "lebar") + b("Jawab", "kirim", "kirim");
     $("papan").querySelectorAll("button").forEach((x) => x.onclick = () => tombol(x.dataset.a));
+    gambarJawab();
     return;
   }
   $("papan").innerHTML =
     b(7, 7) + b(8, 8) + b(9, 9) + b("⌫", "hapus", "fn") +
     b(4, 4) + b(5, 5) + b(6, 6) + (A.ss ? '<span class="kosong"></span>' : b("±", "neg", "fn")) +
-    b(1, 1) + b(2, 2) + b(3, 3) + (A.pc || A.ss ? b("Pindah", "pindah", "fn") : '<span class="kosong"></span>') +
+    b(1, 1) + b(2, 2) + b(3, 3) + (A.pc || A.ss ? b("Pindah", "pindah", A.pc ? "fn pindah" : "fn") : '<span class="kosong"></span>') +
     b(0, 0, "lebar") + b("Jawab", "kirim", "kirim");
   $("papan").querySelectorAll("button").forEach((x) => x.onclick = () => tombol(x.dataset.a));
+  gambarJawab();
 }
 
 /* ----------------------------------------------------------- isian */
@@ -411,20 +463,28 @@ function tombol(a) {
   gambarJawab();
 }
 
-/* Isian desimal satu kotak: angka, satu koma per bilangan, satu garis pecahan, persen di akhir. */
+/* Isian soal desimal. Desimal/Persen: satu kotak, angka dan satu koma. Pecahan: kotak bertingkat.
+   Dari papan ketik: "/" pindah ke bentuk Pecahan, "%" ke bentuk Persen. */
 function tombolDesimal(a) {
-  const v = A.v, akhir = v.slice(-1), bagian = v.split("/").pop();
+  if (a === "garis" && A.m !== "pec") return gantiBentuk("pec");
+  if (a === "persen") return gantiBentuk("pers");
+  if (A.m === "pec") {
+    if (a === "pindah") A.f = A.f === "w" ? "n" : A.f === "n" ? "d" : "w";
+    else if (a === "garis") A.f = "d";
+    else if (a === "hapus") A[A.f] = A[A.f].slice(0, -1);
+    else if (/^\d$/.test(a) && A[A.f].length < 6) A[A.f] = (A[A.f] === "0" ? "" : A[A.f]) + a;
+    return gambarJawab();
+  }
+  const v = A.v;
   if (a === "hapus") A.v = v.slice(0, -1);
-  else if (v.endsWith("%")) return toast("Persen sudah di akhir. Hapus dulu bila ingin mengubah.");
-  else if (/^\d$/.test(a)) { if (v.length < 16) A.v = (bagian === "0" ? v.slice(0, -1) : v) + a; }
-  else if (a === "koma") { if (!bagian.includes(",")) A.v = v + (bagian === "" ? "0," : ","); }
-  else if (a === "garis") { if (v && !v.includes("/") && /\d/.test(akhir)) A.v = v + "/"; }
-  else if (a === "persen") { if (v && !v.includes("/") && /\d/.test(akhir)) A.v = v + "%"; }
+  else if (/^\d$/.test(a)) { if (v.length < 14) A.v = (v === "0" ? "" : v) + a; }
+  else if (a === "koma") { if (!v.includes(",")) A.v = (v || "0") + ","; }
   gambarJawab();
 }
 
 function teksJawaban() {
-  if (A.ds) return !A.v ? "" : /[,/]$/.test(A.v) ? null : A.v;
+  if (A.ds && A.m !== "pec") return !A.v ? "" : A.v.endsWith(",") ? null : A.v + (A.m === "pers" ? "%" : "");
+  if (A.ds) { if (!A.n && !A.d) return A.w; if (!A.n || !A.d) return null; return (A.w ? A.w + " " : "") + A.n + "/" + A.d; }
   if (A.ss) {
     if (!A.q && !A.r) return "";
     if (!A.q || !A.r) return null;
@@ -446,6 +506,7 @@ document.addEventListener("keydown", (e) => {
   if (A && A.ds) {
     const t = { ",": "koma", ".": "koma", "/": "garis", "%": "persen" }[e.key];
     if (t) { e.preventDefault(); return tombol(t); }
+    if (A.m === "pec" && (e.key === " " || e.key === "Tab" || e.key === "ArrowRight" || e.key === "ArrowDown")) { e.preventDefault(); return tombol("pindah"); }
   }
   if (e.key === "-" || e.key === "−") { e.preventDefault(); return tombol("neg"); }
   if (A && A.ss) {
@@ -473,6 +534,7 @@ async function kirim(waktuHabis) {
     const h = r.hasil;
     if (h.benar) {
       kilat();
+      tampilSetara(h);
       if (h.naik) return naik(h);
       isiPosisi(); isiSoal();
     } else {
@@ -485,16 +547,41 @@ async function kirim(waktuHabis) {
   } finally { sibuk = false; }
 }
 
+/* Kesetaraan pecahan = desimal = persen untuk soal desimal (MD11), mis. "3/4 = 0,75 = 75%". */
+function bentukSetara(kunci) {
+  let k = String(kunci), p, q;
+  if (k.includes("/")) [p, q] = k.split("/").map(Number);
+  else if (k.includes(",")) { const [a, b] = k.split(","); p = Number(a + b); q = 10 ** b.length; }
+  else return null;
+  const fpb = (a, b) => (b ? fpb(b, a % b) : a), g = fpb(Math.abs(p), q);
+  p /= g; q /= g;
+  if (q === 1 || !Number.isSafeInteger(p)) return null;
+  let t = q; while (t % 2 === 0) t /= 2; while (t % 5 === 0) t /= 5;
+  const teksDes = (x) => { const n = Math.min(8, Math.max(0, String(x).split(".")[1]?.length || 0)); return Number(x.toFixed(n)).toString().replace(".", ","); };
+  const P = Math.abs(p), neg = p < 0 ? "−" : "";
+  const isi = [neg + pecHtml("", P, q)];
+  if (P > q) isi.push(neg + pecHtml(Math.floor(P / q), P % q, q));
+  if (t === 1) { isi.push(`<span class="nm">${neg}${bil(teksDes(P / q))}</span>`); isi.push(`<span class="nm">${neg}${bil(teksDes(P * 100 / q))}%</span>`); }
+  return isi.join(' <span class="op">=</span> ');
+}
+function tampilSetara(h) {
+  const el = $("s-setara"), isi = h.bentuk === "desimal" && h.kunci != null ? bentukSetara(h.kunci) : null;
+  el.classList.toggle("hidden", !isi);
+  if (isi) el.innerHTML = `<span>✓ Benar:</span> ${isi}`;
+}
+
 function kilat() { const k = $("kilat"); k.classList.add("show"); setTimeout(() => k.classList.remove("show"), 650); }
 
 function salah(h) {
   menungguLanjut = true;
+  $("s-setara").classList.add("hidden");
   $("k-soal").classList.add("hidden");
   $("f-soal").innerHTML = soalHtml(h.soal);
   $("f-jawab").innerHTML = h.jenis === "waktu" && !String(h.jawaban || "").trim() ? '<span class="redup">(waktu habis)</span>' : jawabHtml(h.jawaban);
   // Kunci tidak dikirim server bila guru mematikan "Tampilkan jawaban benar" (Pengaturan → Halaman Latihan).
   const adaKunci = h.kunci != null;
-  $("f-kunci").innerHTML = adaKunci ? kunciHtml(h.kunci, h.bentuk) : "";
+  const st = adaKunci && h.bentuk === "desimal" ? bentukSetara(h.kunci) : null;
+  $("f-kunci").innerHTML = adaKunci ? kunciHtml(h.kunci, h.bentuk) + (st ? `<span class="setara-kunci">= ${st}</span>` : "") : "";
   $("f-kunci").classList.toggle("hidden", !adaKunci);
   $("f-kunci-lbl").classList.toggle("hidden", !adaKunci);
   const sr = (JENIS[h.jenis] || {}).saran;
