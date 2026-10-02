@@ -356,8 +356,8 @@ function tampil(v) { ["v-masuk", "v-latih", "v-akhir"].forEach((x) => $(x).class
 function isiPosisi() {
   const p = S.posisi, nb = S.atur.n_benar, bs = S.atur.batas_salah;
   const peta = S.peta || [], ke = peta.findIndex((x) => x.status === "sekarang");
-  // Jalur latihan khusus: label jalur dan "Langkah x dari y" menggantikan MD dan nomor tingkat
-  $("p-modul").textContent = S.jalur ? `Jalur · ${S.jalur.nama}` : p.modul ? `MD${p.modul}` : "Matematika Dasar";
+  // Tahapan khusus: label tahapan dan "Langkah x dari y" menggantikan MD dan nomor tingkat
+  $("p-modul").textContent = S.jalur ? `Tahapan · ${S.jalur.nama}` : p.modul ? `MD${p.modul}` : "Matematika Dasar";
   $("p-urut").textContent = ke >= 0 ? `${S.jalur ? "Langkah" : "Tingkat"} ${ke + 1} dari ${peta.length}` : "";
   $("p-tingkat").textContent = p.nama;
   $("p-level").innerHTML = `<b>Level ${p.level}</b> dari ${p.n_level}${p.ket ? " · " + esc(p.ket) : ""}`;
@@ -838,8 +838,8 @@ function habis() {
 function selesai() {
   tutupSesi();
   $("a-ikon").textContent = "🏆";
-  $("a-judul").textContent = S.jalur ? "Jalur latihan selesai" : "Semua level sudah tuntas";
-  $("a-isi").textContent = S.jalur ? `Selamat, ${S.nama}! Kamu sudah menuntaskan jalur "${S.jalur.nama}". Tunggu arahan gurumu untuk latihan berikutnya.`
+  $("a-judul").textContent = S.jalur ? "Tahapan latihan selesai" : "Semua level sudah tuntas";
+  $("a-isi").textContent = S.jalur ? `Selamat, ${S.nama}! Kamu sudah menuntaskan tahapan "${S.jalur.nama}". Tunggu arahan gurumu untuk latihan berikutnya.`
     : `Selamat, ${S.nama}! Tingkat berikutnya akan dibuka guru. Tunggu kabar dari gurumu, ya.`;
   tampil("v-akhir");
 }
