@@ -84,8 +84,15 @@ Isi saat ini:
   kesetaraan & ingkaran). Pengecoh dibuat dari kesalahan logika umum (membalik
   implikasi, menyangkal tanpa membalik, kuantor keliru) dan dikenali sebagai jenis
   kesalahan; urutan pilihan diacak.
-- Menyusul: MD11 tahap B (mengurutkan bilangan, persentase dalam kehidupan, notasi
-  baku & eksponen).
+- **MD11**, tahap B: Mengurutkan Bilangan (3 level; campuran bulat, desimal, pecahan,
+  dan persen; siswa mengetuk bilangan sesuai urutan), Persentase dalam Kehidupan
+  (6 level: diskon, diskon bertingkat, untung/rugi, pajak & tip, nilai & kehadiran,
+  produksi & tabungan; kotak jawaban otomatis Rp atau %), dan Notasi Baku &
+  Eksponen (5 level: a × 10ⁿ bilangan besar dan kecil, × ÷ 10ⁿ, sifat eksponen,
+  pangkat nol/negatif/pecahan). Kesalahan urutan terbalik, belum notasi baku, dan
+  pangkat 10 salah dikenali.
+
+Ketiga modul (MD10, MD11, MD12) sudah lengkap.
 Tab **Tingkat dan Level Soal** di `guru.html` menampilkan 10 soal acak beserta
 kuncinya untuk setiap level, supaya guru bisa memeriksa kesesuaiannya dengan
 modul.

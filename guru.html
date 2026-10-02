@@ -19,7 +19,7 @@
 <!-- /pratinjau -->
 <link rel="icon" href="assets/logo.png">
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=5">
+<link rel="stylesheet" href="assets/matdas.css?v=6">
 <script src="config.js"></script>
 <style>
 .tab { display: flex; gap: var(--j1); flex-wrap: wrap; margin: var(--j3) 0; }
@@ -298,7 +298,7 @@ body.lihat .ubah { display: none !important; }
 </main>
 <div class="toast" id="toast" role="status"></div>
 
-<script src="assets/umum.js?v=6"></script>
+<script src="assets/umum.js?v=7"></script>
 <script src="assets/excel.js?v=2"></script>
 <script>
 "use strict";
@@ -815,6 +815,10 @@ function gambarTingkat() {
         ? `<div>${soalHtml(s.teks)} <span class="redup">→</span> <span class="k"><span class="kotak-soal">□</span> = ${kunciHtml(s.kunci)}</span></div>`
         : s.bentuk === "persamaan"
         ? `<div>${soalHtml(s.teks)} <span class="redup">→</span> <span class="k"><i class="var">${esc(s.var || "x")}</i> = ${kunciHtml(s.kunci)}</span></div>`
+        : s.bentuk === "urut"
+        ? `<div class="contoh-baca">${soalHtml(s.teks)} <span class="redup">→</span> <span class="k">${kunciHtml(s.kunci)}</span></div>`
+        : s.bentuk === "notasi"
+        ? `<div>${soalHtml(s.teks)} <span class="op">=</span> <span class="k">${kunciHtml(s.kunci, "notasi")}</span></div>`
         : s.bentuk === "pilihan"
         ? `<div class="contoh-baca">${soalHtml(s.teks)} <span class="k">Kunci: ${esc(s.kunci)}</span></div>`
         : s.bentuk === "cerita"

@@ -19,7 +19,7 @@
 <!-- /pratinjau -->
 <link rel="icon" href="assets/logo.png">
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=5">
+<link rel="stylesheet" href="assets/matdas.css?v=6">
 <script src="config.js"></script>
 <style>
 /* ---- Masuk ---- */
@@ -162,6 +162,22 @@
 .opsi[aria-checked="true"] { border-color: var(--gelap); background: var(--emas-kabut); box-shadow: inset 0 0 0 1px var(--gelap); }
 .opsi[aria-checked="true"] b { background: var(--gelap); color: var(--tinta-terang); }
 .papan button.kirim.penuh { grid-column: 1 / -1; }
+.urut-judul { text-align: center; font-size: var(--h-judul-s); }
+.urut-wadah { display: grid; gap: var(--j4); }
+.urut-hasil { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--j1); padding: var(--j3); min-height: 70px;
+  background: var(--kertas-3); border-radius: var(--r3); font-size: 22px; font-weight: 700; }
+.urut-kosong { width: 54px; height: 44px; border: 2px dashed var(--garis-2); border-radius: var(--r2); background: #fff; }
+.urut-isi { min-height: 44px; padding: var(--j1) var(--j3); font-size: 22px; background: #fff; color: var(--tinta); border: 2px solid var(--gelap); border-radius: var(--r2); }
+.urut-isi:hover { background: var(--absen-muda); color: var(--tinta); }
+.urut-panah { color: var(--emas-teks); font-weight: 800; }
+.urut-pilih { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--j2); font-size: 24px; }
+.urut-chip { min-height: 56px; min-width: 72px; padding: var(--j2) var(--j4); font-size: 24px; background: #fff; color: var(--tinta);
+  border: 1.5px solid var(--garis-2); border-bottom-width: 3px; border-radius: var(--r2); }
+.urut-chip:hover { background: var(--emas-kabut); color: var(--tinta); border-color: var(--gelap); }
+.urut-isi .pc-f, .urut-chip .pc-f { font-size: .75em; }
+.pangkat-wadah { display: inline-flex; align-items: center; align-self: flex-start; margin-top: -.2em; }
+.kotak.pangkat { font-size: 20px; min-width: 1.8em; }
+.neg-tanda.kecil { font-size: 20px; }
 .isi-var { display: inline-flex; align-items: center; gap: var(--j1); margin: 0 var(--j2); }
 .papan button.tanda { font-size: 24px; font-weight: 800; color: var(--gelap); }
 .papan button.pindah { font-size: var(--h-m); font-weight: 700; color: var(--gelap); line-height: 1.15; }
@@ -322,7 +338,7 @@ details.peta[open] summary::before { transform: rotate(90deg); }
 <div class="benar-kilat" id="kilat" aria-hidden="true">Benar ✓</div>
 <div class="toast" id="toast" role="status"></div>
 
-<script src="assets/umum.js?v=6"></script>
+<script src="assets/umum.js?v=7"></script>
 <script>
 "use strict";
 const KUNCI_SESI = "mtd_token", KUNCI_NISN = "mtd_nisn";
@@ -383,6 +399,10 @@ function isiPetunjuk() {
     ? "Tulis bilangan yang hilang (pengganti kotak). Tekan ± bila jawabannya negatif."
     : A.pv
     ? `Tulis nilai ${A.pv}. Tekan ± bila jawabannya negatif.`
+    : A.ur
+    ? "Ketuk bilangan satu per satu sesuai urutan. Ketuk lagi bilangan di baris atas untuk membatalkannya."
+    : A.nt
+    ? "Tulis dalam notasi baku a × 10ⁿ dengan 1 ≤ a < 10. Isi a, lalu Pindah untuk mengisi pangkat (± bila negatif)."
     : A.pl
     ? "Ketuk satu pilihan yang paling tepat, lalu tekan Jawab."
     : A.ct
@@ -392,7 +412,7 @@ function isiPetunjuk() {
     : A.mb
     ? "Isi nilai x dan y. Ketuk kotak atau tombol Pindah untuk berpindah; ± untuk negatif."
     : "Isi bilangan bulat (boleh kosong), pembilang, lalu penyebut. Tulis dalam bentuk paling sederhana.";
-  $("s-petunjuk").classList.toggle("hidden", !A.pc && !A.ss && !A.ds && !A.hl && !A.pv && !A.mb && !A.pl && !A.ct);
+  $("s-petunjuk").classList.toggle("hidden", !A.pc && !A.ss && !A.ds && !A.hl && !A.pv && !A.mb && !A.pl && !A.ct && !A.ur && !A.nt);
 }
 
 function isiSoal() {
@@ -400,8 +420,10 @@ function isiSoal() {
   $("s-no").textContent = `Soal nomor ${S.nomor} dari ${S.atur.n_benar}`;
   // Soal yang sudah memuat "=" atau berupa sistem/pola tidak ditambah "= …"
   // Soal yang sudah memuat "=" atau berupa sistem/pola/cerita/pilihan tidak ditambah "= …"
-  const tanpaSama = ["hilang", "persamaan", "spldv", "pola", "cerita", "pilihan"].includes(s.bentuk);
-  $("s-teks").innerHTML = s.bentuk === "pilihan"
+  const tanpaSama = ["hilang", "persamaan", "spldv", "pola", "cerita", "pilihan", "urut"].includes(s.bentuk);
+  $("s-teks").innerHTML = s.bentuk === "urut"
+    ? `<span class="cerita-tanya urut-judul">Urutkan dari yang <u>${esc(uraiUrut(s.teks).arah)}</u></span>`
+    : s.bentuk === "pilihan"
     ? (() => { const u = uraiPilihan(s.teks); return `<span class="cerita">${esc(u.premis)}</span><span class="cerita-tanya">${esc(u.tanya)}</span>`; })()
     : tanpaSama ? soalHtml(s.teks) : soalHtml(s.teks) + ' <span class="op">=</span> …';
   $("s-teks").classList.toggle("soal-kecil", ["spldv", "pola", "persamaan"].includes(s.bentuk));
@@ -410,8 +432,14 @@ function isiSoal() {
     : s.bentuk === "sisa" ? { ss: true, neg: false, q: "", r: "", f: "q" }
     : s.bentuk === "desimal" ? { ds: true, m: BENTUK_DS, neg: false, v: "", w: "", n: "", d: "", f: "n" }
     : s.bentuk === "pilihan" ? { pl: true, v: "", opsi: uraiPilihan(s.teks).opsi }
-    : s.bentuk === "cerita" ? { pc: false, neg: false, v: "", ct: true,
-        pre: /Rp/.test(s.teks) && /harga/i.test(s.teks) ? "Rp" : "", suf: /umur/i.test(s.teks) ? "tahun" : "" }
+    : s.bentuk === "urut" ? { ur: true, items: uraiUrut(s.teks).items, urut: [] }
+    : s.bentuk === "notasi" ? { nt: true, a: "", n: "", nneg: false, f: "a" }
+    : s.bentuk === "cerita" ? (() => {
+        // Satuan kotak jawaban dari kalimat pertanyaan (kalimat terakhir): persen, rupiah, atau tahun.
+        const tanya = s.teks.split(/(?<=[.?!])\s+/).pop();
+        return { pc: false, neg: false, v: "", ct: true, pre: /Rp/.test(s.teks) && !/persen/i.test(tanya) ? "Rp" : "",
+                 suf: /persen/i.test(tanya) ? "%" : /umur/i.test(tanya) ? "tahun" : "" };
+      })()
     : s.bentuk === "spldv" ? { mb: true, lb: ["x", "y"], vals: ["", ""], ng: [false, false], f: 0 }
     : s.bentuk === "pola" ? (() => { const n = (s.teks.match(/□/g) || []).length || 1;
         return { mb: true, pola: true, lb: n > 1 ? Array.from({ length: n }, (_, i) => "kotak ke-" + (i + 1)) : ["kotak"], vals: Array(n).fill(""), ng: Array(n).fill(false), f: 0 }; })()
@@ -428,7 +456,7 @@ function isiSoal() {
 function gambarJawab() {
   const NAMA = { w: "bilangan bulat", n: "pembilang", d: "penyebut", q: "hasil bagi", r: "sisa", v: "jawaban" };
   const PH = { w: "bulat", n: "pembilang", d: "penyebut" };
-  const k = (nama, isi, cls) => `<span class="kotak ${cls || ""} ${A.f === nama ? "fokus" : ""}" data-k="${nama}" role="textbox" aria-label="${NAMA[nama]}"${PH[nama] && (A.pc || A.m === "pec") ? ` data-ph="${PH[nama]}"` : ""}>${esc(isi)}</span>`;
+  const k = (nama, isi, cls) => `<span class="kotak ${cls || ""} ${A.f === nama ? "fokus" : ""}" data-k="${nama}" role="textbox" aria-label="${A.nt ? (nama === "a" ? "bilangan di depan" : "pangkat 10") : NAMA[nama]}"${PH[nama] && (A.pc || A.m === "pec") ? ` data-ph="${PH[nama]}"` : ""}>${esc(isi)}</span>`;
   const neg = A.neg ? '<span class="neg-tanda">−</span>' : "";
   const susunPc = () => `${k("w", A.w)}<span class="susun">${k("n", A.n, "kecil")}<span class="garis-pc"></span>${k("d", A.d, "kecil")}</span>`;
   // Pilihan bentuk jawaban (soal desimal MD11)
@@ -445,6 +473,13 @@ function gambarJawab() {
     ? `<span class="kotak-soal">□</span><span class="op">=</span>${neg}${k("v", A.v)}`
     : A.pv
     ? `<i class="var">${A.pv}</i><span class="op">=</span>${neg}${k("v", A.v)}`
+    : A.ur
+    ? `<div class="urut-wadah"><div class="urut-hasil" aria-label="Urutanmu">${A.items.map((_, i) => A.urut[i] !== undefined
+          ? `<button type="button" class="urut-isi" data-batal="${i}" title="Ketuk untuk membatalkan">${bilHtml(A.items[A.urut[i]])}</button>`
+          : '<span class="urut-kosong"></span>').join('<span class="urut-panah">' + (uraiUrut(S.soal.teks).arah === "terbesar" ? "&gt;" : "&lt;") + "</span>")}</div>
+        <div class="urut-pilih">${A.items.map((t, i) => A.urut.includes(i) ? "" : `<button type="button" class="urut-chip" data-ambil="${i}">${bilHtml(t)}</button>`).join("")}</div></div>`
+    : A.nt
+    ? `${k("a", A.a, "lebar-isi")}<span class="op">× 10</span><span class="pangkat-wadah">${A.nneg ? '<span class="neg-tanda kecil">−</span>' : ""}${k("n", A.n, "kecil pangkat")}</span>`
     : A.pl
     ? `<div class="opsi-daftar" role="radiogroup" aria-label="Pilihan jawaban">${A.opsi.map(([h, t]) =>
         `<button type="button" class="opsi" role="radio" aria-checked="${A.v === h}" data-opsi="${h}"><b>${h}</b><span>${esc(t)}</span></button>`).join("")}</div>`
@@ -458,14 +493,18 @@ function gambarJawab() {
     : `${neg}${k("v", A.v)}`;
   $("s-jawab").querySelectorAll("[data-k]").forEach((el) => el.onclick = () => {
     if (A.mb) { A.f = +el.dataset.k; return gambarJawab(); }
+    if (A.nt) { A.f = el.dataset.k; return gambarJawab(); }
     if (A.pc || A.ss || A.m === "pec") { A.f = el.dataset.k; gambarJawab(); }
   });
   $("s-bentuk").querySelectorAll("[data-bentuk]").forEach((b) => b.onclick = () => gantiBentuk(b.dataset.bentuk));
   $("s-jawab").querySelectorAll("[data-opsi]").forEach((b) => b.onclick = () => { if (!sibuk && !menungguLanjut && !menungguNaik) { A.v = b.dataset.opsi; gambarJawab(); } });
-  $("s-jawab").classList.toggle("jawab-opsi", !!A.pl);
+  $("s-jawab").classList.toggle("jawab-opsi", !!A.pl || !!A.ur);
+  $("s-jawab").querySelectorAll("[data-ambil]").forEach((b) => b.onclick = () => { A.urut.push(+b.dataset.ambil); gambarJawab(); });
+  $("s-jawab").querySelectorAll("[data-batal]").forEach((b) => b.onclick = () => { A.urut.splice(+b.dataset.batal, 1); gambarJawab(); });
   // Tombol pindah menunjukkan ke mana kotak berikutnya
   const tp = $("papan").querySelector('[data-a="pindah"]');
   if (tp && A.mb) tp.innerHTML = "Pindah<br>→";
+  else if (tp && A.nt) tp.innerHTML = A.f === "a" ? "↗<br>pangkat" : "↙<br>bilangan";
   else if (tp && !A.ss) tp.innerHTML = A.f === "w" ? "→<br>pembilang" : A.f === "n" ? "↓<br>penyebut" : "←<br>bulat";
 }
 
@@ -482,6 +521,23 @@ function gantiBentuk(m) {
 
 function gambarPapan() {
   const b = (t, act, cls) => `<button type="button" data-a="${act}" class="${cls || ""}">${t}</button>`;
+  // Mengurutkan: tombol Ulangi dan Jawab.
+  if (A.ur) {
+    $("papan").innerHTML = b("Ulangi", "ulangi", "fn lebar") + b("Jawab", "kirim", "kirim");
+    $("papan").querySelectorAll("button").forEach((x) => x.onclick = () => tombol(x.dataset.a));
+    return;
+  }
+  // Notasi baku: koma untuk a, ± untuk pangkat, Pindah antarkotak.
+  if (A.nt) {
+    $("papan").innerHTML =
+      b(7, 7) + b(8, 8) + b(9, 9) + b("⌫", "hapus", "fn") +
+      b(4, 4) + b(5, 5) + b(6, 6) + b(",", "koma", "fn tanda") +
+      b(1, 1) + b(2, 2) + b(3, 3) + b("Pindah", "pindah", "fn pindah") +
+      b(0, 0) + b("±", "neg", "fn") + b("Jawab", "kirim", "kirim");
+    $("papan").querySelectorAll("button").forEach((x) => x.onclick = () => tombol(x.dataset.a));
+    gambarJawab();
+    return;
+  }
   // Pilihan ganda: tidak perlu papan angka, cukup tombol Jawab.
   if (A.pl) {
     $("papan").innerHTML = b("Jawab", "kirim", "kirim penuh");
@@ -514,6 +570,15 @@ function tombol(a) {
   if (S && S.terkunci) return tampilKunci();
   if (a === "kirim") return kirim();
   if (A.ds) return tombolDesimal(a);
+  if (A.ur) { if (a === "ulangi" || a === "hapus") A.urut = []; return gambarJawab(); }
+  if (A.nt) {                                                    // a (boleh koma) dan pangkat n (boleh negatif)
+    if (a === "pindah") A.f = A.f === "a" ? "n" : "a";
+    else if (a === "neg") { A.nneg = !A.nneg; A.f = "n"; }
+    else if (a === "koma") { if (A.f === "a" && !A.a.includes(",")) A.a = (A.a || "0") + ","; }
+    else if (a === "hapus") A[A.f] = A[A.f].slice(0, -1);
+    else if (/^\d$/.test(a)) { const lim = A.f === "a" ? 9 : 2; if (A[A.f].length < lim) A[A.f] = (A[A.f] === "0" ? "" : A[A.f]) + a; }
+    return gambarJawab();
+  }
   if (A.mb) {                                                    // jawaban ganda (SPLDV, pola)
     if (a === "neg") A.ng[A.f] = !A.ng[A.f];
     else if (a === "pindah") A.f = (A.f + 1) % A.lb.length;
@@ -552,6 +617,8 @@ function tombolDesimal(a) {
 
 function teksJawaban() {
   if (A.pl) return A.v;
+  if (A.ur) return !A.urut.length ? "" : A.urut.length < A.items.length ? null : A.urut.map((i) => A.items[i]).join("|");
+  if (A.nt) { if (!A.a && !A.n) return ""; if (!A.a || !A.n || A.a.endsWith(",")) return null; return `${A.a};${A.nneg && A.n !== "0" ? "-" : ""}${A.n}`; }
   if (A.mb) {
     if (A.vals.every((v) => !v)) return "";
     if (A.vals.some((v) => !v)) return null;
@@ -583,6 +650,10 @@ document.addEventListener("keydown", (e) => {
     if (A.m === "pec" && (e.key === " " || e.key === "Tab" || e.key === "ArrowRight" || e.key === "ArrowDown")) { e.preventDefault(); return tombol("pindah"); }
   }
   if (e.key === "-" || e.key === "−") { e.preventDefault(); return tombol("neg"); }
+  if (A && A.nt) {
+    if (e.key === "," || e.key === ".") { e.preventDefault(); return tombol("koma"); }
+    if (e.key === "Tab" || e.key === "^" || e.key.startsWith("Arrow")) { e.preventDefault(); return tombol("pindah"); }
+  }
   if (A && A.pl) {
     const h = /^[1-5]$/.test(e.key) ? "ABCDE"[+e.key - 1] : e.key.toUpperCase();
     if (/^[A-E]$/.test(h) && A.opsi.some((o) => o[0] === h)) { e.preventDefault(); A.v = h; return gambarJawab(); }
@@ -603,7 +674,7 @@ document.addEventListener("keydown", (e) => {
 async function kirim(waktuHabis) {
   if (sibuk) return;
   const j = teksJawaban();
-  if (j === null && !waktuHabis) return toast(A.mb ? "Isi semua kotak jawaban." : A.ss ? "Isi hasil bagi dan sisanya." : A.ds ? "Lengkapi jawabanmu (angka setelah koma atau garis pecahan)." : "Lengkapi pembilang dan penyebutnya.");
+  if (j === null && !waktuHabis) return toast(A.ur ? "Ketuk semua bilangan sampai urutannya lengkap." : A.nt ? "Isi bilangan dan pangkatnya." : A.mb ? "Isi semua kotak jawaban." : A.ss ? "Isi hasil bagi dan sisanya." : A.ds ? "Lengkapi jawabanmu (angka setelah koma atau garis pecahan)." : "Lengkapi pembilang dan penyebutnya.");
   if (j === "" && !waktuHabis) return toast(A.pl ? "Pilih salah satu jawaban dulu." : "Tulis jawabanmu dulu.");
   sibuk = true;
   try {

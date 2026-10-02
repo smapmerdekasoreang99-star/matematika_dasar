@@ -73,6 +73,23 @@ function aljabarHtml(teks) {
 /* Teks soal dari server → HTML. Pecahan "3/4", campuran "1_1/2", negatif "(−7)",
    desimal "2486,72", persen "185%", persamaan "3(x − 1) = 7", sistem "pers1 ; pers2",
    pola "3, 7, □, 15". */
+/* Satu bilangan untuk soal mengurutkan: "2_1/4", "9/4", "235%", "2,18", "3" → HTML. */
+function bilHtml(t) {
+  t = String(t);
+  let m = t.match(/^(\d+)_(\d+)\/(\d+)$/);
+  if (m) return pecHtml(m[1], m[2], m[3]);
+  m = t.match(/^(\d+)\/(\d+)$/);
+  if (m) return pecHtml("", m[1], m[2]);
+  m = t.match(/^(\d+(?:,\d+)?)%$/);
+  if (m) return `<span class="nm">${bil(m[1])}%</span>`;
+  return `<span class="nm">${esc(bil(t))}</span>`;
+}
+/* Soal mengurutkan "Urutkan dari yang terkecil: a | b | c" → {arah, items}. */
+function uraiUrut(teks) {
+  const m = String(teks || "").match(/^Urutkan dari yang (\w+): (.*)$/);
+  return m ? { arah: m[1], items: m[2].split(" | ") } : { arah: "", items: [] };
+}
+
 /* Soal pilihan ganda "premis ¶ pertanyaan ¶ A) … ¶ B) …" → {premis, tanya, opsi: [[huruf, teks]]}. */
 function uraiPilihan(teks) {
   const b = String(teks || "").split(" ¶ ");
@@ -81,6 +98,10 @@ function uraiPilihan(teks) {
 
 function soalHtml(teks) {
   teks = String(teks || "");
+  if (/^Urutkan dari yang /.test(teks)) {                       // mengurutkan (tampilan baca saja)
+    const u = uraiUrut(teks);
+    return `<span class="cerita-tanya">Urutkan dari yang ${esc(u.arah)}:</span><span class="urut-statis">${u.items.map(bilHtml).join('<span class="koma-deret">,</span> ')}</span>`;
+  }
   if (teks.includes(" ¶ ")) {                                   // pilihan ganda (tampilan baca saja)
     const u = uraiPilihan(teks);
     return `<span class="cerita">${esc(u.premis)}</span><span class="cerita-tanya">${esc(u.tanya)}</span>` +
@@ -114,6 +135,8 @@ const soalPolos = (teks) => String(teks || "").replace(/_/g, " ");
    pecahan tak wajar ditampilkan juga sebagai pecahan campuran. */
 function kunciHtml(k, bentuk) {
   k = String(k);
+  if (k.includes("|")) return k.split("|").map(bilHtml).join(' <span class="redup">;</span> ');            // urutan
+  if (bentuk === "notasi" && k.includes(";")) { const [a, n] = k.split(";"); return `<span class="nm">${esc(a)} × 10<sup>${esc(n.replace("-", "−"))}</sup></span>`; }
   // Jawaban ganda: SPLDV "x;y", pola "a;b"
   if (k.includes(";")) {
     const b = k.split(";").map((x) => `<span class="nm">${x.startsWith("-") ? "−" + bil(x.slice(1)) : bil(x)}</span>`);
@@ -149,6 +172,7 @@ function jawabHtml(j) {
   j = String(j == null ? "" : j).trim();
   if (!j) return '<span class="redup">(kosong)</span>';
   if (/^\d+ sisa \d+$/.test(j)) return sisaHtml(j);
+  if (j.includes("|")) return j.split("|").map(bilHtml).join(' <span class="redup">;</span> ');
   if (j.includes(";")) return j.split(";").map((x) => `<span class="nm">${esc(x.startsWith("-") ? "−" + bil(x.slice(1)) : bil(x))}</span>`).join(' <span class="redup">;</span> ');
   let m = j.match(/^(-)?(\d+) (\d+)\/(\d+)$/);
   if (m) return pecHtml(m[2], m[3], m[4], !!m[1]);
@@ -175,6 +199,9 @@ const JENIS = {
   kuantor:   { label: "Kuantor tidak tepat",         saran: "Perhatikan kata \"semua\" dan \"sebagian\". Bila hanya sebagian yang termasuk, simpulannya pun hanya \"sebagian\"." },
   tidak_sah: { label: "Tidak dapat disimpulkan",     saran: "Pilihan itu tidak mengikuti dari premis. Cari pernyataan yang pasti benar bila semua premis benar." },
   ingkaran:  { label: "Ingkaran/kesetaraan keliru",  saran: "Ingkaran \"Jika p, maka q\" adalah \"p dan tidak q\"; kesetaraannya adalah \"tidak p atau q\"." },
+  terbalik:  { label: "Urutan terbalik",            saran: "Urutanmu benar tetapi arahnya terbalik. Perhatikan: diminta dari yang terkecil atau terbesar?" },
+  bukan_baku:{ label: "Belum notasi baku",          saran: "Nilainya sudah benar, tetapi bilangan di depan harus antara 1 dan 10 (1 ≤ a < 10). Geser komanya dan sesuaikan pangkatnya." },
+  pangkat:   { label: "Pangkat 10 salah",           saran: "Bilangan di depan sudah benar. Hitung lagi berapa tempat koma digeser untuk menentukan pangkat 10." },
   tertukar:  { label: "Jawaban tertukar",           saran: "Nilainya sudah benar, tetapi urutannya tertukar. Periksa lagi kotak mana untuk apa." },
   sebagian:  { label: "Sebagian benar",             saran: "Sebagian jawabanmu sudah benar. Periksa lagi kotak yang lain." },
   koma:      { label: "Letak koma salah",           saran: "Angkanya sudah benar, tetapi letak komanya bergeser. Hitung lagi banyaknya angka di belakang koma." },
