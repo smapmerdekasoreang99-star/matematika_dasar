@@ -99,3 +99,38 @@ table.tabel tr.klik { cursor: pointer; }
 table.tabel tr.klik:hover td { background: var(--emas-kabut); }
 
 .kosong-data { padding: var(--j5); text-align: center; color: var(--tinta-2); }
+
+/* =====================================================================
+   Penyempurnaan tampilan (2 Okt 2026): permukaan lebih lembut, kedalaman
+   halus, tipografi judul serif, tabel rapi. Berlaku untuk siswa dan guru.
+   ===================================================================== */
+body { background: radial-gradient(1200px 380px at 50% -120px, rgba(194,148,51,.10), transparent 70%), var(--kertas); background-attachment: fixed; }
+.atas { background: linear-gradient(120deg, #17222F 0%, var(--gelap) 45%, #26374B 100%); border-bottom: 3px solid var(--emas);
+  box-shadow: 0 2px 14px rgba(20,30,42,.22); padding: 10px var(--j4); }
+.atas img { height: 40px; width: 40px; object-fit: contain; background: rgba(255,255,255,.08); border-radius: 50%; padding: 3px;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.12); }
+.atas .judul { font-family: "Fraunces", Georgia, serif; font-size: 17px; letter-spacing: .01em; }
+.atas .sub { color: rgba(247,243,233,.72); }
+.kartu { border-radius: 16px; border-color: rgba(214,204,182,.7); padding: var(--j5);
+  box-shadow: 0 1px 2px rgba(34,30,23,.04), 0 8px 24px -12px rgba(34,30,23,.14); }
+.kartu > h2:first-child, .kartu > .baris:first-child h2 { font-size: 19px; letter-spacing: .005em; }
+button, .tombol { transition: background-color .15s, border-color .15s, box-shadow .15s, transform .06s; }
+button:not(:disabled):active { transform: translateY(1px); }
+button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid rgba(194,148,51,.45); outline-offset: 2px; }
+input[type=text], input[type=date], input[type=number], input[type=password], input[type=search], select { border-radius: 10px; border-color: var(--garis-2); transition: border-color .15s, box-shadow .15s; }
+input:focus, select:focus { border-color: var(--emas-tua); box-shadow: 0 0 0 4px rgba(194,148,51,.14); outline: none; }
+.lencana { padding: 3px 10px; letter-spacing: .01em; }
+
+/* Tabel: kepala bertinta kecil kapital, baris bernapas, geser mendatar di layar sempit */
+table.tabel th { text-transform: uppercase; font-size: 11px; letter-spacing: .07em; color: var(--tinta-2); background: var(--kertas-3); padding: 10px var(--j3); }
+table.tabel th:first-child { border-radius: 10px 0 0 10px; } table.tabel th:last-child { border-radius: 0 10px 10px 0; }
+table.tabel td { padding: 11px var(--j3); }
+table.tabel tbody tr:hover td { background: var(--emas-kabut); }
+.gulir { -webkit-overflow-scrolling: touch; }
+@media (max-width: 760px) { .gulir > table.tabel { min-width: 720px; } }
+
+/* Kepala halaman (judul + keterangan) */
+.kepala-hal { display: flex; align-items: flex-end; justify-content: space-between; gap: var(--j3); flex-wrap: wrap; margin: var(--j4) 0 var(--j3); }
+.kepala-hal h1 { margin: 0; font-size: 26px; letter-spacing: .005em; }
+.kepala-hal p { margin: 4px 0 0; color: var(--tinta-2); font-size: var(--h-m); max-width: 70ch; }
+.kepala-hal .eyebrow { display: block; font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--emas-teks); margin-bottom: 4px; }

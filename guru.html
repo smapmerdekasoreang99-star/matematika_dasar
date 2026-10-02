@@ -19,13 +19,39 @@
 <!-- /pratinjau -->
 <link rel="icon" href="assets/logo.png">
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=6">
+<link rel="stylesheet" href="assets/matdas.css?v=7">
 <script src="config.js"></script>
 <style>
-.tab { display: flex; gap: var(--j1); flex-wrap: wrap; margin: var(--j3) 0; }
-.tab button { background: var(--kertas-2); color: var(--tinta-2); border: 1px solid var(--garis); font-weight: 600; min-height: 40px; padding: var(--j2) var(--j4); }
-.tab button:hover { background: var(--kertas-3); color: var(--tinta); }
-.tab button.on { background: var(--gelap); color: var(--tinta-terang); border-color: var(--gelap); }
+/* Navigasi utama: bilah berikon yang menempel di bawah kepala; digeser mendatar di HP */
+.tab { position: sticky; top: 63px; z-index: var(--lapis-nav); display: flex; gap: 4px; margin: var(--j4) 0 var(--j2); padding: 5px;
+  background: rgba(255,255,255,.86); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(214,204,182,.7); border-radius: 14px; box-shadow: 0 6px 20px -12px rgba(34,30,23,.25);
+  overflow-x: auto; scrollbar-width: none; }
+.tab::-webkit-scrollbar { display: none; }
+.tab button { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 8px; background: transparent; color: var(--tinta-2);
+  border: 0; font-weight: 600; font-size: var(--h-m); min-height: 42px; padding: var(--j2) var(--j4); border-radius: 10px; white-space: nowrap; }
+.tab button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.tab button:hover { background: var(--kertas-3); color: var(--gelap); }
+.tab button.on { background: var(--gelap); color: #fff; box-shadow: 0 4px 12px -4px rgba(29,42,58,.5); }
+.tab button.on svg { color: var(--emas); }
+@media (max-width: 640px) { .tab { top: 61px; margin-left: calc(-1 * var(--j2)); margin-right: calc(-1 * var(--j2)); } .tab button { flex: 0 0 auto; padding: var(--j2) var(--j3); } }
+
+/* Kotak angka ringkasan: ikon, warna sesuai makna */
+.ubin { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--j3); margin: var(--j3) 0; }
+.ubin > div { position: relative; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: var(--j3); align-items: center;
+  background: var(--kertas-2); border: 1px solid rgba(214,204,182,.7); border-radius: 14px; padding: var(--j3) var(--j4);
+  box-shadow: 0 1px 2px rgba(34,30,23,.04), 0 6px 18px -12px rgba(34,30,23,.14); overflow: hidden; }
+.ubin > div::after { content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px; border-radius: 0 3px 3px 0; background: var(--sakit); }
+.ubin > div .ik { grid-row: 1 / span 2; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  background: var(--sakit-muda); color: var(--sakit-tua); }
+.ubin > div .ik svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ubin .n { font-family: "Fraunces", Georgia, serif; font-size: 26px; font-weight: 700; color: var(--gelap); line-height: 1.05; font-variant-numeric: tabular-nums; }
+.ubin .l { font-size: var(--h-s); color: var(--tinta-2); line-height: 1.3; }
+.ubin > div.baik::after { background: var(--hadir); } .ubin > div.baik .ik { background: var(--hadir-muda); color: var(--hadir-tua); }
+.ubin > div.emas::after { background: var(--emas); } .ubin > div.emas .ik { background: var(--emas-muda); color: var(--emas-teks); }
+.ubin > div.buruk::after { background: var(--absen); } .ubin > div.buruk .ik { background: var(--absen-muda); color: var(--absen-tua); }
+.ubin > div.buruk .n { color: var(--absen-tua); }
+.ubin > div.redup-ubin .n { color: var(--tinta-3); }
 
 .ubin { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--j3); margin: var(--j3) 0; }
 .ubin > div { background: var(--kertas-2); border: 1px solid var(--garis); border-radius: var(--r3); padding: var(--j3) var(--j4); }
@@ -46,6 +72,10 @@
 .tip b { color: #fff; }
 
 .catatan { margin: 0; padding-left: 1.2em; }
+#t-kelas td:nth-child(2), #t-daftar td:nth-child(3) { white-space: nowrap; }
+.avatar { flex: none; width: 52px; height: 52px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  font-family: "Fraunces", Georgia, serif; font-weight: 700; font-size: 20px; color: var(--emas); background: linear-gradient(150deg, #26374B, var(--gelap));
+  box-shadow: 0 0 0 3px var(--emas-muda); }
 .catatan li { margin: var(--j1) 0; }
 .dua { display: grid; grid-template-columns: 1fr 1fr; gap: var(--j3); }
 @media (max-width: 760px) { .dua { grid-template-columns: 1fr; } }
@@ -53,7 +83,8 @@
 .soal-sel .pc-f { font-size: .8em; }
 
 .lv-baris { display: flex; align-items: center; gap: var(--j3); padding: var(--j2) 0; border-bottom: 1px solid var(--garis); font-size: var(--h-m); }
-.lv-baris .no { width: 64px; color: var(--tinta-2); font-weight: 600; flex: 0 0 auto; }
+.lv-baris .no { flex: 0 0 auto; min-width: 64px; text-align: center; font-size: var(--h-xs); font-weight: 700; letter-spacing: .04em; color: var(--sakit-tua);
+  background: var(--sakit-muda); border-radius: var(--r-bulat); padding: 3px 10px; }
 .lv-baris .kt { flex: 1; }
 .contoh { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--j1) var(--j4); padding: var(--j2) 0 var(--j3) 76px; font-size: var(--h-n); }
 .contoh .k { color: var(--hadir-tua); font-weight: 700; }
@@ -172,10 +203,49 @@ input[type=search] { width: 100%; font: inherit; font-size: var(--h-b); padding:
 }
 @media (prefers-reduced-motion: reduce) { .saklar .jalur, .saklar .jalur::after { transition: none; } }
 body.lihat .ubah { display: none !important; }
-.pin-kartu { max-width: 420px; margin: var(--j6) auto; border-top: 5px solid var(--emas); text-align: center; padding: var(--j6) var(--j5) var(--j5); }
-.pin-kartu .isian, .pin-kartu input, .pin-kartu .pesan { text-align: left; }
-.pin-sek { color: var(--emas-teks); font-weight: 700; font-size: var(--h-xs); letter-spacing: .12em; text-transform: uppercase; }
-.pin-kartu h1 { margin-top: var(--j1); }
+/* Halaman PIN: panel dua sisi (identitas gelap + formulir) */
+.pin-kartu { display: grid; grid-template-columns: 1fr 1fr; max-width: 820px; margin: var(--j7) auto; padding: 0; overflow: hidden; border: 0;
+  box-shadow: 0 2px 4px rgba(34,30,23,.05), 0 24px 60px -24px rgba(29,42,58,.45); }
+.pin-sisi { position: relative; overflow: hidden; padding: var(--j6) var(--j5); color: var(--tinta-terang);
+  background: linear-gradient(155deg, #26374B 0%, var(--gelap) 55%, #141E2A 100%); display: flex; flex-direction: column; justify-content: space-between; gap: var(--j5); }
+.pin-sisi::before { content: ""; position: absolute; width: 320px; height: 320px; right: -110px; bottom: -140px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(220,192,110,.30), rgba(220,192,110,0) 70%); }
+.pin-sisi .simbol { position: absolute; inset: 0; pointer-events: none; font: 700 34px/1 "Fraunces", Georgia, serif; color: rgba(255,255,255,.06); }
+.pin-sisi .simbol span { position: absolute; }
+.pin-sisi img { width: 56px; height: 56px; position: relative; filter: drop-shadow(0 2px 6px rgba(0,0,0,.4)); }
+.pin-sisi .sek { position: relative; color: var(--emas); font-weight: 700; font-size: var(--h-xs); letter-spacing: .14em; text-transform: uppercase; margin-top: var(--j4); }
+.pin-sisi h1 { position: relative; color: #fff; font-size: 30px; line-height: 1.15; margin: var(--j2) 0; }
+.pin-sisi p { position: relative; color: var(--tinta-terang-2); font-size: var(--h-m); margin: 0; }
+.pin-sisi ul { position: relative; list-style: none; padding: 0; margin: 0; display: grid; gap: var(--j2); font-size: var(--h-s); color: var(--tinta-terang); }
+.pin-sisi li { display: flex; gap: var(--j2); align-items: center; } .pin-sisi li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--emas); flex: none; }
+.pin-form { padding: var(--j6) var(--j5); display: flex; flex-direction: column; justify-content: center; background: var(--kertas-2); }
+.pin-form h2 { font-size: 22px; margin: 0 0 var(--j1); }
+.pin-form .isian { margin-top: var(--j4); }
+.pin-form input { font-size: 20px; letter-spacing: .3em; text-align: center; }
+@media (max-width: 720px) { .pin-kartu { grid-template-columns: 1fr; margin: var(--j4) auto; } .pin-sisi { padding: var(--j5); } .pin-sisi ul { display: none; } .pin-sisi h1 { font-size: 24px; } }
+
+/* Tingkat dan Level Soal: kartu per modul, lencana nomor tingkat, pil nomor level */
+.modul-kartu { padding: 0; overflow: hidden; }
+.modul-kepala { display: flex; align-items: center; gap: var(--j3); padding: var(--j4) var(--j5); color: #fff;
+  background: linear-gradient(120deg, var(--md-a), var(--md-b)); }
+.modul-kepala .md { font-family: "Fraunces", Georgia, serif; font-weight: 700; font-size: 22px; padding: 6px 14px; border-radius: 12px;
+  background: rgba(255,255,255,.16); box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
+.modul-kepala h2 { margin: 0; color: #fff; font-size: 18px; } .modul-kepala p { margin: 2px 0 0; color: rgba(255,255,255,.78); font-size: var(--h-s); }
+.modul-10 { --md-a: #1D2A3A; --md-b: #2F5D7C; } .modul-11 { --md-a: #6E4E12; --md-b: #B2861F; } .modul-12 { --md-a: #22412E; --md-b: #3F6B4F; }
+.tk-baris { border-top: 1px solid var(--garis); }
+.tk-baris:first-of-type { border-top: 0; }
+.tk-baris > summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: var(--j3); padding: var(--j3) var(--j5); }
+.tk-baris > summary::-webkit-details-marker { display: none; }
+.tk-baris > summary:hover { background: var(--kertas-3); }
+.tk-no { flex: none; width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 800;
+  font-size: var(--h-m); background: var(--kertas-3); color: var(--gelap); border: 1px solid var(--garis-2); }
+.tk-baris[open] .tk-no { background: var(--gelap); color: var(--emas); border-color: var(--gelap); }
+.tk-nama { flex: 1; min-width: 0; } .tk-nama b { display: block; font-size: var(--h-n); color: var(--tinta); } .tk-nama span { font-size: var(--h-s); color: var(--tinta-2); }
+.tk-panah { flex: none; width: 10px; height: 10px; border-right: 2px solid var(--tinta-3); border-bottom: 2px solid var(--tinta-3); transform: rotate(-45deg); transition: transform .15s; margin-right: 4px; }
+.tk-baris[open] .tk-panah { transform: rotate(45deg); }
+.tk-isi { padding: 0 var(--j5) var(--j4) calc(var(--j5) + 34px + var(--j3)); }
+@media (max-width: 560px) { .tk-isi { padding-left: var(--j4); padding-right: var(--j4); } .tk-baris > summary { padding: var(--j3) var(--j4); } }
+.tk-alat { margin: 0 0 var(--j2); }
 </style>
 </head>
 <body>
@@ -187,29 +257,38 @@ body.lihat .ubah { display: none !important; }
 
 <main class="bungkus lebar">
   <section id="v-pin" class="kartu pin-kartu">
-    <div class="pin-sek">SMA Plus Merdeka Soreang</div>
-    <h1>Matematika Dasar · Guru</h1>
-    <p class="redup kecil">Gunakan PIN yang sama dengan aplikasi Tryout. PIN pengawas hanya bisa melihat.</p>
-    <label class="isian" for="pin">PIN</label>
-    <input type="password" id="pin" autocomplete="off">
-    <div id="pin-pesan" class="pesan buruk hidden" role="alert"></div>
-    <p><button id="btn-pin" style="width:100%">Masuk</button></p>
-    <p class="kecil" style="text-align:center;margin-bottom:0"><a href="index.html" style="color:var(--tinta-2)">‹ Kembali ke halaman siswa</a></p>
+    <div class="pin-sisi">
+      <div class="simbol" aria-hidden="true"><span style="left:10%;top:12%">+</span><span style="right:14%;top:22%">×</span><span style="left:18%;bottom:20%">÷</span><span style="right:22%;bottom:34%">−</span><span style="left:52%;top:8%;font-size:24px">=</span></div>
+      <div><img src="assets/logo.png" alt="Logo SMA Plus Merdeka Soreang"><div class="sek">SMA Plus Merdeka Soreang</div>
+        <h1>Matematika Dasar</h1><p>Ruang guru dan pengawas untuk memantau latihan berhitung siswa.</p></div>
+      <ul><li>Kemajuan per kelompok MD dan siswa yang perlu perhatian</li><li>Analisis kesalahan khas tiap siswa</li><li>Tingkat, level, dan uji coba soal</li></ul>
+    </div>
+    <div class="pin-form">
+      <h2>Masuk guru / pengawas</h2>
+      <p class="redup kecil" style="margin:0">Gunakan PIN yang sama dengan aplikasi Tryout. PIN pengawas hanya bisa melihat.</p>
+      <label class="isian" for="pin">PIN</label>
+      <input type="password" id="pin" autocomplete="off" placeholder="••••">
+      <div id="pin-pesan" class="pesan buruk hidden" role="alert"></div>
+      <p><button id="btn-pin" style="width:100%">Masuk</button></p>
+      <p class="kecil" style="text-align:center;margin-bottom:0"><a href="index.html" style="color:var(--tinta-2)">‹ Kembali ke halaman siswa</a></p>
+    </div>
   </section>
 
   <section id="v-utama" class="hidden">
     <nav class="tab" id="tab">
-      <button data-v="kelas" class="on" id="tab-kelompok">Kemajuan kelompok</button>
-      <button data-v="daftar">Daftar siswa</button>
-      <button data-v="siswa">Analisis siswa</button>
-      <button data-v="tingkat">Tingkat dan Level Soal</button>
-      <button data-v="atur">Pengaturan</button>
+      <button data-v="kelas" class="on"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span id="tab-kelompok">Kemajuan kelompok</span></button>
+      <button data-v="daftar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg><span>Daftar siswa</span></button>
+      <button data-v="siswa"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>Analisis siswa</span></button>
+      <button data-v="tingkat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h4v-4h4v-4h4V8h4V4"/></svg><span>Tingkat dan Level Soal</span></button>
+      <button data-v="atur"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg><span>Pengaturan</span></button>
     </nav>
     <!-- Kapan data siswa & kelompok MD terakhir ditarik dari Data Induk (lewat admin Tryout) -->
     <div class="kecil redup" id="info-sinkron" style="margin:0 0 var(--j2)"></div>
 
     <!-- Kemajuan per kelompok MD (sebelum kelompok pernah ditarik dari Data Induk: per kelas) -->
     <div id="p-kelas">
+      <div class="kepala-hal"><div><span class="eyebrow">Pemantauan</span><h1 id="judul-kelas">Kemajuan kelompok</h1>
+        <p>Posisi, kemajuan, dan siswa yang perlu perhatian. Ketuk nama siswa untuk melihat analisisnya.</p></div></div>
       <div class="baris">
         <select id="pil-kelas" style="max-width:220px" aria-label="Pilih kelompok"></select>
         <select id="pil-urut" style="max-width:240px" aria-label="Urutkan">
@@ -236,6 +315,8 @@ body.lihat .ubah { display: none !important; }
 
     <!-- Daftar siswa: anggota kelompok MD, status masuk, kunci keluar halaman -->
     <div id="p-daftar" class="hidden">
+      <div class="kepala-hal"><div><span class="eyebrow">Siswa</span><h1>Daftar siswa</h1>
+        <p>Anggota kelompok MD, siapa yang sedang berlatih, dan siapa yang terkunci. Diperbarui otomatis tiap 30 detik.</p></div></div>
       <div class="daftar-alat">
         <select id="dl-kelompok" aria-label="Pilih kelompok"></select>
         <select id="dl-tingkat" aria-label="Saring tingkat">
@@ -273,6 +354,8 @@ body.lihat .ubah { display: none !important; }
 
     <!-- Analisis siswa -->
     <div id="p-siswa" class="hidden">
+      <div class="kepala-hal"><div><span class="eyebrow">Siswa</span><h1>Analisis siswa</h1>
+        <p>Catatan otomatis, kemajuan, jenis kesalahan khas, dan riwayat level satu siswa.</p></div></div>
       <div class="baris">
         <select id="pil-siswa" class="tumbuh" aria-label="Pilih siswa"></select>
       </div>
@@ -281,14 +364,16 @@ body.lihat .ubah { display: none !important; }
 
     <!-- Tingkat -->
     <div id="p-tingkat" class="hidden">
+      <div class="kepala-hal"><div><span class="eyebrow">Materi</span><h1>Tingkat dan Level Soal</h1>
+        <p>Susunan MD10, MD11, dan MD12. Lihat contoh soal, coba kerjakan sendiri, atau tutup tingkat yang belum dipakai.</p></div></div>
       <p class="redup kecil">Soal dibuat acak oleh server dari aturan tiap level. Tekan <b>Contoh</b> untuk melihat 10 soal acak beserta kuncinya, atau <b>Coba</b> untuk mengerjakannya sendiri seperti siswa (uji coba guru: terbuka di tab baru, tidak memakai akun siswa, tidak masuk rekap, tetap bisa walau Halaman Latihan ditutup). Tingkat yang ditutup dilewati siswa.</p>
       <div id="t-tingkat"></div>
     </div>
 
     <!-- Pengaturan -->
     <div id="p-atur" class="hidden">
-      <div class="atur-kepala">
-        <div><h1>Pengaturan</h1>
+      <div class="atur-kepala kepala-hal">
+        <div><span class="eyebrow">Halaman latihan</span><h1>Pengaturan</h1>
           <p class="redup kecil">Atur halaman latihan siswa, pengawasan, dan aturan naik level. Setiap perubahan langsung tersimpan dan berlaku saat siswa masuk berikutnya.</p></div>
       </div>
       <div class="ringkas" id="atur-ringkas" aria-label="Ringkasan pengaturan"></div>
@@ -316,7 +401,7 @@ async function masuk(pin, diam) {
     $("hd-sub").textContent = `Masuk sebagai ${PERAN}`;
     $("v-pin").classList.add("hidden"); $("v-utama").classList.remove("hidden"); $("btn-keluar").classList.remove("hidden");
     MODE_MD = (G.kelompok || []).length > 0;
-    $("tab-kelompok").textContent = MODE_MD ? "Kemajuan kelompok" : "Kemajuan kelas";
+    $("tab-kelompok").textContent = $("judul-kelas").textContent = MODE_MD ? "Kemajuan kelompok" : "Kemajuan kelas";
     $("pil-kelas").innerHTML = MODE_MD
       ? G.kelompok.map((k) => `<option>${esc(k)}</option>`).join("") + (G.ada_tanpa_kelompok ? '<option value="-">Tanpa kelompok MD</option>' : "") + '<option value="">Semua kelompok</option>'
       : G.kelas.map((k) => `<option>${esc(k)}</option>`).join("") + '<option value="">Semua kelas</option>';
@@ -360,6 +445,22 @@ function bukaTab(v) {
   if (v === "daftar") { muatDaftar(); daftarT = setInterval(() => { if (!document.hidden) muatDaftar(true); }, 30000); }
 }
 
+/* Kotak angka ringkasan: [[nilai, label, ikon, warna]] → HTML (ikon & warna sesuai makna). */
+const IKON_UBIN = {
+  siswa: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 20a6.5 6.5 0 0 0-3-5.5"/>',
+  mulai: '<circle cx="12" cy="12" r="9"/><path d="M10 8.5 15.5 12 10 15.5z"/>',
+  aktif: '<path d="M3 12h4l3-7 4 14 3-7h4"/>',
+  level: '<path d="M3 20h4v-4h4v-4h4V8h4V4"/>',
+  macet: '<path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/>',
+  diam: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
+  kunci: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  keluar: '<path d="M14 4h5v16h-5M10 8l-4 4 4 4M6 12h10"/>',
+  akurasi: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r=".8"/>',
+  waktu: '<circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/>',
+  ulang: '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>',
+};
+const ubinHtml = (a) => a.map(([n, l, ik, cls]) => `<div class="${cls || ""}"><span class="ik" aria-hidden="true"><svg viewBox="0 0 24 24">${IKON_UBIN[ik] || ""}</svg></span><div class="n">${n}</div><div class="l">${l}</div></div>`).join("");
+
 /* ----------------------------------------------------------- kemajuan kelas */
 const hariSejak = (iso) => iso ? (Date.now() - new Date(iso)) / 86400000 : Infinity;
 function status(r) {
@@ -395,11 +496,11 @@ function gambarKelas() {
   const macet = R.filter((r) => status(r).some((s) => s.t === "Macet")).length;
   const diam = R.filter((r) => r.tingkat && hariSejak(r.terakhir) >= 7).length;
   const aktif7 = R.filter((r) => hariSejak(r.terakhir) < 7).length;
-  $("k-ubin").innerHTML = [
-    [R.length, "siswa"], [mulai.length, "sudah mulai"], [aktif7, "berlatih 7 hari terakhir"],
-    [rata.toLocaleString("id-ID", { maximumFractionDigits: 1 }), `rata-rata level tuntas (dari ${jumlah})`],
-    [macet, "macet"], [diam, "tidak aktif ≥ 7 hari"],
-  ].map(([n, l]) => `<div><div class="n">${n}</div><div class="l">${l}</div></div>`).join("");
+  $("k-ubin").innerHTML = ubinHtml([
+    [R.length, "siswa", "siswa"], [mulai.length, "sudah mulai", "mulai", "baik"], [aktif7, "berlatih 7 hari terakhir", "aktif", "baik"],
+    [rata.toLocaleString("id-ID", { maximumFractionDigits: 1 }), `rata-rata level tuntas (dari ${jumlah})`, "level", "emas"],
+    [macet, "macet", "macet", macet ? "buruk" : "redup-ubin"], [diam, "tidak aktif ≥ 7 hari", "diam", diam ? "emas" : "redup-ubin"],
+  ]);
 
   // sebaran per tingkat
   const baris = G.tingkat.filter((t) => t.aktif).map((t) => ({ label: t.nama, n: R.filter((r) => r.tingkat === t.kode && !r.selesai).length }));
@@ -505,11 +606,12 @@ function saringDaftar() {
 function gambarDaftar() {
   const D = DAFTAR, semua = !$("dl-kelompok").value;
   const n = (f) => D.filter(f).length, kunci = n((r) => r.terkunci);
-  $("dl-ubin").innerHTML = [
-    [D.length, MODE_MD ? "siswa di daftar" : "siswa"], [n((r) => r.online), "sedang berlatih sekarang"],
-    [n((r) => !r.tingkat), "belum pernah masuk"], [kunci, "terkunci (keluar halaman)", kunci > 0],
-    [D.reduce((a, r) => a + (r.keluar_7 || 0), 0), "keluar halaman, 7 hari"],
-  ].map(([v, l, s]) => `<div class="${s ? "sorot" : ""}"><div class="n">${v}</div><div class="l">${l}</div></div>`).join("");
+  const keluar7 = D.reduce((a, r) => a + (r.keluar_7 || 0), 0);
+  $("dl-ubin").innerHTML = ubinHtml([
+    [D.length, MODE_MD ? "siswa di daftar" : "siswa", "siswa"], [n((r) => r.online), "sedang berlatih sekarang", "aktif", "baik"],
+    [n((r) => !r.tingkat), "belum pernah masuk", "diam", "emas"], [kunci, "terkunci (keluar halaman)", "kunci", kunci ? "buruk" : "redup-ubin"],
+    [keluar7, "keluar halaman, 7 hari", "keluar", keluar7 ? "emas" : "redup-ubin"],
+  ]);
   const R = saringDaftar();
   const ada = new Set(DAFTAR.map((r) => r.nisn));
   [...PILIH].forEach((n) => { if (!ada.has(n)) PILIH.delete(n); });
@@ -624,16 +726,18 @@ function tipPasang(wadah) {
 
 function batangMendatar(wadah, data, satuan, catatan) {
   // Digambar selebar wadahnya (1 satuan SVG = 1 px) supaya teks tetap 12–13 px di layar mana pun.
-  const W = Math.max(300, wadah.clientWidth || 720), hp = W < 560, labelW = hp ? Math.round(W * 0.52) : 230, fs = hp ? 11.5 : 13;
+  const W = Math.max(300, wadah.clientWidth || 720), hp = W < 560, labelW = hp ? Math.round(W * 0.46) : Math.min(320, Math.round(W * 0.34)), fs = hp ? 11.5 : 13;
+  // Label yang terlalu panjang dipendekkan supaya tidak keluar dari kartu (nama lengkap ada di tooltip).
+  const muat = Math.floor((labelW - 14) / (fs * 0.52)), pendek = (t) => t.length > muat ? t.slice(0, muat - 1).trimEnd() + "…" : t;
   const tinggi = 26, jarak = 8, maks = Math.max(1, ...data.map((d) => d.n));
   const H = data.length * (tinggi + jarak) + 4, lebar = W - labelW - 50;
-  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sebaran siswa per tingkat">`;
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sebaran siswa per tingkat"><defs><linearGradient id="gb" x1="0" x2="1"><stop offset="0" stop-color="#2F5D7C"/><stop offset="1" stop-color="#3E7FA6"/></linearGradient></defs>`;
   data.forEach((d, i) => {
     const y = i * (tinggi + jarak), w = d.n ? Math.max(4, lebar * d.n / maks) : 0;
     s += `<g class="bt" data-i="${i}"><rect x="0" y="${y - 2}" width="${W}" height="${tinggi + 4}" fill="transparent"/>
-      <text x="${labelW - 10}" y="${y + tinggi / 2 + 5}" text-anchor="end" font-size="${fs}" fill="#5E5548">${esc(d.label)}</text>
+      <text x="${labelW - 10}" y="${y + tinggi / 2 + 5}" text-anchor="end" font-size="${fs}" fill="#5E5548"><title>${esc(d.label)}</title>${esc(pendek(d.label))}</text>
       <rect x="${labelW}" y="${y + 3}" width="${lebar}" height="${tinggi - 6}" rx="4" fill="#F6F2E8"/>
-      ${w ? `<path d="M${labelW},${y + 3} h${w - 4} a4,4 0 0 1 4,4 v${tinggi - 14} a4,4 0 0 1 -4,4 h${-(w - 4)} z" fill="${WARNA}"/>` : ""}
+      ${w ? `<path d="M${labelW},${y + 3} h${w - 4} a4,4 0 0 1 4,4 v${tinggi - 14} a4,4 0 0 1 -4,4 h${-(w - 4)} z" fill="url(#gb)"/>` : ""}
       <text x="${labelW + w + 8}" y="${y + tinggi / 2 + 5}" font-size="${fs}" font-weight="700" fill="#221E17">${d.n || ""}</text></g>`;
   });
   s += "</svg>";
@@ -730,17 +834,17 @@ function gambarSiswa() {
 
   $("d-isi").innerHTML = `
     <div class="kartu">
-      <div class="baris"><div class="tumbuh"><h1 style="margin:0">${esc(D.siswa.nama)}</h1><div class="redup">${D.siswa.kelompok ? esc(D.siswa.kelompok) + " · " : ""}Rombel ${esc(D.siswa.kelas)} · NISN ${esc(D.siswa.nisn)}</div></div>
+      <div class="baris"><span class="avatar" aria-hidden="true">${esc(D.siswa.nama.split(/\s+/).slice(0, 2).map((x) => x[0]).join("").toUpperCase())}</span><div class="tumbuh"><h1 style="margin:0">${esc(D.siswa.nama)}</h1><div class="redup">${D.siswa.kelompok ? esc(D.siswa.kelompok) + " · " : ""}Rombel ${esc(D.siswa.kelas)} · NISN ${esc(D.siswa.nisn)}</div></div>
       ${p ? `<span class="lencana ${p.selesai ? "baik" : "biru"}">${p.selesai ? "Tamat" : `${esc(p.nama_tingkat)} · Level ${p.level}`}</span>` : '<span class="lencana">Belum mulai</span>'}</div>
       ${p ? `<div class="maju" style="margin-top:var(--j3)"><div class="batang"><i style="width:${100 * p.lewat / Math.max(1, p.total)}%"></i></div><span>${p.lewat} dari ${p.total} level</span></div>` : ""}
     </div>
-    <div class="ubin">
-      <div><div class="n">${totalTuntas}</div><div class="l">level dituntaskan sendiri</div></div>
-      <div><div class="n">${nJ ? Math.round(100 * nB / nJ) + "%" : "–"}</div><div class="l">akurasi (${nJ} soal)</div></div>
-      <div><div class="n">${nB ? lamaTeks(rata) : "–"}</div><div class="l">rata-rata per soal benar</div></div>
-      <div><div class="n">${D.harian.length}</div><div class="l">hari berlatih (60 hari)</div></div>
-      <div><div class="n">${p && !p.selesai ? Math.max(1, p.percobaan) : "–"}</div><div class="l">percobaan level sekarang</div></div>
-    </div>
+    <div class="ubin">${ubinHtml([
+      [totalTuntas, "level dituntaskan sendiri", "level", "baik"],
+      [nJ ? Math.round(100 * nB / nJ) + "%" : "–", `akurasi (${nJ} soal)`, "akurasi", !nJ ? "" : nB / nJ >= .8 ? "baik" : nB / nJ >= .6 ? "emas" : "buruk"],
+      [nB ? lamaTeks(rata) : "–", "rata-rata per soal benar", "waktu"],
+      [D.harian.length, "hari berlatih (60 hari)", "aktif"],
+      [p && !p.selesai ? Math.max(1, p.percobaan) : "–", "percobaan level sekarang", "ulang", p && p.percobaan >= 3 ? "buruk" : ""],
+    ])}</div>
     <div class="kartu"><h2>Catatan otomatis</h2><ul class="catatan">${catatanOtomatis(D).map((x) => `<li>${x}</li>`).join("")}</ul></div>
     <div class="kartu"><h2>Kemajuan level tuntas</h2><p class="redup kecil" style="margin-top:0">Jumlah level tuntas (kumulatif) pada hari-hari berlatih, 60 hari terakhir.</p><div class="grafik" id="g-maju"></div></div>
     <div class="dua">
@@ -796,14 +900,21 @@ function gambarSiswa() {
 function gambarTingkat() {
   const bolehUbah = PERAN !== "pengawas";
   let modul = null, h = "";
+  const NAMA_MODUL = { 10: "Bilangan bulat, positif-negatif, dan pecahan", 11: "Desimal, persen, notasi baku, dan eksponen", 12: "Aljabar, pola bilangan, dan logika" };
   G.tingkat.forEach((t) => {
-    if (t.modul !== modul) { if (modul !== null) h += "</div>"; modul = t.modul; h += `<div class="kartu"><h2>MD${t.modul}</h2>`; }
-    h += `<details style="margin:var(--j2) 0"><summary style="cursor:pointer;padding:var(--j2) 0"><b>${t.urut}. ${esc(t.nama)}</b>
-        <span class="redup kecil">· ${t.level.length} level</span> ${t.aktif ? "" : '<span class="lencana buruk">ditutup</span>'}</summary>
-      ${bolehUbah ? `<p class="ubah"><button class="garis kecil" data-aktif="${t.kode}" data-nilai="${!t.aktif}">${t.aktif ? "Tutup tingkat ini" : "Buka tingkat ini"}</button></p>` : ""}
+    if (t.modul !== modul) {
+      if (modul !== null) h += "</div>";
+      modul = t.modul;
+      const sm = G.tingkat.filter((x) => x.modul === t.modul);
+      h += `<div class="kartu modul-kartu modul-${t.modul}"><div class="modul-kepala"><span class="md">MD${t.modul}</span>
+        <div><h2>Modul Kelas ${t.modul}</h2><p>${NAMA_MODUL[t.modul] || ""} · ${sm.length} tingkat · ${sm.reduce((a, x) => a + x.level.length, 0)} level</p></div></div>`;
+    }
+    h += `<details class="tk-baris"><summary><span class="tk-no">${t.urut}</span><span class="tk-nama"><b>${esc(t.nama)}</b><span>${t.level.length} level</span></span>
+        ${t.aktif ? "" : '<span class="lencana buruk">ditutup</span>'}<span class="tk-panah" aria-hidden="true"></span></summary><div class="tk-isi">
+      ${bolehUbah ? `<p class="ubah tk-alat"><button class="garis kecil" data-aktif="${t.kode}" data-nilai="${!t.aktif}">${t.aktif ? "Tutup tingkat ini" : "Buka tingkat ini"}</button></p>` : ""}
       ${t.level.map((l) => `<div class="lv-baris"><span class="no">Level ${l.level}</span><span class="kt">${esc(l.ket)}</span>
         <button class="garis kecil" data-contoh="${t.kode}|${l.level}">Contoh</button><button class="kecil" data-coba="${t.kode}|${l.level}" title="Kerjakan level ini seperti siswa">Coba</button></div><div class="contoh hidden" id="c-${t.kode}-${l.level}"></div>`).join("")}
-      </details>`;
+      </div></details>`;
   });
   $("t-tingkat").innerHTML = h + (modul !== null ? "</div>" : "");
   // Uji coba guru: tab dibuka lebih dulu (supaya tidak diblokir peramban), lalu diarahkan setelah sesi dibuat.
