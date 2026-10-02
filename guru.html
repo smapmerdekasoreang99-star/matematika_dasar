@@ -1007,17 +1007,21 @@ function gambarSesi() {
   const L = BUKA.kelompok.filter((k) => !pilih || k.kelompok === pilih);
   $("sesi-kartu").classList.toggle("hidden", !L.length);
   if (L.some((k) => k.buka && sisaSesi(k) === 0)) { setTimeout(muatSesi, 1500); }
-  $("sesi-isi").innerHTML = (BUKA.umum_aktif ? `<p class="sesi-peringatan">Halaman latihan sedang <b>dibuka untuk semua kelompok</b> oleh admin, jadi siswa bisa masuk kapan saja dan dari mana saja${PERAN === "admin" ? `. <a href="#" id="sesi-ke-umum">Tutup di Pengaturan Umum → Bawaan sekolah</a> agar siswa hanya bisa masuk saat sesi kelompoknya dibuka.` : ". Minta admin menutupnya agar siswa hanya bisa masuk saat sesi kelompoknya dibuka."}</p>` : "") +
+  // Kelompok yang belum pernah diatur sesinya mengikuti bawaan sekolah; bila bawaan "dibuka untuk semua", siswanya bebas masuk.
+  const bebas = (k) => BUKA.umum_aktif && !k.diatur && !(k.buka && sisaSesi(k) > 0);
+  const LB = L.filter(bebas);
+  $("sesi-isi").innerHTML = (LB.length ? `<p class="sesi-peringatan">Bawaan sekolah sedang <b>dibuka untuk semua kelompok</b>. ${LB.length === L.length && L.length === 1 ? "Kelompok ini" : `Kelompok ${esc(LB.map((k) => k.kelompok).join(", "))}`} belum pernah dibuka atau ditutup sesinya, jadi siswanya masih bisa masuk kapan saja dan dari mana saja tanpa kode. Tekan <b>Tutup</b> agar siswa hanya bisa masuk saat sesi dibuka${PERAN === "admin" ? `, atau <a href="#" id="sesi-ke-umum">tutup untuk semua kelompok di Pengaturan Umum → Bawaan sekolah</a>` : ""}.</p>` : "") +
     L.map((k) => {
       const buka = k.buka && sisaSesi(k) > 0;
       return `<div class="sesi-baris ${buka ? "buka" : ""}">
         <div class="sesi-nama"><b>${esc(k.kelompok)}</b><small>${k.n_siswa} siswa</small></div>
         <div class="sesi-status">${buka ? `<span class="lencana baik"><span class="titik-on"></span>Dibuka · sisa ${sisaSesi(k)} menit</span><small>sampai pukul ${jamTeks(k.sampai)} · ${k.n_online} sedang berlatih</small>`
+          : bebas(k) ? '<span class="lencana emas">Terbuka (bawaan sekolah)</span><small>siswa bisa masuk kapan saja tanpa kode</small>'
           : '<span class="lencana">Ditutup</span><small>siswa tidak bisa masuk</small>'}</div>
         <div class="sesi-kode">${buka ? `<small>Kode akses</small><b>${esc(k.kode)}</b>` : ""}</div>
         <div class="sesi-aksi">${!boleh ? "" : buka
           ? `<button class="garis kecil" data-layar="${esc(k.kelompok)}">Tampilkan kode</button><button class="garis kecil" data-tambah="${esc(k.kelompok)}">+15 menit</button><button class="kecil bahaya" data-tutup="${esc(k.kelompok)}">Tutup sekarang</button>`
-          : `<select data-menit="${esc(k.kelompok)}" aria-label="Lama sesi ${esc(k.kelompok)}">${LAMA_SESI.map((m) => `<option value="${m}" ${m === 90 ? "selected" : ""}>${m} menit</option>`).join("")}</select><button class="kecil" data-buka="${esc(k.kelompok)}">Buka sesi</button>`}</div></div>`;
+          : `<select data-menit="${esc(k.kelompok)}" aria-label="Lama sesi ${esc(k.kelompok)}">${LAMA_SESI.map((m) => `<option value="${m}" ${m === 90 ? "selected" : ""}>${m} menit</option>`).join("")}</select><button class="kecil" data-buka="${esc(k.kelompok)}">Buka sesi</button>${bebas(k) ? `<button class="kecil bahaya" data-tutup="${esc(k.kelompok)}">Tutup</button>` : ""}`}</div></div>`;
     }).join("");
   if ($("sesi-ke-umum")) $("sesi-ke-umum").onclick = (e) => { e.preventDefault(); $("atur-sasaran").value = ""; bukaTab("atur"); };
   const cari = (k) => BUKA.kelompok.find((x) => x.kelompok === k);
@@ -1035,7 +1039,7 @@ function gambarSesi() {
   });
   $("sesi-isi").querySelectorAll("[data-tutup]").forEach((b) => b.onclick = async () => {
     const k = cari(b.dataset.tutup);
-    if (!confirm(`Tutup sesi ${k.kelompok} sekarang?\n\n${k.n_online ? `${k.n_online} siswa yang sedang berlatih akan dikeluarkan. ` : ""}Kemajuan siswa tetap tersimpan. Kode ${k.kode} tidak berlaku lagi.`)) return;
+    if (!confirm(`Tutup sesi ${k.kelompok} sekarang?\n\n${k.n_online ? `${k.n_online} siswa yang sedang berlatih akan dikeluarkan. ` : ""}Kemajuan siswa tetap tersimpan.${k.kode ? ` Kode ${k.kode} tidak berlaku lagi.` : ""} Siswa hanya bisa masuk lagi saat sesi dibuka.`)) return;
     try { const r = await rpc("mtd_tutup_kelompok", { p_pin: PIN, p_kelompok: [k.kelompok] }); toast(`Sesi ${k.kelompok} ditutup${r.dikeluarkan ? `, ${r.dikeluarkan} siswa dikeluarkan` : ""}`); muatSesi(); muatKelas(); }
     catch (e) { toast(e.message); }
   });
