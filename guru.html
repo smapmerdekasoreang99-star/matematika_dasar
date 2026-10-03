@@ -678,7 +678,7 @@ async function masuk(pin, diam) {
     $("hd-sub").textContent = PERAN === "admin" ? "Masuk sebagai admin" : `${G.nama} · ${G.kelompok.join(", ") || "belum ada kelompok"}`;
     $("tab-admin").classList.toggle("hidden", PERAN !== "admin"); $("tab").classList.toggle("tujuh", PERAN === "admin");
     $("pin-sementara").classList.toggle("hidden", !G.sementara);
-    $("pin-sementara").innerHTML = G.sementara ? `Anda masuk dengan <b>PIN sementara</b> untuk kelompok ${esc(G.kelompok.join(", "))}. Minta PIN pribadi kepada admin Matematika Dasar. Dengan PIN pribadi, semua kelompok yang Anda ampu tampil sekaligus.` : "";
+    $("pin-sementara").innerHTML = G.sementara ? `Anda masuk dengan <b>PIN sementara</b>. Minta PIN pribadi kepada admin Matematika Dasar agar akun Anda tidak bisa dipakai orang lain.` : "";
     $("v-pin").classList.add("hidden"); $("v-utama").classList.remove("hidden"); $("btn-keluar").classList.remove("hidden");
     MODE_MD = (G.kelompok || []).length > 0;
     $("pil-kelas").innerHTML = MODE_MD
@@ -1910,23 +1910,22 @@ async function muatAdmin() {
   gambarAdmin();
 }
 const statusPin = (g) => g.status === "acak" ? `<span class="lencana baik">PIN pribadi</span><b class="pin-teks">${esc(g.pin)}</b>`
-  : g.status === "hp" ? `<span class="lencana emas">Sementara: 4 digit HP</span><b class="pin-teks">${esc(g.hp4)}</b>`
-  : '<span class="lencana buruk">Sementara: nama kelompok</span>';
+  : `<span class="lencana emas">Sementara: ID guru</span><b class="pin-teks">${esc(g.id)}</b>`;
 function gambarAdmin() {
   const L = ADM.guru, belum = L.filter((g) => g.aktif && g.status !== "acak").length;
   $("f-admin").innerHTML = `
   <section class="kartu seksi">
     <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 20a6.5 6.5 0 0 0-3-5.5"/></svg></span>
       <div><h2>Guru dan PIN masuk</h2><p>Guru pengampu kelompok MD menurut jadwal KBM di Data Induk. ${ADM.disinkron ? "Terakhir ditarik " + esc(tglTeks(ADM.disinkron, true)) + "." : "Belum pernah ditarik."}</p></div>
-      <span class="seksi-aksi admin-aksi"><button class="garis kecil" id="adm-tarik">Tarik guru dari Data Induk</button>${belum ? `<button class="kecil" id="adm-acak-semua">Buat PIN untuk ${belum} guru</button>` : ""}</span></div>
-    ${ADM.sementara.length ? `<p class="sesi-peringatan"><b>${ADM.sementara.length} kelompok</b> masih bisa dimasuki dengan nama kelompoknya (${esc(ADM.sementara.join(", "))}), karena ada gurunya yang belum punya PIN pribadi maupun nomor HP. Buat PIN pribadi agar nama kelompok tidak bisa dipakai lagi.</p>` : ""}
+      <span class="seksi-aksi admin-aksi">${L.length ? '<button class="btn-unduh garis kecil" data-fmt="xlsx" id="adm-unduh" title="Daftar guru beserta PIN masuknya (rahasia)">Unduh daftar PIN</button>' : ""}<button class="garis kecil" id="adm-tarik">Tarik guru dari Data Induk</button>${belum ? `<button class="kecil" id="adm-acak-semua">Buat PIN untuk ${belum} guru</button>` : ""}</span></div>
+    ${ADM.sementara.length ? `<p class="sesi-peringatan"><b>${ADM.sementara.length} kelompok</b> masih bisa dimasuki dengan nama kelompoknya (${esc(ADM.sementara.join(", "))}), karena belum ada guru yang tercatat untuk kelompok itu di jadwal KBM. Tarik guru dari Data Induk setelah jadwalnya dilengkapi.</p>` : ""}
     ${L.length ? `<div class="gulir seksi-tabel"><table class="tabel adm-tabel" data-beku="1"><thead><tr><th>Guru</th><th>Kelompok</th><th>PIN masuk</th><th></th></tr></thead><tbody>${L.map((g) => `<tr class="${g.aktif ? "" : "nonaktif"}">
         <td><b>${esc(g.nama)}</b>${g.aktif ? "" : '<span class="kecil redup">Tidak ada lagi di jadwal KBM</span>'}</td>
         <td>${esc(g.kelompok.join(", ") || "–")}</td>
         <td><span class="pin-sel">${statusPin(g)}</span></td>
         <td class="kanan">${g.aktif ? `<span class="jl-aksi"><button class="garis kecil" data-acak="${esc(g.id)}">${g.status === "acak" ? "Buat ulang" : "Buat PIN"}</button>${g.status === "acak" ? `<button class="kecil tutup-merah" data-hapus-pin="${esc(g.id)}">Hapus PIN</button>` : ""}</span>` : ""}</td></tr>`).join("")}</tbody></table></div>`
       : '<p class="butir redup">Belum ada guru. Tekan <b>Tarik guru dari Data Induk</b>.</p>'}
-    <p class="catatan-seksi"><span>PIN guru: PIN pribadi 6 angka buatan admin. Sebelum dibuat: 4 digit terakhir nomor HP di Data Induk. Bila nomor HP juga kosong: nama kelompok (mis. MD10-1), hanya untuk kelompok itu. Bagikan PIN pribadi langsung ke guru yang bersangkutan.</span></p>
+    <p class="catatan-seksi"><span>PIN guru: PIN pribadi 6 angka buatan admin. Sebelum dibuat, guru masuk dengan ID gurunya di Data Induk (mis. G161). Nama kelompok (mis. MD10-1) hanya bisa dipakai untuk kelompok yang belum punya guru tercatat. Bagikan PIN pribadi langsung ke guru yang bersangkutan.</span></p>
   </section>
   <section class="kartu seksi">
     <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></span>
@@ -1945,6 +1944,17 @@ function gambarAdmin() {
     <p class="catatan-seksi"><span>Hanya beberapa siswa? Hapus satu siswa di <b>Analisis Siswa</b>; beberapa siswa atau satu kelompok di <b>Sesi Kegiatan</b> → centang → <b>Hapus data latihan</b>.</span></p>
   </section>`;
 
+  // Unduh daftar PIN (.xlsx): hanya guru aktif, untuk menjawab guru yang lupa PIN-nya
+  if ($("adm-unduh")) $("adm-unduh").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
+    const A = L.filter((g) => g.aktif);
+    const kolom = [{ t: "No", w: 5, rata: "center" }, { t: "Nama guru", w: 36, tebal: true }, { t: "ID guru", w: 10, rata: "center" },
+      { t: "Kelompok", w: 26 }, { t: "Jenis PIN", w: 18 }, { t: "PIN masuk", w: 14, rata: "center", tebal: true }];
+    const baris = A.map((g, i) => [i + 1, g.nama, g.id, g.kelompok.join(", "), g.status === "acak" ? "PIN pribadi" : "Sementara (ID guru)", g.status === "acak" ? g.pin : g.id]);
+    await unduhBukuXLSX({ namaBerkas: `Daftar_PIN_Guru_Matematika_Dasar_${tglBerkas()}.xlsx`, judulBuku: "Daftar PIN Guru", lembar: [{
+      nama: "PIN guru", judul: "Daftar PIN Guru Matematika Dasar", sub: "RAHASIA: jangan dibagikan ke siswa atau grup umum", kolom, baris,
+      info: [["Jumlah guru", `${A.length} guru`], ["Belum punya PIN pribadi", `${A.filter((g) => g.status !== "acak").length} guru`]],
+      ubin: [["Guru", A.length], ["PIN pribadi", A.filter((g) => g.status === "acak").length], ["Sementara", A.filter((g) => g.status !== "acak").length]] }] });
+  });
   $("adm-tarik").onclick = async (ev) => {
     const b = ev.currentTarget, t = b.textContent; b.disabled = true; b.textContent = "Menarik…";
     try {
@@ -1954,8 +1964,8 @@ function gambarAdmin() {
         headers: { "Content-Type": "application/json", apikey: I.key, Authorization: "Bearer " + I.key }, body: JSON.stringify({ p_pin: I.pin }) });
       const j = await r.json();
       if (!r.ok) throw new Error(/guru_matdas_ekspor/.test(j.message || "") ? "Fungsi guru_matdas_ekspor belum ada di Data Induk. Terapkan migrasinya dulu." : (j.message || "Data Induk menolak permintaan"));
-      const nKel = new Set(j.flatMap((g) => g.kelompok)).size, nHp = j.filter((g) => g.hp4).length;
-      if (!confirm(`Tertarik ${j.length} guru pengampu ${nKel} kelompok MD dari jadwal KBM (${nHp} punya nomor HP).\n\nSimpan? Guru yang tidak ada lagi di jadwal KBM dinonaktifkan. PIN pribadi yang sudah dibuat tetap berlaku.`)) return;
+      const nKel = new Set(j.flatMap((g) => g.kelompok)).size;
+      if (!confirm(`Tertarik ${j.length} guru pengampu ${nKel} kelompok MD dari jadwal KBM.\n\nSimpan? Guru yang tidak ada lagi di jadwal KBM dinonaktifkan. PIN pribadi yang sudah dibuat tetap berlaku.`)) return;
       const h = await rpc("mtd_sinkron_guru", { p_pin: PIN, p_rows: j });
       toast(`${h.jumlah} guru disimpan (${h.baru} baru${h.dinonaktifkan ? `, ${h.dinonaktifkan} dinonaktifkan` : ""})`); muatAdmin();
     } catch (e) { toast(e.message); } finally { b.disabled = false; b.textContent = t; }
@@ -1965,14 +1975,14 @@ function gambarAdmin() {
     try { const r = await rpc("mtd_admin_acak", { p_pin: PIN, p_guru: ids }); toast(`PIN pribadi dibuat untuk ${r.guru.length} guru`); muatAdmin(); }
     catch (e) { toast(e.message); }
   };
-  if ($("adm-acak-semua")) $("adm-acak-semua").onclick = () => acak(null, `Buat PIN pribadi untuk ${belum} guru yang belum punya?\n\nSetelah itu 4 digit HP dan nama kelompok tidak bisa dipakai lagi oleh guru-guru tersebut. Bagikan PIN masing-masing kepada gurunya.`);
+  if ($("adm-acak-semua")) $("adm-acak-semua").onclick = () => acak(null, `Buat PIN pribadi untuk ${belum} guru yang belum punya?\n\nSetelah itu ID guru tidak bisa dipakai lagi untuk masuk oleh guru-guru tersebut. Bagikan PIN masing-masing kepada gurunya.`);
   $("f-admin").querySelectorAll("[data-acak]").forEach((b) => b.onclick = () => {
     const g = L.find((x) => x.id === b.dataset.acak);
     acak([g.id], g.status === "acak" ? `Buat ulang PIN ${g.nama}?\n\nPIN lama (${g.pin}) tidak berlaku lagi.` : `Buat PIN pribadi untuk ${g.nama}?`);
   });
   $("f-admin").querySelectorAll("[data-hapus-pin]").forEach((b) => b.onclick = async () => {
     const g = L.find((x) => x.id === b.dataset.hapusPin);
-    if (!confirm(`Hapus PIN pribadi ${g.nama}?\n\nGuru ini kembali masuk dengan ${g.hp4 ? "4 digit terakhir nomor HP" : "nama kelompoknya"}.`)) return;
+    if (!confirm(`Hapus PIN pribadi ${g.nama}?\n\nGuru ini kembali masuk dengan ID gurunya (${g.id}) sampai dibuatkan PIN baru.`)) return;
     try { await rpc("mtd_admin_hapus_pin", { p_pin: PIN, p_guru: g.id }); toast("PIN pribadi dihapus"); muatAdmin(); } catch (e) { toast(e.message); }
   });
   $("adm-pin-simpan").onclick = async () => {
