@@ -1032,6 +1032,7 @@ $("dl-terapkan").onclick = async () => {
     const p = PROFIL.find((x) => x.id === +vA), sudah = L.filter((r) => r.aturan && (!p || r.aturan !== p.nama)).length;
     bagian.push(p
       ? `ATURAN: pasang "${p.nama}" (${ringkasProfil(p)}). Isian lain tetap dari aturan kelompok atau Pengaturan Umum.` + (sudah ? ` ${sudah} siswa sebelumnya punya aturan lain; aturan itu diganti.` : "")
+      + (p && L.some((r) => PROFIL_KEL[r.kelompok] === p.id) ? ` ${L.filter((r) => PROFIL_KEL[r.kelompok] === p.id).length} siswa: sama dengan aturan kelompoknya, jadi digabung kembali ke kelompok.` : "")
       : `ATURAN: kembali ke aturan kelompoknya.\n${rincianKelompok(L, aturanKelTeks)}`);
     kerja.push(async () => { const r = await rpc("mtd_profil_siswa", { p_pin: PIN, p_nisn: L.map((x) => x.nisn), p_profil: p ? p.id : null });
       return p ? `aturan "${p.nama}" untuk ${r.n} siswa` : `aturan ${r.n} siswa ikut kelompok`; });
@@ -1050,7 +1051,7 @@ $("dl-terapkan").onclick = async () => {
     } else {
       const j = JALUR.find((x) => x.id === +vT);
       if (!j) return toast("Pilih tahapan dulu.");
-      bagian.push(`TAHAPAN: pasang "${j.nama}". Siswa langsung ditempatkan di awal tahapan (${langkahTeks(j.langkah[0])}) dan sesi yang sedang berjalan ditutup. Pilihan ini tetap berlaku walau tahapan kelompoknya diganti.`);
+      bagian.push(`TAHAPAN: pasang "${j.nama}". Siswa langsung ditempatkan di awal tahapan (${langkahTeks(j.langkah[0])}) dan sesi yang sedang berjalan ditutup. Pilihan ini tetap berlaku walau tahapan kelompoknya diganti.` + (L.some((r) => TAHAPAN_KEL[r.kelompok] === j.id) ? ` ${L.filter((r) => TAHAPAN_KEL[r.kelompok] === j.id).length} siswa: sama dengan tahapan kelompoknya, jadi digabung kembali ke kelompok.` : ""));
       kerja.push(async () => { const r = await rpc("mtd_jalur_pasang", { p_pin: PIN, p_nisn: L.map((x) => x.nisn), p_jalur: j.id }); return `tahapan "${j.nama}" untuk ${r.dipasang} siswa`; });
     }
   }
