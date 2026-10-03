@@ -206,12 +206,13 @@ span.ab-asal.a-umum { background: var(--kertas-3); color: var(--tinta-2); box-sh
 /* Kolom posisi: nama tingkat lalu level di bawahnya */
 td.posisi { min-width: 200px; } td.posisi .pos-nm { display: block; font-weight: 600; line-height: 1.35; } td.posisi .pos-lv { display: block; font-size: var(--h-xs); color: var(--tinta-2); }
 .massal .m-kepala { display: flex; align-items: center; gap: var(--j3); flex-wrap: wrap; }
-.massal .m-baris { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: var(--j3); align-items: start; }
+.massal .m-baris { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: var(--j3); align-items: start; }
+.massal .m-jarak { width: var(--j5); }
 .massal .m-label { padding-top: 10px; }
 .massal .m-label { font-size: var(--h-xs); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--emas); }
 .massal .m-kendali { display: flex; align-items: center; gap: var(--j2); flex-wrap: wrap; min-width: 0; }
-.massal .m-kendali select { flex: 0 1 260px; }
-@media (max-width: 640px) { .massal .m-baris { grid-template-columns: 1fr auto; } .massal .m-label { grid-column: 1 / -1; } .massal .m-kendali select { flex: 1 1 100%; max-width: none; } }
+.massal .m-kendali select { flex: 1 1 340px; max-width: 460px; }
+@media (max-width: 640px) { .massal .m-baris { grid-template-columns: 1fr; } .massal .m-jarak { width: 0; } .massal .m-label { grid-column: 1 / -1; } .massal .m-kendali select { flex: 1 1 100%; max-width: none; } }
 
 /* Tahapan khusus */
 .jl-kepala { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--j3); flex-wrap: wrap; }
@@ -530,17 +531,15 @@ body.lihat .ubah { display: none !important; }
       <div class="massal ubah" id="dl-massal" role="region" aria-label="Aksi untuk siswa terpilih">
         <div class="m-kepala"><span class="jml"><b id="dl-n-pilih">0</b> siswa dipilih</span>
           <button class="kecil" id="dl-atur-buka" aria-expanded="false" aria-controls="dl-panel">Atur aturan &amp; tahapan</button>
-          <span class="ujung"><button class="kecil bahaya" id="dl-hapus">Hapus data latihan</button><button class="kecil tutup" id="dl-batal">Batal pilih</button></span></div>
+          <span class="ujung"><button class="kecil bahaya" id="dl-hapus">Hapus data latihan</button><span class="m-jarak" aria-hidden="true"></span><button class="kecil hidden" id="dl-terapkan">Terapkan</button><button class="kecil tutup" id="dl-batal">Batal pilih</button></span></div>
         <div class="m-panel hidden" id="dl-panel">
         <div class="m-baris"><span class="m-label">Aturan</span>
-          <div class="m-kendali"><select id="dl-profil" aria-label="Aturan untuk siswa terpilih"><option value="">Ikut kelompok / umum</option></select></div>
-          <button class="kecil" id="dl-terapkan-aturan">Terapkan</button></div>
+          <div class="m-kendali"><select id="dl-profil" aria-label="Aturan untuk siswa terpilih"><option value="">Ikut kelompok / umum</option></select></div></div>
         <div class="m-baris"><span class="m-label">Tahapan</span>
           <div class="m-kendali"><select id="dl-jalur" aria-label="Tahapan untuk siswa terpilih"></select>
             <span class="ket" id="dl-mulai-ket">Mulai dari</span>
             <select id="dl-tk" aria-label="Mulai dari tingkat"></select><select id="dl-lv" aria-label="Mulai dari level"></select>
-            <label class="cek" id="dl-baru-l"><input type="checkbox" id="dl-baru"> hanya yang belum pernah masuk</label></div>
-          <button class="kecil" id="dl-terapkan">Terapkan</button></div>
+            <label class="cek" id="dl-baru-l"><input type="checkbox" id="dl-baru"> hanya yang belum pernah masuk</label></div></div>
         </div>
       </div>
       <div class="kartu">
@@ -955,12 +954,13 @@ function bukaPanelMassal(buka) {
   $("dl-panel").classList.toggle("hidden", !buka);
   $("dl-atur-buka").textContent = buka ? "Tutup pengaturan" : "Atur aturan & tahapan";
   $("dl-atur-buka").setAttribute("aria-expanded", String(buka));
+  $("dl-terapkan").classList.toggle("hidden", !buka);
   if (buka) { PILIH_KUNCI = ""; isiDefaultMassal(); }
 }
 $("dl-atur-buka").onclick = () => bukaPanelMassal(!PANEL_MASSAL);
 // Pilihan Aturan & Tahapan di bilah bawah menunjukkan keadaan siswa terpilih sekarang
 // (hanya saat pilihan siswa berubah, agar pembaruan otomatis tidak menimpa pilihan guru).
-let PILIH_KUNCI = "";
+let PILIH_KUNCI = "", AWAL_A = "", AWAL_T = "";
 function isiDefaultMassal() {
   const L = terpilih(), kunci = L.map((r) => r.nisn).sort().join(",");
   if (!L.length || kunci === PILIH_KUNCI || typeof PROFIL === "undefined") return;
@@ -979,6 +979,7 @@ function isiDefaultMassal() {
   const sT = $("dl-jalur"), oK = [...sT.options].find((o) => o.value === "kelompok");
   if (oK) oK.textContent = `Ikut tahapan kelompok (${tahKel})`;
   beragam(sT, [...new Set(L.map((r) => !r.jalur_siswa ? "kelompok" : r.jalur ? String((JALUR.find((j) => j.nama === r.jalur) || {}).id || "umum") : "umum"))]);
+  AWAL_A = sA.value; AWAL_T = sT.value; MULAI_DIUBAH = false;
   aturMulai();
 }
 function isiPilihPosisi() {
@@ -1002,20 +1003,6 @@ const ringkasProfil = (p) => SEMUA_KHUSUS.filter((x) => p.aturan[x.k] !== undefi
 const jamakSiswa = (n) => `${n} siswa`;
 
 /* ---- Aturan siswa terpilih */
-$("dl-terapkan-aturan").onclick = async () => {
-  if ($("dl-profil").value === "~") return toast("Pilih aturan yang ingin diterapkan.");
-  const L = terpilih(), p = PROFIL.find((x) => x.id === +$("dl-profil").value), sudah = L.filter((r) => r.aturan && (!p || r.aturan !== p.nama)).length;
-  const pesan = p
-    ? `Pasang aturan "${p.nama}" untuk ${jamakSiswa(L.length)}?\n\n${namaTerpilih()}\n\nYang diatur profil ini: ${ringkasProfil(p)}.\n` +
-      `Isian lain tetap dari aturan kelompoknya atau Pengaturan Umum.` + (sudah ? `\n${sudah} siswa sebelumnya punya aturan siswa lain; aturan itu diganti.` : "") +
-      "\n\nPosisi latihan tidak berubah."
-    : `Kembalikan aturan ${jamakSiswa(L.length)} ke aturan kelompoknya?\n\n${rincianKelompok(L, aturanKelTeks)}\n\nPosisi latihan tidak berubah.`;
-  if (!confirm(pesan)) return;
-  try { const r = await rpc("mtd_profil_siswa", { p_pin: PIN, p_nisn: [...PILIH], p_profil: p ? p.id : null });
-    toast(p ? `Aturan "${p.nama}" dipasang untuk ${r.n} siswa` : `Aturan ${r.n} siswa kembali ikut kelompok`); PILIH.clear(); muatDaftar(true); muatKelas(); muatProfil(true); }
-  catch (e) { toast(e.message); }
-};
-
 /* ---- Tahapan siswa terpilih: tahapan umum (Mulai dari), ikut kelompok, atau tahapan khusus */
 function isiPilihTahapan() {
   const s = $("dl-jalur"), v = s.value || "umum";
@@ -1031,34 +1018,48 @@ function aturMulai() {
   ["dl-mulai-ket", "dl-tk", "dl-lv", "dl-baru-l"].forEach((id) => $(id).classList.toggle("hidden", !umum));
 }
 $("dl-jalur").onchange = aturMulai;
+// Mulai dari (tingkat/level/hanya yang baru) diubah guru? Hanya relevan untuk tahapan umum.
+let MULAI_DIUBAH = false;
+["dl-tk", "dl-lv", "dl-baru"].forEach((id) => $(id).addEventListener("change", () => { MULAI_DIUBAH = true; }));
+// Satu tombol Terapkan untuk aturan & tahapan siswa terpilih. Yang diterapkan hanya pilihan yang
+// diubah guru dari keadaan awal siswa, supaya tahapan atau posisi tidak berubah tanpa sengaja.
 $("dl-terapkan").onclick = async () => {
-  const v = $("dl-jalur").value, L = terpilih(), n = L.length;
-  if (v === "~") return toast("Pilih tahapan yang ingin diterapkan.");
-  if (v === "umum") {
-    const t = $("dl-tk"), l = $("dl-lv"), baru = $("dl-baru").checked, kt = L.filter((r) => TAHAPAN_KEL[r.kelompok]).length;
-    if (!confirm(`${jamakSiswa(n)} memakai tahapan umum, mulai dari ${t.options[t.selectedIndex].text}, level ${l.value}?\n\n${namaTerpilih()}\n\n` +
-      (baru ? "Siswa yang sudah pernah masuk dilewati." : "Siswa yang sudah maju juga ikut dipindah, dan sesi yang sedang berjalan ditutup.") +
-      (kt ? `\n\n${kt} siswa berada di kelompok yang punya tahapan khusus. Setelah ini mereka tidak ikut tahapan kelompok, sampai dipilih "Ikut tahapan kelompok".` : ""))) return;
-    try {
-      const r = await rpc("mtd_set_posisi_banyak", { p_pin: PIN, p_nisn: [...PILIH], p_tingkat: t.value, p_level: +l.value, p_hanya_baru: baru });
-      toast(`Mulai dari diatur: ${r.diatur} siswa${r.dilewati ? ` (${r.dilewati} dilewati karena sudah pernah masuk)` : ""}`);
-      PILIH.clear(); muatDaftar(true); muatKelas(); muatJalur(true);
-    } catch (e) { toast(e.message); }
-    return;
+  const L = terpilih(), n = L.length, vA = $("dl-profil").value, vT = $("dl-jalur").value;
+  const ubahA = vA !== "~" && vA !== AWAL_A, ubahT = vT !== "~" && (vT !== AWAL_T || (vT === "umum" && MULAI_DIUBAH));
+  if (!ubahA && !ubahT) return toast("Belum ada aturan atau tahapan yang diubah.");
+  const bagian = [], kerja = [];
+  if (ubahA) {
+    const p = PROFIL.find((x) => x.id === +vA), sudah = L.filter((r) => r.aturan && (!p || r.aturan !== p.nama)).length;
+    bagian.push(p
+      ? `ATURAN: pasang "${p.nama}" (${ringkasProfil(p)}). Isian lain tetap dari aturan kelompok atau Pengaturan Umum.` + (sudah ? ` ${sudah} siswa sebelumnya punya aturan lain; aturan itu diganti.` : "")
+      : `ATURAN: kembali ke aturan kelompoknya.\n${rincianKelompok(L, aturanKelTeks)}`);
+    kerja.push(async () => { const r = await rpc("mtd_profil_siswa", { p_pin: PIN, p_nisn: L.map((x) => x.nisn), p_profil: p ? p.id : null });
+      return p ? `aturan "${p.nama}" untuk ${r.n} siswa` : `aturan ${r.n} siswa ikut kelompok`; });
   }
-  if (v === "kelompok") {
-    if (!confirm(`Kembalikan tahapan ${jamakSiswa(n)} ke tahapan kelompoknya?\n\n` +
-      rincianKelompok(L, (k) => TAHAPAN_KEL[k] ? `${tahapanKelTeks(k)}, dipindah ke awal tahapan bila belum di sana` : "urutan Tahapan Level, melanjutkan dari posisinya sekarang"))) return;
-    try { await rpc("mtd_jalur_pasang", { p_pin: PIN, p_nisn: [...PILIH], p_jalur: null }); toast(`Tahapan ${n} siswa kembali ikut kelompok`); PILIH.clear(); muatDaftar(true); muatKelas(); muatJalur(true); }
-    catch (e) { toast(e.message); }
-    return;
+  if (ubahT) {
+    if (vT === "umum") {
+      const t = $("dl-tk"), l = $("dl-lv"), baru = $("dl-baru").checked, kt = L.filter((r) => TAHAPAN_KEL[r.kelompok]).length;
+      bagian.push(`TAHAPAN: tahapan umum, mulai dari ${t.options[t.selectedIndex].text}, level ${l.value}. ` +
+        (baru ? "Siswa yang sudah pernah masuk dilewati." : "Siswa yang sudah maju juga ikut dipindah, dan sesi yang sedang berjalan ditutup.") +
+        (kt ? ` ${kt} siswa berada di kelompok yang punya tahapan khusus; setelah ini mereka tidak ikut tahapan kelompok.` : ""));
+      kerja.push(async () => { const r = await rpc("mtd_set_posisi_banyak", { p_pin: PIN, p_nisn: L.map((x) => x.nisn), p_tingkat: t.value, p_level: +l.value, p_hanya_baru: baru });
+        return `mulai dari diatur untuk ${r.diatur} siswa${r.dilewati ? ` (${r.dilewati} dilewati)` : ""}`; });
+    } else if (vT === "kelompok") {
+      bagian.push(`TAHAPAN: kembali ke tahapan kelompoknya.\n` + rincianKelompok(L, (k) => TAHAPAN_KEL[k] ? `${tahapanKelTeks(k)}, dipindah ke awal tahapan bila belum di sana` : "urutan Tahapan Level, melanjutkan dari posisinya sekarang"));
+      kerja.push(async () => { await rpc("mtd_jalur_pasang", { p_pin: PIN, p_nisn: L.map((x) => x.nisn), p_jalur: null }); return `tahapan ${n} siswa ikut kelompok`; });
+    } else {
+      const j = JALUR.find((x) => x.id === +vT);
+      if (!j) return toast("Pilih tahapan dulu.");
+      bagian.push(`TAHAPAN: pasang "${j.nama}". Siswa langsung ditempatkan di awal tahapan (${langkahTeks(j.langkah[0])}) dan sesi yang sedang berjalan ditutup. Pilihan ini tetap berlaku walau tahapan kelompoknya diganti.`);
+      kerja.push(async () => { const r = await rpc("mtd_jalur_pasang", { p_pin: PIN, p_nisn: L.map((x) => x.nisn), p_jalur: j.id }); return `tahapan "${j.nama}" untuk ${r.dipasang} siswa`; });
+    }
   }
-  const j = JALUR.find((x) => x.id === +v);
-  if (!j) return toast("Pilih tahapan dulu.");
-  if (!confirm(`Pasang tahapan "${j.nama}" untuk ${jamakSiswa(n)}?\n\n${namaTerpilih()}\n\nMereka langsung ditempatkan di awal tahapan (${langkahTeks(j.langkah[0])}) dan sesi yang sedang berjalan ditutup. ` +
-    "Pilihan ini tetap berlaku walau tahapan kelompoknya diganti.")) return;
-  try { const r = await rpc("mtd_jalur_pasang", { p_pin: PIN, p_nisn: [...PILIH], p_jalur: j.id }); toast(`Tahapan "${j.nama}" dipasang untuk ${r.dipasang} siswa`); PILIH.clear(); muatDaftar(true); muatKelas(); muatJalur(true); }
+  if (!ubahT) bagian.push("Posisi latihan tidak berubah.");
+  if (!confirm(`Terapkan untuk ${jamakSiswa(n)}?\n\n${namaTerpilih()}\n\n${bagian.join("\n\n")}`)) return;
+  const hasil = [];
+  try { for (const f of kerja) hasil.push(await f()); toast("Diterapkan: " + hasil.join("; ")); }
   catch (e) { toast(e.message); }
+  PILIH.clear(); muatDaftar(true); muatKelas(); muatProfil(true); muatJalur(true);
 };
 
 /* ----------------------------------------------------------- sesi latihan per kelompok */
