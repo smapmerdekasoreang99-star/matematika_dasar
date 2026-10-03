@@ -201,9 +201,11 @@ span.ab-asal.a-umum { background: var(--kertas-3); color: var(--tinta-2); box-sh
 .lencana-daftar { display: flex; flex-wrap: wrap; gap: 4px; max-width: 230px; }
 /* Bilah Daftar siswa: kepala, baris Aturan, baris Tahapan (tombol Terapkan sejajar di kanan) */
 #dl-massal.on { display: grid; gap: var(--j2); align-items: stretch; }
+.massal .m-panel { display: grid; gap: var(--j2); padding-top: var(--j2); border-top: 1px solid var(--gelap-2); }
+.massal .m-panel.hidden { display: none; }
 /* Kolom posisi: nama tingkat lalu level di bawahnya */
 td.posisi { min-width: 200px; } td.posisi .pos-nm { display: block; font-weight: 600; line-height: 1.35; } td.posisi .pos-lv { display: block; font-size: var(--h-xs); color: var(--tinta-2); }
-.massal .m-kepala { display: flex; align-items: center; gap: var(--j3); flex-wrap: wrap; padding-bottom: var(--j2); border-bottom: 1px solid var(--gelap-2); }
+.massal .m-kepala { display: flex; align-items: center; gap: var(--j3); flex-wrap: wrap; }
 .massal .m-baris { display: grid; grid-template-columns: 76px minmax(0, 1fr) auto; gap: var(--j3); align-items: start; }
 .massal .m-label { padding-top: 10px; }
 .massal .m-label { font-size: var(--h-xs); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--emas); }
@@ -527,7 +529,9 @@ body.lihat .ubah { display: none !important; }
       <!-- Aksi massal (guru/operator): aturan & tahapan siswa terpilih, atau hapus data latihannya -->
       <div class="massal ubah" id="dl-massal" role="region" aria-label="Aksi untuk siswa terpilih">
         <div class="m-kepala"><span class="jml"><b id="dl-n-pilih">0</b> siswa dipilih</span>
+          <button class="kecil" id="dl-atur-buka" aria-expanded="false" aria-controls="dl-panel">Atur aturan &amp; tahapan</button>
           <span class="ujung"><button class="kecil bahaya" id="dl-hapus">Hapus data latihan</button><button class="kecil tutup" id="dl-batal">Batal pilih</button></span></div>
+        <div class="m-panel hidden" id="dl-panel">
         <div class="m-baris"><span class="m-label">Aturan</span>
           <div class="m-kendali"><select id="dl-profil" aria-label="Aturan untuk siswa terpilih"><option value="">Ikut kelompok / umum</option></select></div>
           <button class="kecil" id="dl-terapkan-aturan">Terapkan</button></div>
@@ -537,6 +541,7 @@ body.lihat .ubah { display: none !important; }
             <select id="dl-tk" aria-label="Mulai dari tingkat"></select><select id="dl-lv" aria-label="Mulai dari level"></select>
             <label class="cek" id="dl-baru-l"><input type="checkbox" id="dl-baru"> hanya yang belum pernah masuk</label></div>
           <button class="kecil" id="dl-terapkan">Terapkan</button></div>
+        </div>
       </div>
       <div class="kartu">
         <div class="gulir"><table class="tabel" id="t-daftar" data-beku="3"></table></div>
@@ -940,8 +945,19 @@ function perbaruiMassal() {
   $("dl-n-pilih").textContent = n;
   const semua = $("dl-semua"), tampil = saringDaftar();
   if (semua) semua.indeterminate = n > 0 && !tampil.every((r) => PILIH.has(r.nisn)) && tampil.some((r) => PILIH.has(r.nisn));
-  if (n) isiDefaultMassal(); else PILIH_KUNCI = "";
+  if (!n) bukaPanelMassal(false);
+  if (n && PANEL_MASSAL) isiDefaultMassal(); else if (!n) PILIH_KUNCI = "";
 }
+// Panel Aturan & Tahapan baru dibuka setelah guru selesai memilih siswa dan menekan tombolnya.
+let PANEL_MASSAL = false;
+function bukaPanelMassal(buka) {
+  PANEL_MASSAL = buka;
+  $("dl-panel").classList.toggle("hidden", !buka);
+  $("dl-atur-buka").textContent = buka ? "Tutup pengaturan" : "Atur aturan & tahapan";
+  $("dl-atur-buka").setAttribute("aria-expanded", String(buka));
+  if (buka) { PILIH_KUNCI = ""; isiDefaultMassal(); }
+}
+$("dl-atur-buka").onclick = () => bukaPanelMassal(!PANEL_MASSAL);
 // Pilihan Aturan & Tahapan di bilah bawah menunjukkan keadaan siswa terpilih sekarang
 // (hanya saat pilihan siswa berubah, agar pembaruan otomatis tidak menimpa pilihan guru).
 let PILIH_KUNCI = "";
@@ -1007,7 +1023,7 @@ function isiPilihTahapan() {
     (JALUR.length ? `<optgroup label="Tahapan khusus">${JALUR.map((j) => `<option value="${j.id}">${esc(j.nama)}</option>`).join("")}</optgroup>` : "");
   s.value = [...s.options].some((o) => o.value === v) ? v : "umum";
   aturMulai();
-  PILIH_KUNCI = ""; if (PILIH.size) isiDefaultMassal();
+  PILIH_KUNCI = ""; if (PILIH.size && PANEL_MASSAL) isiDefaultMassal();
 }
 // "Mulai dari" hanya untuk tahapan umum; tahapan khusus selalu mulai dari langkah pertamanya.
 function aturMulai() {
@@ -1174,7 +1190,7 @@ async function muatProfil(diam) {
   const v = $("dl-profil").value;
   $("dl-profil").innerHTML = '<option value="">Ikut kelompok / umum</option>' + PROFIL.map((p) => `<option value="${p.id}">${esc(p.nama)}</option>`).join("");
   $("dl-profil").value = PROFIL.some((p) => String(p.id) === v) ? v : "";
-  PILIH_KUNCI = ""; if (PILIH.size) isiDefaultMassal();
+  PILIH_KUNCI = ""; if (PILIH.size && PANEL_MASSAL) isiDefaultMassal();
   gambarProfil(); gambarKelompokAturan(); gambarInfoKelompok();
 }
 // Semua siswa (untuk jumlah anggota kelompok, konfirmasi, dan Cek aturan siswa)
