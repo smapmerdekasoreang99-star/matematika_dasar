@@ -146,6 +146,7 @@
 .sesi-kode b { font-size: 26px; font-weight: 800; letter-spacing: .14em; font-variant-numeric: tabular-nums; color: var(--tinta); line-height: 1.1; }
 .sesi-aksi { display: flex; gap: var(--j2); flex-wrap: wrap; justify-content: flex-end; }
 .sesi-aksi select { width: auto; padding: var(--j2); font-size: var(--h-m); }
+.sesi-ringkas { margin: 0; padding: var(--j3) var(--j5); background: var(--kertas-3); border-bottom: 1px solid var(--garis); font-size: var(--h-s); line-height: 1.5; }
 .sesi-peringatan { margin: 0; padding: var(--j3) var(--j5); background: var(--emas-kabut); border-bottom: 1px solid var(--garis); font-size: var(--h-s); }
 @media (max-width: 720px) { .sesi-baris { grid-template-columns: 1fr auto; padding: var(--j3) var(--j4); } .sesi-status { grid-column: 1 / -1; grid-row: 2; } .sesi-aksi { grid-column: 1 / -1; justify-content: flex-start; } }
 .kode-layar { position: fixed; inset: 0; z-index: 1000; background: rgba(15, 23, 34, .94); display: flex; align-items: center; justify-content: center; padding: var(--j5); }
@@ -1078,15 +1079,21 @@ const jamTeks = (iso) => new Date(iso).toLocaleTimeString("id-ID", { hour: "2-di
 function gambarSesi() {
   if (!BUKA) return;
   const pilih = $("dl-kelompok").value, boleh = true;
-  const L = BUKA.kelompok.filter((k) => !pilih || k.kelompok === pilih);
+  const terbuka = (k) => k.buka && sisaSesi(k) > 0;
+  // Kelompok yang sedang dibuka diurutkan paling atas
+  const L = BUKA.kelompok.filter((k) => !pilih || k.kelompok === pilih).sort((a, b) => terbuka(b) - terbuka(a));
   $("sesi-kartu").classList.toggle("hidden", !L.length);
   if (L.some((k) => k.buka && sisaSesi(k) === 0)) { setTimeout(muatSesi, 1500); }
-  $("sesi-isi").innerHTML =
+  const LB = L.filter(terbuka);
+  // Ringkasan bila beberapa kelompok tampil sekaligus (mis. admin, "Semua kelompok")
+  $("sesi-isi").innerHTML = (L.length > 1 ? `<p class="sesi-ringkas">${LB.length
+      ? `<b>${LB.length} sesi sedang berlangsung:</b> ${LB.map((k) => `${esc(k.kelompok)} (${esc(k.oleh || "guru")}, sampai ${jamTeks(k.sampai)}, ${k.n_online} berlatih)`).join(" · ")}`
+      : "Tidak ada sesi yang sedang berlangsung."}</p>` : "") +
     L.map((k) => {
       const buka = k.buka && sisaSesi(k) > 0;
       return `<div class="sesi-baris ${buka ? "buka" : ""}">
         <div class="sesi-nama"><b>${esc(k.kelompok)}</b><small>${k.n_siswa} siswa</small></div>
-        <div class="sesi-status">${buka ? `<span class="lencana baik"><span class="titik-on"></span>Dibuka · sisa ${sisaSesi(k)} menit</span><small>sampai pukul ${jamTeks(k.sampai)} · ${k.n_online} sedang berlatih</small>`
+        <div class="sesi-status">${buka ? `<span class="lencana baik"><span class="titik-on"></span>Dibuka · sisa ${sisaSesi(k)} menit</span><small>dibuka ${esc(k.oleh || "guru")} · sampai pukul ${jamTeks(k.sampai)} · ${k.n_online} sedang berlatih</small>`
           : '<span class="lencana">Ditutup</span><small>siswa tidak bisa masuk</small>'}</div>
         <div class="sesi-kode">${buka ? `<small>Kode akses</small><b>${esc(k.kode)}</b>` : ""}</div>
         <div class="sesi-aksi">${!boleh ? "" : buka
