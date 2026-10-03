@@ -104,8 +104,17 @@ modul.
 ## Untuk guru
 
 Siswa dan guru memakai **satu alamat** yang sama. Guru mengetuk tautan
-**Guru / pengawas** di bawah kotak masuk siswa (seperti di Tryout), lalu masuk dengan **PIN Tryout**. PIN guru/operator boleh mengubah pengaturan dan
-memindahkan posisi siswa. PIN pengawas hanya bisa melihat.
+**Guru / pengawas** di bawah kotak masuk siswa (seperti di Tryout), lalu masuk dengan PIN:
+
+- **PIN pribadi guru** (8 angka): **sama dengan PIN guru Asesmen Merdeka (Tryout)**, dibuat admin
+  Matdas (menu Admin → Guru dan PIN masuk) atau operator Tryout (admin.html → tab Guru & PIN).
+  Guru hanya melihat kelompok MD yang diampunya; guru yang tidak mengampu kelompok MD ditolak di
+  halaman ini. Sebelum PIN pribadi dibuat, guru bisa masuk Matdas dengan ID gurunya (mis. G161),
+  tetapi ID itu tidak berlaku di Tryout.
+- **PIN admin Matdas** atau **PIN operator Tryout**: semua kelompok, pengaturan umum, guru & PIN.
+
+Daftar guru ditarik dari Data Induk lewat `guru_ekspor` (semua guru aktif + kelompok MD + kelas yang
+diampu), sama dengan yang dipakai Tryout.
 
 - **Kemajuan kelompok**: dipilih per kelompok MD (MD10-1, …), *Semua
   kelompok*, atau *Tanpa kelompok MD* (siswa yang pernah berlatih lalu keluar
@@ -149,7 +158,7 @@ memindahkan posisi siswa. PIN pengawas hanya bisa melihat.
   - *Pengawasan keluar halaman* (sama dengan Tryout: alarm bunyi + getar,
     layar peringatan, klik kanan dan salin dicegah): batas keluar (tercapai → latihan dikunci),
     toleransi detik (lebih singkat hanya dicatat), kode buka untuk pengawas
-    (kosong = kode akses; keduanya kosong = PIN Tryout). Kunci bertahan walau
+    (kosong = PIN guru atau PIN admin). Kunci bertahan walau
     siswa keluar lalu masuk lagi, sampai dibuka atau waktu sesinya habis.
   - *Aturan naik level*: soal benar per level, batas salah, batas waktu per
     soal, pecahan wajib paling sederhana.
