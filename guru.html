@@ -682,7 +682,7 @@ body.lihat .ubah { display: none !important; }
 </div>
 
 <script src="assets/umum.js?v=8"></script>
-<script src="assets/simpan.js?v=1"></script>
+<script src="assets/simpan.js?v=2"></script>
 <script src="assets/excel.js?v=3"></script>
 <script>
 "use strict";
@@ -1979,7 +1979,7 @@ async function gambarKartu(g){try{return await keBlob(kanvasKartu(g,true))}catch
 const fileKartu=(g,blob)=>new File([blob],namaBerkasKartu(g),{type:"image/png"});
 function siapkanKartu(){}   // dulu menyiapkan kartu di latar belakang; tidak dipakai lagi
 // Tautan unduh dipasang ke halaman dulu: sebagian peramban mengabaikan klik pada tautan yang tidak terpasang
-// lewat assets/simpan.js: jendela "Simpan sebagai" atau alamat data: (unduhan blob: diblokir Chrome yang dikelola sekolah)
+// lewat assets/simpan.js: unduhan biasa (data: untuk berkas kecil, blob: untuk berkas besar), dengan batas waktu
 const unduhBlob=(blob,nama)=>simpanBerkas(blob,nama);
 const teksBagi=g=>`PIN pribadi ${g.nama} untuk Matematika Dasar dan Asesmen Merdeka. Rahasia, mohon tidak diteruskan.`;
 // Kartu versi HTML: cadangan bila kanvas sama sekali tidak bisa digambar
