@@ -252,11 +252,11 @@ details.peta[open] summary::before { transform: rotate(90deg); }
       <h2>Masuk untuk berlatih</h2>
       <p class="redup kecil" style="margin-top:0">Ketik NISN-mu dan kode akses yang ditulis guru di kelas.</p>
       <label class="isian" for="nisn">NISN</label>
-      <input type="text" id="nisn" inputmode="numeric" autocomplete="off" placeholder="Contoh: 0081234567">
+      <input type="text" id="nisn" inputmode="numeric" autocomplete="off">
       <!-- Kode sesi latihan: ditulis guru di papan saat sesi kelompok dibuka -->
       <div id="akses-isian">
         <label class="isian" for="akses">Kode akses</label>
-        <input type="text" id="akses" inputmode="numeric" autocomplete="off" style="text-transform:uppercase" placeholder="4 angka dari guru di kelas">
+        <input type="text" id="akses" inputmode="numeric" autocomplete="off" style="text-transform:uppercase">
       </div>
       <div id="masuk-pesan" class="pesan buruk hidden" role="alert"></div>
       <button id="btn-masuk" class="tombol-masuk">Mulai latihan →</button>
@@ -877,7 +877,6 @@ $("btn-masuk").onclick = async () => {
   $("btn-masuk").disabled = true;
   try {
     const r = await rpc("mtd_masuk", { p_nisn: nisn, p_kode_akses: $("akses").value.trim() || null });
-    try { localStorage.setItem(KUNCI_NISN, nisn); } catch (e) { /* abaikan */ }
     mulai(r);
   } catch (e) {
     m.textContent = e.message; m.classList.remove("hidden");
@@ -1011,7 +1010,8 @@ function tampilKunci() {
 
 /* Muat ulang halaman: lanjutkan sesi yang masih berjalan. */
 (async () => {
-  try { $("nisn").value = localStorage.getItem(KUNCI_NISN) || ""; } catch (e) { /* abaikan */ }
+  // NISN tidak diingat: satu perangkat bisa dipakai bergantian; hapus sisa NISN yang dulu tersimpan.
+  try { localStorage.removeItem(KUNCI_NISN); } catch (e) { /* abaikan */ }
   // Uji coba guru: index.html#uji=TOKEN
   const uji = location.hash.match(/uji=([0-9a-f]{32})/);
   if (uji) {
