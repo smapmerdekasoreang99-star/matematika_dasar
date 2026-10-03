@@ -139,18 +139,15 @@ async function unduhBukuXLSX({ lembar, namaBerkas, judulBuku }) {
   });
 
   const buf = await wb.xlsx.writeBuffer();
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
-  // tautan dipasang ke halaman dulu: sebagian peramban mengabaikan klik pada tautan yang tidak terpasang
-  a.download = namaBerkas; a.style.display = "none"; document.body.appendChild(a); a.click();
-  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 120000);   // lama: jendela "Simpan sebagai" bisa masih terbuka
+  // lewat assets/simpan.js: jendela "Simpan sebagai" atau alamat data: (unduhan blob: diblokir Chrome yang dikelola sekolah)
+  return simpanBerkas(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), namaBerkas);
 }
 
 /* Tombol unduh: "Menyiapkan…" selama berjalan, sama dengan aplikasi lain (ikon & lencana XLSX tetap, digambar CSS). */
 async function jalankanUnduh(tombol, kerja) {
   const lama = tombol.textContent;
   tombol.disabled = true; tombol.textContent = "Menyiapkan…";
-  try { const nama = await kerja(); if (nama) toast("Excel diunduh: " + nama); }
+  try { const nama = await kerja(); if (nama && SIMPAN_TERAKHIR !== "batal") toast((SIMPAN_TERAKHIR === "disimpan" ? "Excel tersimpan: " : "Excel diunduh: ") + nama); }
   catch (e) { toast("Gagal menyusun Excel: " + e.message); }
   finally { tombol.disabled = false; tombol.textContent = lama; }
 }
