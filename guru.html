@@ -102,7 +102,7 @@
 .atur-siswa-isi span { font-size: 11px; color: var(--tinta-3); } .atur-siswa-isi .khusus span { color: var(--emas-teks); font-weight: 600; }
 .massal select#dl-profil { min-width: 150px; }
 /* Perkembangan Siswa: tab Per Siswa / Per Kelompok */
-.subtab { display: inline-flex; gap: 4px; padding: 4px; margin: 0 0 var(--j3); background: var(--kertas-2); border: 1px solid var(--garis); border-radius: var(--r-bulat); }
+.subtab { display: inline-flex; gap: 4px; padding: 4px; margin: var(--j2) 0 var(--j3); background: var(--kertas-2); border: 1px solid var(--garis); border-radius: var(--r-bulat); }
 .subtab button { background: transparent; color: var(--tinta-2); border: 0; box-shadow: none; padding: 8px 18px; border-radius: var(--r-bulat); font-weight: 700; font-size: var(--h-m); }
 .subtab button.on { background: var(--gelap); color: #fff; }
 .subtab button:focus-visible { outline: 2px solid var(--emas); outline-offset: 2px; }
@@ -440,15 +440,6 @@ body.lihat .ubah { display: none !important; }
     <div id="p-kelas">
       <div class="kepala-hal"><div><span class="eyebrow">Pemantauan</span><h1 id="judul-kelas">Perkembangan Siswa</h1>
         <p>Posisi, kemajuan, dan siswa yang perlu perhatian. Ketuk nama siswa untuk melihat analisisnya.</p></div></div>
-      <div class="subtab" role="tablist" aria-label="Tampilan perkembangan">
-        <button role="tab" data-sub="siswa" class="on" aria-selected="true">Per Siswa</button>
-        <button role="tab" data-sub="kelompok" aria-selected="false">Per Kelompok</button>
-      </div>
-      <div id="pk-kelompok" class="hidden">
-        <div class="kartu"><div class="gulir"><table class="tabel" id="t-perkelompok" data-beku="1"></table></div>
-          <p class="redup kecil">Ketuk baris kelompok untuk melihat siswanya. Macet: 3 kali atau lebih mengulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih 7 hari terakhir.</p></div>
-      </div>
-      <div id="pk-siswa">
       <div class="baris">
         <select id="pil-kelas" style="max-width:220px" aria-label="Pilih kelompok"></select>
         <select id="pil-urut" style="max-width:240px" aria-label="Urutkan">
@@ -461,16 +452,27 @@ body.lihat .ubah { display: none !important; }
         <button class="garis kecil" id="btn-muat">Muat ulang</button>
         <button class="btn-unduh utama" data-fmt="xlsx" id="btn-unduh-rekap" title="Rekap kemajuan dan sebaran per tingkat dalam satu buku kerja Excel berformat">Unduh rekap</button>
       </div>
+      <div class="subtab" role="tablist" aria-label="Tampilan perkembangan">
+        <button role="tab" data-sub="siswa" class="on" aria-selected="true">Per Siswa</button>
+        <button role="tab" data-sub="kelompok" aria-selected="false">Per Kelompok</button>
+      </div>
+      <!-- Per Siswa: tabel siswa -->
+      <div id="pk-siswa">
+      <div class="kartu">
+        <div class="gulir"><table class="tabel" id="t-kelas" data-beku="2"></table></div>
+        <p class="redup kecil">Macet: sudah 3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih 7 hari terakhir. Ketuk nama untuk melihat analisisnya.</p>
+      </div>
+      </div>
+      <!-- Per Kelompok: ringkasan & sebaran kelompok terpilih, lalu perbandingan antarkelompok -->
+      <div id="pk-kelompok" class="hidden">
       <div class="ubin" id="k-ubin"></div>
       <div class="kartu">
         <h2>Sebaran posisi siswa</h2>
         <p class="redup kecil" style="margin-top:0">Banyak siswa yang sedang berada di tiap tingkat.</p>
         <div class="grafik" id="g-sebaran"></div>
       </div>
-      <div class="kartu">
-        <div class="gulir"><table class="tabel" id="t-kelas" data-beku="2"></table></div>
-        <p class="redup kecil">Macet: sudah 3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih 7 hari terakhir. Ketuk nama untuk melihat analisisnya.</p>
-      </div>
+      <div class="kartu"><h2>Perbandingan kelompok</h2><div class="gulir"><table class="tabel" id="t-perkelompok" data-beku="1"></table></div>
+        <p class="redup kecil">Ketuk baris kelompok untuk menampilkan ringkasan dan sebarannya di atas. Macet: 3 kali atau lebih mengulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih 7 hari terakhir.</p></div>
       </div>
     </div>
 
@@ -1766,7 +1768,9 @@ function bukaSub(v) {
   SUB = v;
   document.querySelectorAll(".subtab [data-sub]").forEach((b) => { b.classList.toggle("on", b.dataset.sub === v); b.setAttribute("aria-selected", String(b.dataset.sub === v)); });
   $("pk-siswa").classList.toggle("hidden", v !== "siswa"); $("pk-kelompok").classList.toggle("hidden", v !== "kelompok");
-  if (v === "kelompok") muatPerKelompok();
+  $("pil-urut").classList.toggle("hidden", v !== "siswa");
+  // grafik sebaran digambar selebar wadahnya: gambar ulang setelah tab kelompok tampil
+  if (v === "kelompok") { if (REKAP.length) gambarKelas(); muatPerKelompok(); }
 }
 async function muatPerKelompok() {
   $("t-perkelompok").innerHTML = '<tr><td class="kosong-data">Memuat…</td></tr>';
@@ -1791,7 +1795,7 @@ async function muatPerKelompok() {
     <tbody>${baris.join("") || '<tr><td colspan="9" class="kosong-data">Tidak ada siswa.</td></tr>'}</tbody>`;
   $("t-perkelompok").querySelectorAll("[data-kel]").forEach((tr) => tr.onclick = () => {
     if ([...$("pil-kelas").options].some((o) => o.value === tr.dataset.kel)) $("pil-kelas").value = tr.dataset.kel;
-    bukaSub("siswa"); muatKelas();
+    muatKelas();
   });
 }
 
