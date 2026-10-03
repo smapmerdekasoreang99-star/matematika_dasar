@@ -140,7 +140,7 @@ async function unduhBukuXLSX({ lembar, namaBerkas, judulBuku }) {
 
   const buf = await wb.xlsx.writeBuffer();
   // lewat assets/simpan.js: jendela "Simpan sebagai" atau alamat data: (unduhan blob: diblokir Chrome yang dikelola sekolah)
-  return simpanBerkas(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }), namaBerkas);
+  return simpanBerkas(buf, namaBerkas);   // data mentah langsung → alamat data: (tanpa membaca Blob)
 }
 
 /* Tombol unduh: "Menyiapkan…" selama berjalan, sama dengan aplikasi lain (ikon & lencana XLSX tetap, digambar CSS). */

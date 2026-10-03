@@ -682,8 +682,8 @@ body.lihat .ubah { display: none !important; }
 </div>
 
 <script src="assets/umum.js?v=8"></script>
-<script src="assets/simpan.js?v=2"></script>
-<script src="assets/excel.js?v=3"></script>
+<script src="assets/simpan.js?v=3"></script>
+<script src="assets/excel.js?v=4"></script>
 <script>
 "use strict";
 const KUNCI_PIN = "mtd_pin";
@@ -1981,6 +1981,9 @@ function siapkanKartu(){}   // dulu menyiapkan kartu di latar belakang; tidak di
 // Tautan unduh dipasang ke halaman dulu: sebagian peramban mengabaikan klik pada tautan yang tidak terpasang
 // lewat assets/simpan.js: unduhan biasa (data: untuk berkas kecil, blob: untuk berkas besar), dengan batas waktu
 const unduhBlob=(blob,nama)=>simpanBerkas(blob,nama);
+// PNG kartu sebagai alamat data: langsung dari kanvas (untuk diunduh; tidak lewat Blob)
+const pngKartu=g=>{const u=kanvasKartu(g).toDataURL("image/png");if(u.length<5000)throw new Error("peramban mengembalikan PNG kosong");return u};
+
 const teksBagi=g=>`PIN pribadi ${g.nama} untuk Matematika Dasar dan Asesmen Merdeka. Rahasia, mohon tidak diteruskan.`;
 // Kartu versi HTML: cadangan bila kanvas sama sekali tidak bisa digambar
 function kartuHtml(g){const logo=(document.querySelector("header img, img[src*='logo']")||{}).src||"";
@@ -2005,8 +2008,8 @@ async function aksiKartu(a,g,dariJendela){
     try{window.focus();await batasWaktu(navigator.clipboard.write([new ClipboardItem({"image/png":gambarKartu(g)})]),"menyalin ke clipboard");toast(`Kartu ${g.nama} disalin — tempel (Ctrl+V) di chat WhatsApp-nya`)}
     catch(e){if(dariJendela)toast("Gagal menyalin: "+e.message+" — klik kanan gambar → Salin gambar");else lihatKartu(g,"Gagal menyalin otomatis ("+e.message+"). Klik kanan gambar di bawah → Salin gambar.")}
     return}
-  let blob;try{blob=await gambarKartu(g)}catch(e){lihatKartu(g,"Gagal membuat PNG: "+e.message+". Klik kanan gambar di bawah → Simpan/Salin gambar, atau foto layar (Win+Shift+S).");return}
-  if(a==="unduh"){const st=await unduhBlob(blob,namaBerkasKartu(g));if(st!=="batal")toast(pesanSimpan(st,namaBerkasKartu(g)))}
+  let blob;try{blob=a==="unduh"?pngKartu(g):await gambarKartu(g)}catch(e){lihatKartu(g,"Gagal membuat PNG: "+e.message+". Klik kanan gambar di bawah → Simpan/Salin gambar, atau foto layar (Win+Shift+S).");return}
+  if(a==="unduh"){const st=await simpanBerkas(blob,namaBerkasKartu(g));if(st!=="batal")toast(pesanSimpan(st,namaBerkasKartu(g)))}
   else if(a==="bagi"){const file=fileKartu(g,blob);
     if(!bisaBagiBerkas()){const st=await unduhBlob(blob,file.name);if(st!=="batal")toast("Peramban ini belum bisa membagikan gambar langsung — "+pesanSimpan(st,file.name)+". Lampirkan di WhatsApp.");return}
     try{await navigator.share({files:[file],title:"PIN pribadi "+g.nama,text:teksBagi(g)})}
@@ -2015,7 +2018,7 @@ async function bagiKartuBanyak(daftar){if(!daftar.length)return;
   try{const files=[];for(const g of daftar)files.push(fileKartu(g,await gambarKartu(g)));await navigator.share({files,title:"PIN pribadi guru"})}
   catch(e){if(e.name!=="AbortError")toast("Gagal membagikan: "+e.message+" — bagikan satu per satu dari barisnya")}}
 async function unduhKartuBanyak(daftar){if(!daftar.length)return;
-  try{const isi=[];for(const g of daftar)isi.push({blob:await gambarKartu(g),nama:namaBerkasKartu(g)});const st=await simpanBanyak(isi);
+  try{const isi=[];for(const g of daftar)isi.push({isi:pngKartu(g),nama:namaBerkasKartu(g)});const st=await simpanBanyak(isi);
     if(st!=="batal")toast(st==="disimpan"?`${daftar.length} kartu tersimpan di folder pilihan`:`${daftar.length} kartu diunduh${daftar.length>1?' — bila peramban bertanya "unduh beberapa berkas", pilih Izinkan':""}`)}
   catch(e){toast("Gagal membuat PNG: "+e.message)}}
 async function muatAdmin() {
