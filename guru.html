@@ -422,6 +422,16 @@ body.lihat .ubah { display: none !important; }
 #adm-lihat { position: fixed; inset: 0; z-index: 60; background: rgba(21,35,43,.85); display: flex; align-items: center; justify-content: center; padding: 16px; }
 #adm-lihat .kl-in { background: #fff; border-radius: 14px; padding: 14px; max-width: 440px; width: 100%; max-height: 96vh; overflow: auto; display: grid; gap: 10px; }
 #adm-lihat img { width: 100%; border-radius: 8px; border: 1px solid var(--garis); }
+/* Kartu versi HTML: cadangan bila peramban memblokir pembuatan gambar (bisa difoto layar) */
+.kh { border: 1px solid var(--garis); border-radius: 10px; overflow: hidden; background: #FAF7F0; font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif; }
+.kh-kop { display: flex; gap: 12px; align-items: center; background: #1D2A3A; border-bottom: 4px solid #C29433; padding: 14px 16px; color: #fff; }
+#adm-lihat .kh-kop img { height: 52px; width: auto; border: 0; border-radius: 0; flex: none; } .kh-kop b { display: block; font-size: 16px; } .kh-kop span { color: #C29433; font-size: 13px; font-weight: 600; }
+.kh-isi { padding: 14px 16px; display: grid; gap: 8px; } .kh-lbl { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; color: #8F6B1A; }
+.kh-nama { font-family: Georgia, "Times New Roman", serif; font-size: 22px; font-weight: 700; color: #1D2A3A; line-height: 1.2; } .kh-id { font-size: 12px; color: #5E5548; }
+.kh-pin { background: #1D2A3A; color: #fff; border-radius: 12px; padding: 10px 14px; } .kh-pin small { display: block; color: #C29433; font-weight: 700; font-size: 11px; }
+.kh-pin b { display: block; text-align: center; font-family: ui-monospace, Consolas, monospace; font-size: 38px; letter-spacing: .12em; }
+.kh-app { font-size: 12.5px; color: #221E17; } .kh-app b { display: block; font-size: 13.5px; } .kh-app code { font-size: 11px; color: #1D2A3A; word-break: break-all; }
+.kh-rahasia { background: #F7E4DF; border-top: 3px solid #A8432E; padding: 10px 16px; color: #A8432E; font-weight: 700; font-size: 12.5px; }
 #adm-lihat .aksi { display: flex; flex-wrap: wrap; gap: 6px; }
 </style>
 </head>
@@ -1961,32 +1971,55 @@ const bisaBagiBerkas = () => { try { return !!(navigator.canShare && navigator.c
 const bisaSalinGambar = () => !!(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write);
 // Kartu disimpan per guru selama PIN-nya sama, dan disiapkan di latar belakang sesudah tabel tampil, supaya
 // Bagikan/Salin/Unduh langsung jalan saat diklik (peramban hanya mengizinkannya tepat sesudah klik).
+// Sebagian peramban (perlindungan sidik jari kanvas di Brave/Firefox, atau ekstensi pemblokir) mengembalikan gambar kosong
+// dari kanvas tanpa galat. Diperiksa sekali dengan menggambar satu titik berwarna lalu membacanya kembali.
+let KANVAS_OK = null;
+function kanvasBisaDibaca() { if (KANVAS_OK !== null) return KANVAS_OK;
+  try { const c = document.createElement("canvas"); c.width = c.height = 4; const x = c.getContext("2d"); x.fillStyle = "rgb(10,200,30)"; x.fillRect(0, 0, 4, 4);
+    const p = x.getImageData(1, 1, 1, 1).data; KANVAS_OK = p[0] === 10 && p[1] === 200 && p[2] === 30; } catch (e) { KANVAS_OK = false; }
+  return KANVAS_OK; }
+const SEBAB_KANVAS = "Peramban ini memblokir pembuatan gambar (perlindungan sidik jari kanvas atau ekstensi pemblokir). Kartu di bawah tetap bisa difoto layar (Windows: Win+Shift+S) lalu ditempel ke WhatsApp, atau buka halaman ini di Chrome/Edge tanpa ekstensi pemblokir.";
 async function kartuDari(g) { const c = KARTU.get(g.id); if (c && c.pin === g.pin) return c;
-  const blob = await gambarKartu(g), k = { pin: g.pin, blob, dataUrl: await keDataUrl(blob), file: new File([blob], namaBerkasKartu(g), { type: "image/png" }) }; KARTU.set(g.id, k); return k; }
+  if (!kanvasBisaDibaca()) throw new Error(SEBAB_KANVAS);
+  const blob = await Promise.race([gambarKartu(g), new Promise((_, gagal) => setTimeout(() => gagal(new Error("pembuatan gambar kartu tidak selesai dalam 15 detik")), 15000))]);
+  if (!blob || blob.size < 5000) throw new Error("gambar kartu kosong (" + (blob ? blob.size : 0) + " bita) — " + SEBAB_KANVAS);
+  const k = { pin: g.pin, blob, dataUrl: await keDataUrl(blob), file: new File([blob], namaBerkasKartu(g), { type: "image/png" }) }; KARTU.set(g.id, k); return k; }
 // Data URL tidak kedaluwarsa (blob: dicabut sesudah beberapa detik, gagal bila jendela "Simpan sebagai" masih terbuka) dan tidak diblokir peramban dalam aplikasi
 const keDataUrl = (blob) => new Promise((ok, gagal) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => gagal(r.error); r.readAsDataURL(blob); });
 const kartuSiap = (g) => { const c = KARTU.get(g.id); return c && c.pin === g.pin ? c : null; };
 let SIAP_KE = 0;
-function siapkanKartu(daftar) { const ke = ++SIAP_KE, antre = daftar.filter((g) => !kartuSiap(g));
+function siapkanKartu(daftar) { const ke = ++SIAP_KE, antre = kanvasBisaDibaca() ? daftar.filter((g) => !kartuSiap(g)) : [];
   (async () => { for (const g of antre) { if (ke !== SIAP_KE) return; try { await kartuDari(g); } catch (e) { /* dicoba lagi saat diklik */ } await new Promise((r) => setTimeout(r, 20)); } })(); }
 // Tautan unduh dipasang ke halaman dulu: sebagian peramban mengabaikan klik pada tautan yang tidak terpasang
 function unduhBlob(blob, nama, dataUrl) { const a = document.createElement("a"), pakaiBlob = !dataUrl; a.href = dataUrl || URL.createObjectURL(blob); a.download = nama; a.style.display = "none";
   document.body.appendChild(a); a.click(); setTimeout(() => { if (pakaiBlob) URL.revokeObjectURL(a.href); a.remove(); }, 120000); }
 const teksBagi = (g) => `PIN pribadi ${g.nama} untuk Matematika Dasar dan Asesmen Merdeka. Rahasia, mohon tidak diteruskan.`;
 let KL_URL = "";
-function lihatKartu(g, k, pesan) { if (KL_URL) URL.revokeObjectURL(KL_URL); KL_URL = k.dataUrl ? "" : URL.createObjectURL(k.blob); const img = $("kl-img");
-  img.onerror = () => { $("kl-pesan").textContent = `Gambar kartu (${Math.round(k.blob.size / 1024)} KB) tidak bisa ditampilkan di peramban ini. Buka halaman ini di Chrome atau Edge biasa (bukan pratinjau di aplikasi lain).`; $("kl-pesan").classList.remove("hidden"); };
-  img.src = k.dataUrl || KL_URL; $("kl-nama").textContent = g.nama; $("kl-pesan").textContent = pesan || ""; $("kl-pesan").classList.toggle("hidden", !pesan);
-  $("kl-aksi").innerHTML = (bisaBagiBerkas() ? '<button class="kecil" data-kl="bagi">Bagikan</button>' : "") + (bisaSalinGambar() ? '<button class="garis kecil" data-kl="salin">Salin gambar</button>' : "") + '<button class="garis kecil" data-kl="unduh">Unduh PNG</button>';
+function kartuHtml(g) { const logo = (document.querySelector("header img, img[src*='logo']") || {}).src || "";
+  const app = (j, ket, url) => `<div class="kh-app"><b>• ${esc(j)}</b>${esc(ket)}<br><code>${esc(alamatTanpaSkema(url))}</code></div>`;
+  return `<div class="kh"><div class="kh-kop">${logo ? `<img src="${logo}" alt="">` : ""}<div><b>SMA Plus Merdeka Soreang</b><span>PIN Pribadi Guru</span></div></div>
+    <div class="kh-isi"><span class="kh-lbl">UNTUK</span><div class="kh-nama">${esc(g.nama)}</div><div class="kh-id">ID guru ${esc(g.id)}</div>
+    <div class="kh-pin"><small>PIN</small><b>${esc(g.pin.slice(0, 4) + " " + g.pin.slice(4))}</b></div><span class="kh-lbl">BERLAKU UNTUK</span>
+    ${(g.kelompok || []).length ? app("Matematika Dasar", "Kelompok " + g.kelompok.join(", ") + ".", new URL("guru.html", location.href).href) : ""}
+    ${app("Asesmen Merdeka (Tryout)", "Unggah soal, buka sesi ujian untuk kelas Anda, lihat hasil.", new URL("../Tryout_Guru/index.html?guru", location.href).href)}
+    <div class="kh-app">Cara masuk: buka alamat di atas → «Masuk guru / pengawas» → ketik PIN ini.</div></div>
+    <div class="kh-rahasia">RAHASIA — jangan dibagikan ke siswa atau grup.</div></div>`; }
+function lihatKartu(g, k, pesan) { if (KL_URL) URL.revokeObjectURL(KL_URL); KL_URL = ""; const isi = $("kl-isi");
+  if (k) { isi.innerHTML = '<img id="kl-img" alt="Kartu PIN">'; const img = $("kl-img");
+    img.onerror = () => { isi.innerHTML = kartuHtml(g); $("kl-pesan").textContent = `Gambar kartu (${Math.round(k.blob.size / 1024)} KB) tidak bisa ditampilkan di peramban ini. ` + SEBAB_KANVAS; $("kl-pesan").classList.remove("hidden"); };
+    img.src = k.dataUrl || (KL_URL = URL.createObjectURL(k.blob)); }
+  else isi.innerHTML = kartuHtml(g);
+  $("kl-nama").textContent = g.nama; $("kl-pesan").textContent = pesan || ""; $("kl-pesan").classList.toggle("hidden", !pesan);
+  $("kl-aksi").innerHTML = !k ? "" : (bisaBagiBerkas() ? '<button class="kecil" data-kl="bagi">Bagikan</button>' : "") + (bisaSalinGambar() ? '<button class="garis kecil" data-kl="salin">Salin gambar</button>' : "") + '<button class="garis kecil" data-kl="unduh">Unduh PNG</button>';
   $("kl-aksi").querySelectorAll("[data-kl]").forEach((b) => b.onclick = () => aksiKartu(b.dataset.kl, g, true)); $("adm-lihat").classList.remove("hidden"); }
 async function aksiKartu(a, g, dariJendela) {
   if (a === "salin") {
     // ClipboardItem menerima janji: izin dari klik tetap berlaku walau kartu baru selesai digambar
     try { window.focus(); await navigator.clipboard.write([new ClipboardItem({ "image/png": kartuDari(g).then((k) => k.blob) })]); toast(`Kartu ${g.nama} disalin — tempel (Ctrl+V) di chat WhatsApp-nya`); }
-    catch (e) { lihatKartu(g, await kartuDari(g), "Peramban menolak menyalin otomatis (" + e.message + "). Salin dari gambar di bawah."); }
+    catch (e) { let k = null; try { k = await kartuDari(g); } catch (e2) { /* kartu HTML */ } lihatKartu(g, k, k ? "Peramban menolak menyalin otomatis (" + e.message + "). Salin dari gambar di bawah." : e.message); }
     return;
   }
-  const k = kartuSiap(g) || await kartuDari(g);
+  let k = kartuSiap(g); if (!k) { try { k = await kartuDari(g); } catch (e) { lihatKartu(g, null, e.message); return; } }
   if (a === "unduh") { unduhBlob(k.blob, k.file.name, k.dataUrl); toast(`Mengunduh ${k.file.name} (${Math.round(k.blob.size / 1024)} KB) — lihat folder Unduhan`); }
   else if (a === "lihat") lihatKartu(g, k);
   else if (a === "bagi") { try { await navigator.share({ files: [k.file], title: "PIN pribadi " + g.nama, text: teksBagi(g) }); }
@@ -2015,10 +2048,10 @@ function gambarAdmin() {
         <td><b>${esc(g.nama)}</b>${g.aktif ? "" : '<span class="kecil redup">Tidak ada lagi di jadwal KBM</span>'}</td>
         <td>${esc(g.kelompok.join(", ") || "–")}</td>
         <td><span class="pin-sel">${statusPin(g)}</span></td>
-        <td class="gk-aksi">${g.aktif && g.status === "acak" ? `<span class="gk-baris"><button class="garis kecil" data-k="lihat" data-id="${esc(g.id)}">Lihat</button>${bisaBagiBerkas() ? `<button class="kecil" data-k="bagi" data-id="${esc(g.id)}">Bagikan</button>` : ""}${bisaSalinGambar() ? `<button class="garis kecil" data-k="salin" data-id="${esc(g.id)}">Salin</button>` : ""}<button class="garis kecil" data-k="unduh" data-id="${esc(g.id)}">Unduh</button></span>` : `<span class="kecil redup">${g.aktif ? "buat PIN dulu" : ""}</span>`}</td>
+        <td class="gk-aksi">${g.aktif && g.status === "acak" ? `<span class="gk-baris"><button class="garis kecil" data-k="lihat" data-id="${esc(g.id)}">Kartu</button>${bisaBagiBerkas() ? `<button class="kecil" data-k="bagi" data-id="${esc(g.id)}">Bagikan</button>` : ""}${bisaSalinGambar() ? `<button class="garis kecil" data-k="salin" data-id="${esc(g.id)}">Salin</button>` : ""}<button class="garis kecil" data-k="unduh" data-id="${esc(g.id)}">Unduh</button></span>` : `<span class="kecil redup">${g.aktif ? "buat PIN dulu" : ""}</span>`}</td>
         <td class="kanan">${g.aktif ? `<span class="jl-aksi"><button class="garis kecil" data-acak="${esc(g.id)}">${g.status === "acak" ? "Buat ulang" : "Buat PIN"}</button>${g.status === "acak" ? `<button class="kecil tutup-merah" data-hapus-pin="${esc(g.id)}">Hapus PIN</button>` : ""}</span>` : ""}</td></tr>`).join("")}</tbody></table></div>
       <div id="adm-lihat" class="hidden" role="dialog" aria-label="Kartu PIN"><div class="kl-in"><div class="aksi" style="justify-content:space-between"><b id="kl-nama"></b><button class="garis kecil" id="kl-tutup">Tutup</button></div>
-        <p id="kl-pesan" class="kecil hidden" style="margin:0;color:var(--emas-teks)"></p><img id="kl-img" alt="Kartu PIN"><div class="aksi" id="kl-aksi"></div>
+        <p id="kl-pesan" class="kecil hidden" style="margin:0;color:var(--emas-teks)"></p><div id="kl-isi"></div><div class="aksi" id="kl-aksi"></div>
         <p class="kecil redup" style="margin:0">Bila tombol tidak bekerja: klik kanan gambar → <i>Salin gambar</i> / <i>Simpan gambar</i> (laptop), atau tekan lama gambar (HP).</p></div></div>`
       : '<p class="butir redup">Belum ada guru. Tekan <b>Tarik guru dari Data Induk</b>.</p>'}
     <p class="catatan-seksi"><span>PIN guru: PIN pribadi 8 angka buatan admin Matematika Dasar atau operator Asesmen Merdeka; berlaku di kedua aplikasi. Sebelum dibuat, guru bisa masuk Matematika Dasar dengan ID gurunya di Data Induk (mis. G161), tetapi tidak bisa masuk Asesmen Merdeka. Halaman ini hanya terbuka untuk guru yang mengampu kelompok MD. Nama kelompok (mis. MD10-1) hanya bisa dipakai untuk kelompok yang belum punya guru tercatat. Bagikan PIN pribadi langsung ke guru yang bersangkutan.</span></p>
@@ -2093,7 +2126,10 @@ function gambarAdmin() {
     $("adm-unduh").textContent = nP ? `Unduh XLSX (${nP} guru)` : "Unduh XLSX (semua guru)";
     $("adm-pilih-semua").checked = berPin.length > 0 && berPin.every((g) => ADM_PILIH.has(g.id)); };
   $("f-admin").querySelectorAll("[data-pilih]").forEach((c) => c.onchange = () => { c.checked ? ADM_PILIH.add(c.dataset.pilih) : ADM_PILIH.delete(c.dataset.pilih); tombolPilihan(); });
-  $("f-admin").querySelectorAll("[data-k]").forEach((b) => b.onclick = () => { const g = L.find((x) => x.id === b.dataset.id); if (g) aksiKartu(b.dataset.k, g); });
+  // tombol langsung berubah saat diklik, supaya selalu terlihat ada reaksi
+  $("f-admin").querySelectorAll("[data-k]").forEach((b) => b.onclick = async () => { const g = L.find((x) => x.id === b.dataset.id); if (!g) return;
+    const t = b.textContent; b.disabled = true; b.textContent = "Menyiapkan…";
+    try { await aksiKartu(b.dataset.k, g); } catch (e) { toast("Gagal: " + e.message); } finally { b.disabled = false; b.textContent = t; } });
   if ($("adm-pilih-semua")) {
     $("adm-pilih-semua").onchange = (e) => { berPin.forEach((g) => e.target.checked ? ADM_PILIH.add(g.id) : ADM_PILIH.delete(g.id));
       $("f-admin").querySelectorAll("[data-pilih]").forEach((c) => c.checked = ADM_PILIH.has(c.dataset.pilih)); tombolPilihan(); };
