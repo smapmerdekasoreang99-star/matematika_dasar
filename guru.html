@@ -547,7 +547,7 @@ body.lihat .ubah { display: none !important; }
     <!-- Tahap dan Aturan Khusus: pengecualian dari Pengaturan Umum per kelompok atau per siswa -->
     <div id="p-jalur" class="hidden">
       <div class="atur-kepala kepala-hal"><div><span class="eyebrow">Pengecualian dari Pengaturan Umum</span><h1>Tahap dan Aturan Khusus</h1>
-        <p class="redup kecil">Pustaka profil aturan dan tahapan khusus yang dipakai bersama semua guru. Pasang ke siswa tertentu lewat <b>Pelaksanaan Latihan</b>, atau pilih tahapan untuk seluruh kelompok di <a href="#" id="ke-umum">Pengaturan Umum</a>.</p></div></div>
+        <p class="redup kecil">Profil aturan dan tahap buatan Anda sendiri, ditambah contoh buatan admin. Pasang untuk seluruh kelompok di bagian 3, atau untuk siswa tertentu lewat <b>Pelaksanaan Latihan</b>. Yang tidak diatur mengikuti <a href="#" id="ke-umum">Pengaturan Umum</a> dari admin.</p></div></div>
 
       <!-- Cara aturan & tahapan dipilih (bisa disembunyikan) -->
       <section class="kartu seksi" id="lapis-kartu">
@@ -557,8 +557,8 @@ body.lihat .ubah { display: none !important; }
         <div class="seksi-isi">
           <ol class="lapis">
             <li class="l-siswa"><span class="l-no">1</span><div><b>Siswa tertentu</b><small>Pelaksanaan Latihan · paling kuat</small></div><span class="l-isi"><span><small>Aturan</small>profil siswa</span><span><small>Tahapan</small>tahapan khusus, atau tahapan umum dengan Mulai dari</span></span></li>
-            <li class="l-kel"><span class="l-no">2</span><div><b>Kelompok</b><small>Pengaturan Umum kelompok, oleh guru</small></div><span class="l-isi"><span><small>Aturan</small>isian Pengaturan Umum kelompok</span><span><small>Tahapan</small>tahapan khusus kelompok</span></span></li>
-            <li class="l-umum"><span class="l-no">3</span><div><b>Bawaan sekolah</b><small>diatur admin</small></div><span class="l-isi"><span><small>Aturan</small>nilai bawaan sekolah</span><span><small>Tahapan</small>urutan Tahapan Soal</span></span></li>
+            <li class="l-kel"><span class="l-no">2</span><div><b>Kelompok</b><small>halaman ini, bagian 3 · oleh guru</small></div><span class="l-isi"><span><small>Aturan</small>profil aturan kelompok</span><span><small>Tahapan</small>tahap khusus kelompok</span></span></li>
+            <li class="l-umum"><span class="l-no">3</span><div><b>Pengaturan Umum</b><small>diatur admin</small></div><span class="l-isi"><span><small>Aturan</small>Pengaturan Umum</span><span><small>Tahapan</small>urutan Tahapan Soal</span></span></li>
           </ol>
         </div>
         <p class="catatan-seksi"><span>Isian aturan yang tidak diisi profil di atas ikut lapisan di bawahnya, satu per satu. Contoh: profil siswa yang hanya mengubah jumlah soal tetap memakai lama sesi dari kelompoknya.</span></p>
@@ -593,8 +593,14 @@ body.lihat .ubah { display: none !important; }
       </section>
 
       <section class="kartu seksi">
+        <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 20a6.5 6.5 0 0 0-3-5.5"/></svg></span>
+          <div><h2>3. Untuk seluruh kelompok</h2><p>Pilih profil aturan dan tahap untuk kelompok Anda. Yang tidak dipilih mengikuti Pengaturan Umum dan urutan Tahapan Soal.</p></div></div>
+        <div id="pr-kelompok"></div>
+      </section>
+
+      <section class="kartu seksi">
         <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>
-          <div><h2>3. Untuk siswa tertentu</h2><p>Diatur lewat menu Pelaksanaan Latihan. Pilihan siswa mengalahkan pilihan kelompok.</p></div></div>
+          <div><h2>4. Untuk siswa tertentu</h2><p>Diatur lewat menu Pelaksanaan Latihan. Pilihan siswa mengalahkan pilihan kelompok.</p></div></div>
         <ol class="langkah-siswa">
           <li>Buka <b>Pelaksanaan Latihan</b>, saring kelompok atau cari siswa, lalu centang.</li>
           <li>Di bilah bawah, pilih <b>Aturan</b> atau <b>Tahapan</b>, lalu tekan <b>Terapkan</b> di barisnya.</li>
@@ -613,9 +619,8 @@ body.lihat .ubah { display: none !important; }
     <!-- Pengaturan -->
     <div id="p-atur" class="hidden">
       <div class="atur-kepala kepala-hal">
-        <div><span class="eyebrow">Aturan kelompok</span><h1>Pengaturan Umum</h1>
+        <div><span class="eyebrow">Bawaan untuk semua kelompok</span><h1>Pengaturan Umum</h1>
           <p class="redup kecil" id="atur-ket">Berlaku untuk seluruh siswa kelompok, <b>kecuali</b> siswa yang diberi aturan sendiri di <a href="#" id="ke-khusus">Tahap dan Aturan Khusus</a>. Setiap perubahan langsung tersimpan.</p></div>
-        <label class="atur-sasaran">Berlaku untuk<select id="atur-sasaran" aria-label="Pengaturan untuk"></select></label>
       </div>
       <div class="ringkas" id="atur-ringkas" aria-label="Ringkasan pengaturan"></div>
       <div id="f-atur"></div>
@@ -1210,7 +1215,7 @@ function aturanBerlakuHtml(A) {
   return `<div class="ab-ringkas">
       ${sel("Tahapan", tahapan, t.asal, t.asal === "kelompok" ? "kelompok " + t.kelompok : t.asal)}
       ${sel("Profil siswa", pSiswa ? asalProfil(pSiswa) : "Tidak ada", pSiswa ? "siswa" : "umum", pSiswa ? "siswa" : "—")}
-      ${sel("Pengaturan kelompok", pKel ? `${Object.values(as).filter((v) => String(v).startsWith("kelompok")).length} isian diubah guru` : "Sama dengan bawaan sekolah", pKel ? "kelompok" : "umum", pKel || "bawaan")}
+      ${sel("Profil kelompok", pKel ? asalProfil(pKel) : "Tidak ada", pKel ? "kelompok" : "umum", pKel ? pKel.replace(/\s*\(.*$/, "") : "—")}
     </div>
     <div class="ab-grup">${ATUR_KHUSUS.map((g) => `<div><div class="ab-judul">${g.g}</div>${g.f.map((x) => { const j = asalJenis(as[x.k]);
       return `<div class="ab-isi ${j !== "umum" ? "khusus" : ""}"><span><small>${x.l}</small><b>${esc(nilaiAturTeks(x, A.atur[x.k]))}</b></span><span class="ab-asal a-${j}" title="${esc(as[x.k] || "Pengaturan Umum")}">${j}</span></div>`; }).join("")}</div>`).join("")}</div>`;
@@ -1654,22 +1659,10 @@ function kendaliAtur(x, a, boleh) {
 /* ----------------------------------------------------------- Pengaturan Umum (bawaan sekolah / per kelompok) */
 // ATUR_KEL: null = bawaan sekolah (hanya admin); objek dari mtd_atur_kelompok bila sasarannya satu kelompok.
 let ATUR_KEL = null;
-function isiSasaranAtur() {
-  const kel = G.kelompok || [];
-  $("atur-sasaran").innerHTML = (PERAN === "admin" ? '<option value="">Bawaan sekolah (semua kelompok)</option>' : "") +
-    kel.map((k) => `<option value="${esc(k)}">Kelompok ${esc(k)}</option>`).join("");
-  $("atur-sasaran").closest("label").classList.toggle("hidden", PERAN !== "admin" && kel.length < 2);
-}
-$("atur-sasaran").onchange = () => muatAtur();
+function isiSasaranAtur() { /* Pengaturan Umum hanya bawaan sekolah */ }
 async function muatAtur() {
-  const k = $("atur-sasaran").value;
-  if (!k) {
-    if (PERAN !== "admin") { $("f-atur").innerHTML = '<p class="pesan">Belum ada kelompok yang Anda ampu. Hubungi admin Matematika Dasar.</p>'; return; }
-    ATUR_KEL = null;
-    try { G.atur = (await rpc("mtd_guru_masuk", { p_pin: PIN })).atur; } catch (e) { /* pakai yang ada */ }
-    return gambarAtur();
-  }
-  try { ATUR_KEL = await rpc("mtd_atur_kelompok", { p_pin: PIN, p_kelompok: k }); } catch (e) { toast(e.message); return; }
+  ATUR_KEL = null;
+  try { G.atur = (await rpc("mtd_guru_masuk", { p_pin: PIN })).atur; } catch (e) { /* pakai yang ada */ }
   gambarAtur();
 }
 // Teks nilai untuk penanda "kembalikan ke bawaan (…)"
@@ -1681,10 +1674,11 @@ function nilaiBawaan(x, v) {
 }
 const IKON_TAHAPAN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="6" r="2.5"/><path d="M7.5 18H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7.5"/></svg>';
 function gambarAtur() {
-  const kel = ATUR_KEL, a = kel ? { ...kel.bawaan, ...kel.aturan } : G.atur, boleh = true;
+  const kel = ATUR_KEL, a = kel ? { ...kel.bawaan, ...kel.aturan } : G.atur, boleh = PERAN === "admin";
   $("atur-ket").innerHTML = kel
     ? `Berlaku untuk seluruh siswa <b>${esc(kel.kelompok)}</b> (${kel.n_siswa} siswa), <b>kecuali</b> siswa yang diberi aturan sendiri di <a href="#" id="ke-khusus">Tahap dan Aturan Khusus</a>. Isian yang belum diubah mengikuti bawaan sekolah. Setiap perubahan langsung tersimpan.`
-    : `Nilai awal untuk <b>semua kelompok</b>. Guru dapat mengubahnya untuk kelompoknya; isian yang belum diubah guru mengikuti nilai di sini. Setiap perubahan langsung tersimpan.`;
+    : PERAN === "admin" ? `Berlaku untuk <b>semua kelompok</b>, kecuali yang diatur guru di Tahap dan Aturan Khusus (untuk seluruh kelompoknya atau siswa tertentu). Setiap perubahan langsung tersimpan.`
+    : `Diatur admin untuk <b>semua kelompok</b>; di sini Anda hanya dapat melihatnya. Untuk aturan atau tahap kelompok Anda, gunakan <a href="#" id="ke-khusus">Tahap dan Aturan Khusus</a>.`;
   if ($("ke-khusus")) $("ke-khusus").onclick = (e) => { e.preventDefault(); bukaTab("jalur"); };
   ringkasAtur(a);
   const tanda = (x) => !kel ? "" : kel.aturan[x.k] !== undefined
