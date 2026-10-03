@@ -143,7 +143,7 @@ async function unduhBukuXLSX({ lembar, namaBerkas, judulBuku }) {
   a.href = URL.createObjectURL(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
   // tautan dipasang ke halaman dulu: sebagian peramban mengabaikan klik pada tautan yang tidak terpasang
   a.download = namaBerkas; a.style.display = "none"; document.body.appendChild(a); a.click();
-  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 5000);
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 120000);   // lama: jendela "Simpan sebagai" bisa masih terbuka
 }
 
 /* Tombol unduh: "Menyiapkan…" selama berjalan, sama dengan aplikasi lain (ikon & lencana XLSX tetap, digambar CSS). */

@@ -1962,18 +1962,21 @@ const bisaSalinGambar = () => !!(window.ClipboardItem && navigator.clipboard && 
 // Kartu disimpan per guru selama PIN-nya sama, dan disiapkan di latar belakang sesudah tabel tampil, supaya
 // Bagikan/Salin/Unduh langsung jalan saat diklik (peramban hanya mengizinkannya tepat sesudah klik).
 async function kartuDari(g) { const c = KARTU.get(g.id); if (c && c.pin === g.pin) return c;
-  const blob = await gambarKartu(g), k = { pin: g.pin, blob, file: new File([blob], namaBerkasKartu(g), { type: "image/png" }) }; KARTU.set(g.id, k); return k; }
+  const blob = await gambarKartu(g), k = { pin: g.pin, blob, dataUrl: await keDataUrl(blob), file: new File([blob], namaBerkasKartu(g), { type: "image/png" }) }; KARTU.set(g.id, k); return k; }
+// Data URL tidak kedaluwarsa (blob: dicabut sesudah beberapa detik, gagal bila jendela "Simpan sebagai" masih terbuka) dan tidak diblokir peramban dalam aplikasi
+const keDataUrl = (blob) => new Promise((ok, gagal) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => gagal(r.error); r.readAsDataURL(blob); });
 const kartuSiap = (g) => { const c = KARTU.get(g.id); return c && c.pin === g.pin ? c : null; };
 let SIAP_KE = 0;
 function siapkanKartu(daftar) { const ke = ++SIAP_KE, antre = daftar.filter((g) => !kartuSiap(g));
   (async () => { for (const g of antre) { if (ke !== SIAP_KE) return; try { await kartuDari(g); } catch (e) { /* dicoba lagi saat diklik */ } await new Promise((r) => setTimeout(r, 20)); } })(); }
 // Tautan unduh dipasang ke halaman dulu: sebagian peramban mengabaikan klik pada tautan yang tidak terpasang
-function unduhBlob(blob, nama) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nama; a.style.display = "none";
-  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 5000); }
+function unduhBlob(blob, nama, dataUrl) { const a = document.createElement("a"), pakaiBlob = !dataUrl; a.href = dataUrl || URL.createObjectURL(blob); a.download = nama; a.style.display = "none";
+  document.body.appendChild(a); a.click(); setTimeout(() => { if (pakaiBlob) URL.revokeObjectURL(a.href); a.remove(); }, 120000); }
 const teksBagi = (g) => `PIN pribadi ${g.nama} untuk Matematika Dasar dan Asesmen Merdeka. Rahasia, mohon tidak diteruskan.`;
 let KL_URL = "";
-function lihatKartu(g, k, pesan) { if (KL_URL) URL.revokeObjectURL(KL_URL); KL_URL = URL.createObjectURL(k.blob);
-  $("kl-img").src = KL_URL; $("kl-nama").textContent = g.nama; $("kl-pesan").textContent = pesan || ""; $("kl-pesan").classList.toggle("hidden", !pesan);
+function lihatKartu(g, k, pesan) { if (KL_URL) URL.revokeObjectURL(KL_URL); KL_URL = k.dataUrl ? "" : URL.createObjectURL(k.blob); const img = $("kl-img");
+  img.onerror = () => { $("kl-pesan").textContent = `Gambar kartu (${Math.round(k.blob.size / 1024)} KB) tidak bisa ditampilkan di peramban ini. Buka halaman ini di Chrome atau Edge biasa (bukan pratinjau di aplikasi lain).`; $("kl-pesan").classList.remove("hidden"); };
+  img.src = k.dataUrl || KL_URL; $("kl-nama").textContent = g.nama; $("kl-pesan").textContent = pesan || ""; $("kl-pesan").classList.toggle("hidden", !pesan);
   $("kl-aksi").innerHTML = (bisaBagiBerkas() ? '<button class="kecil" data-kl="bagi">Bagikan</button>' : "") + (bisaSalinGambar() ? '<button class="garis kecil" data-kl="salin">Salin gambar</button>' : "") + '<button class="garis kecil" data-kl="unduh">Unduh PNG</button>';
   $("kl-aksi").querySelectorAll("[data-kl]").forEach((b) => b.onclick = () => aksiKartu(b.dataset.kl, g, true)); $("adm-lihat").classList.remove("hidden"); }
 async function aksiKartu(a, g, dariJendela) {
@@ -1984,7 +1987,7 @@ async function aksiKartu(a, g, dariJendela) {
     return;
   }
   const k = kartuSiap(g) || await kartuDari(g);
-  if (a === "unduh") { unduhBlob(k.blob, k.file.name); toast(`Diunduh: ${k.file.name} — lihat folder Unduhan`); }
+  if (a === "unduh") { unduhBlob(k.blob, k.file.name, k.dataUrl); toast(`Mengunduh ${k.file.name} (${Math.round(k.blob.size / 1024)} KB) — lihat folder Unduhan`); }
   else if (a === "lihat") lihatKartu(g, k);
   else if (a === "bagi") { try { await navigator.share({ files: [k.file], title: "PIN pribadi " + g.nama, text: teksBagi(g) }); }
     catch (e) { if (e.name !== "AbortError") { if (dariJendela) toast("Gagal membagikan: " + e.message); else lihatKartu(g, k, "Peramban menolak membagikan langsung (" + e.message + "). Coba lagi dari sini, atau unduh/salin gambarnya."); } } }
@@ -2097,7 +2100,7 @@ function gambarAdmin() {
     const terpilih = () => berPin.filter((g) => ADM_PILIH.has(g.id));
     $("adm-bagi").onclick = async () => { const ks = []; for (const g of terpilih()) ks.push(kartuSiap(g) || await kartuDari(g));
       try { await navigator.share({ files: ks.map((k) => k.file), title: "PIN pribadi guru" }); } catch (e) { if (e.name !== "AbortError") toast("Gagal membagikan: " + e.message + " — bagikan satu per satu dari barisnya"); } };
-    $("adm-png").onclick = async () => { const d = terpilih(); for (const [i, g] of d.entries()) { const k = kartuSiap(g) || await kartuDari(g); unduhBlob(k.blob, k.file.name); if (i < d.length - 1) await new Promise((r) => setTimeout(r, 400)); }
+    $("adm-png").onclick = async () => { const d = terpilih(); for (const [i, g] of d.entries()) { const k = kartuSiap(g) || await kartuDari(g); unduhBlob(k.blob, k.file.name, k.dataUrl); if (i < d.length - 1) await new Promise((r) => setTimeout(r, 400)); }
       toast(`${d.length} kartu diunduh${d.length > 1 ? ' — bila peramban bertanya "unduh beberapa berkas", pilih Izinkan' : ""}`); };
     $("kl-tutup").onclick = () => $("adm-lihat").classList.add("hidden");
     $("adm-lihat").onclick = (e) => { if (e.target.id === "adm-lihat") e.target.classList.add("hidden"); };
