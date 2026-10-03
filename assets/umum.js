@@ -234,3 +234,35 @@ function sejakTeks(iso) {
   if (h === 1) return "kemarin";
   return h + " hari lalu";
 }
+
+/* Freeze pane tabel data: <table data-beku="n"> → baris judul tetap di atas saat tabel digulir ke
+   bawah, n kolom pertama tetap di kiri saat digulir ke samping. Dihitung ulang otomatis bila isi tabel
+   berganti, tabel baru muncul, atau ukurannya berubah (mis. tab dibuka, layar diputar). */
+(function () {
+  if (!("ResizeObserver" in window)) return;
+  const ukur = new ResizeObserver((es) => es.forEach((e) => bekukan(e.target)));
+  const dikenal = new WeakSet();
+  function bekukan(t) {
+    const n = +t.dataset.beku || 0, baris = t.rows;
+    if (t.parentElement) t.parentElement.classList.add("fz-wadah");
+    if (!n || !baris.length) return;
+    const kepala = baris[0].cells, kiri = [];
+    let x = 0;
+    for (let i = 0; i < Math.min(n, kepala.length); i++) { kiri.push(x); x += kepala[i].getBoundingClientRect().width; }
+    if (!x) return;                                    // tabel tersembunyi: dihitung saat tampil
+    for (const r of baris) {
+      for (let i = 0; i < kiri.length && i < r.cells.length; i++) {
+        const c = r.cells[i];
+        if (c.colSpan > 1) break;                      // baris gabungan (mis. "Tidak ada data") tidak dibekukan
+        c.classList.add("fz-kol"); c.style.left = kiri[i] + "px"; c.classList.toggle("fz-akhir", i === kiri.length - 1);
+      }
+    }
+  }
+  function pindai() {
+    document.querySelectorAll("table[data-beku]").forEach((t) => { if (!dikenal.has(t)) { dikenal.add(t); ukur.observe(t); } bekukan(t); });
+  }
+  let jadwal = 0;
+  new MutationObserver(() => { cancelAnimationFrame(jadwal); jadwal = requestAnimationFrame(pindai); })
+    .observe(document.documentElement, { childList: true, subtree: true });
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", pindai); else pindai();
+})();

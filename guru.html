@@ -19,7 +19,7 @@
 <!-- /pratinjau -->
 <link rel="icon" href="assets/logo.png">
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=7">
+<link rel="stylesheet" href="assets/matdas.css?v=8">
 <script src="config.js"></script>
 <style>
 /* Navigasi utama: bilah berikon yang menempel di bawah kepala; digeser mendatar di HP */
@@ -445,7 +445,7 @@ body.lihat .ubah { display: none !important; }
         <button role="tab" data-sub="kelompok" aria-selected="false">Per Kelompok</button>
       </div>
       <div id="pk-kelompok" class="hidden">
-        <div class="kartu"><div class="gulir"><table class="tabel" id="t-perkelompok"></table></div>
+        <div class="kartu"><div class="gulir"><table class="tabel" id="t-perkelompok" data-beku="1"></table></div>
           <p class="redup kecil">Ketuk baris kelompok untuk melihat siswanya. Macet: 3 kali atau lebih mengulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih 7 hari terakhir.</p></div>
       </div>
       <div id="pk-siswa">
@@ -468,7 +468,7 @@ body.lihat .ubah { display: none !important; }
         <div class="grafik" id="g-sebaran"></div>
       </div>
       <div class="kartu">
-        <div class="gulir"><table class="tabel" id="t-kelas"></table></div>
+        <div class="gulir"><table class="tabel" id="t-kelas" data-beku="2"></table></div>
         <p class="redup kecil">Macet: sudah 3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih 7 hari terakhir. Ketuk nama untuk melihat analisisnya.</p>
       </div>
       </div>
@@ -516,7 +516,7 @@ body.lihat .ubah { display: none !important; }
           <button class="kecil" id="dl-terapkan">Terapkan</button></div>
       </div>
       <div class="kartu">
-        <div class="gulir"><table class="tabel" id="t-daftar"></table></div>
+        <div class="gulir"><table class="tabel" id="t-daftar" data-beku="3"></table></div>
         <p class="redup kecil">Diperbarui otomatis setiap 30 detik selama tab ini terbuka. <b>Sedang berlatih</b> = sesi latihannya masih berjalan.
           <b>Terkunci</b> = terlalu sering keluar halaman (Pengaturan → Pengawasan keluar halaman); buka dengan tombol <b>Buka kunci</b> atau kode buka di perangkat siswa.
           <span class="ubah">Centang siswa (atau kotak di kepala tabel untuk semua yang tampil) untuk memilih <b>aturan</b> dan <b>tahapan</b> mereka, termasuk tingkat dan level awal (<b>Mulai dari</b>), atau untuk <b>menghapus data latihannya</b>. Pilihan di sini mengalahkan pilihan kelompok.</span>
@@ -627,7 +627,7 @@ body.lihat .ubah { display: none !important; }
     <button class="garis" id="kl-tutup">Tutup tampilan</button></div>
 </div>
 
-<script src="assets/umum.js?v=7"></script>
+<script src="assets/umum.js?v=8"></script>
 <script src="assets/excel.js?v=2"></script>
 <script>
 "use strict";
@@ -1489,19 +1489,19 @@ function gambarSiswa() {
           <p class="redup kecil">"Salah hitung" = selain pola yang dikenali. Pola lain dikenali otomatis dari jawaban siswa.</p>` : '<p class="redup">Belum ada kesalahan.</p>'}
       </div>
       <div class="kartu"><h2>Per tingkat</h2>
-        ${D.per_tingkat.length ? `<div class="gulir"><table class="tabel"><thead><tr><th>Tingkat</th><th class="angka">Level</th><th class="angka">Akurasi</th><th class="angka">Rata-rata</th></tr></thead><tbody>
+        ${D.per_tingkat.length ? `<div class="gulir"><table class="tabel" data-beku="1"><thead><tr><th>Tingkat</th><th class="angka">Level</th><th class="angka">Akurasi</th><th class="angka">Rata-rata</th></tr></thead><tbody>
           ${D.per_tingkat.map((x) => `<tr><td>${esc(x.nama)}</td><td class="angka">${x.n_tuntas}/${x.n_level}</td>
             <td class="angka">${Math.round(100 * x.n_benar / Math.max(1, x.n_jawab))}%</td><td class="angka">${x.rata_detik != null ? lamaTeks(x.rata_detik) : "–"}</td></tr>`).join("")}</tbody></table></div>` : '<p class="redup">Belum ada jawaban.</p>'}
       </div>
     </div>
     <div class="kartu"><h2>Kesalahan terakhir</h2>
-      ${D.salah_terakhir.length ? `<div class="gulir"><table class="tabel"><thead><tr><th>Waktu</th><th>Tingkat</th><th>Soal</th><th>Jawaban siswa</th><th>Kunci</th><th>Jenis</th></tr></thead><tbody>
+      ${D.salah_terakhir.length ? `<div class="gulir"><table class="tabel" data-beku="1"><thead><tr><th>Waktu</th><th>Tingkat</th><th>Soal</th><th>Jawaban siswa</th><th>Kunci</th><th>Jenis</th></tr></thead><tbody>
         ${D.salah_terakhir.map((x) => `<tr><td class="kecil">${tglTeks(x.waktu, true)}</td><td class="kecil">${esc(x.nama_tingkat)} Lv ${x.level}</td>
           <td class="soal-sel">${soalHtml(x.soal)}</td><td class="soal-sel">${jawabHtml(x.jawaban)}</td><td class="soal-sel">${kunciHtml(x.kunci)}</td>
           <td><span class="lencana">${esc(jenisLabel(x.jenis))}</span></td></tr>`).join("")}</tbody></table></div>` : '<p class="redup">Belum ada kesalahan.</p>'}
     </div>
     <div class="kartu"><h2>Riwayat level tuntas</h2>
-      ${D.tuntas.length ? `<div class="gulir"><table class="tabel"><thead><tr><th>Tanggal</th><th>Tingkat</th><th>Level</th><th class="angka">Percobaan</th><th class="angka">Salah</th><th class="angka">Lama</th></tr></thead><tbody>
+      ${D.tuntas.length ? `<div class="gulir"><table class="tabel" data-beku="1"><thead><tr><th>Tanggal</th><th>Tingkat</th><th>Level</th><th class="angka">Percobaan</th><th class="angka">Salah</th><th class="angka">Lama</th></tr></thead><tbody>
         ${D.tuntas.slice().reverse().map((x) => `<tr><td class="kecil">${tglTeks(x.tuntas, true)}</td><td>${esc(x.nama_tingkat)}</td><td>Lv ${x.level} <span class="redup kecil">${esc(x.ket || "")}</span></td>
           <td class="angka">${x.percobaan}</td><td class="angka">${x.n_salah}</td><td class="angka">${x.detik ? lamaTeks(x.detik) : "–"}</td></tr>`).join("")}</tbody></table></div>` : '<p class="redup">Belum ada level yang dituntaskan.</p>'}
     </div>
@@ -1813,7 +1813,7 @@ function gambarAdmin() {
       <div><h2>Guru dan PIN masuk</h2><p>Guru pengampu kelompok MD menurut jadwal KBM di Data Induk. ${ADM.disinkron ? "Terakhir ditarik " + esc(tglTeks(ADM.disinkron, true)) + "." : "Belum pernah ditarik."}</p></div>
       <span class="seksi-aksi admin-aksi"><button class="garis kecil" id="adm-tarik">Tarik guru dari Data Induk</button>${belum ? `<button class="kecil" id="adm-acak-semua">Buat PIN untuk ${belum} guru</button>` : ""}</span></div>
     ${ADM.sementara.length ? `<p class="sesi-peringatan"><b>${ADM.sementara.length} kelompok</b> masih bisa dimasuki dengan nama kelompoknya (${esc(ADM.sementara.join(", "))}), karena ada gurunya yang belum punya PIN pribadi maupun nomor HP. Buat PIN pribadi agar nama kelompok tidak bisa dipakai lagi.</p>` : ""}
-    ${L.length ? `<div class="gulir seksi-tabel"><table class="tabel adm-tabel"><thead><tr><th>Guru</th><th>Kelompok</th><th>PIN masuk</th><th></th></tr></thead><tbody>${L.map((g) => `<tr class="${g.aktif ? "" : "nonaktif"}">
+    ${L.length ? `<div class="gulir seksi-tabel"><table class="tabel adm-tabel" data-beku="1"><thead><tr><th>Guru</th><th>Kelompok</th><th>PIN masuk</th><th></th></tr></thead><tbody>${L.map((g) => `<tr class="${g.aktif ? "" : "nonaktif"}">
         <td><b>${esc(g.nama)}</b>${g.aktif ? "" : '<span class="kecil redup">Tidak ada lagi di jadwal KBM</span>'}</td>
         <td>${esc(g.kelompok.join(", ") || "–")}</td>
         <td><span class="pin-sel">${statusPin(g)}</span></td>
