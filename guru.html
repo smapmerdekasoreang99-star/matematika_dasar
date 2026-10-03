@@ -415,12 +415,14 @@ body.lihat .ubah { display: none !important; }
 /* Kartu PIN guru (PNG) di menu Admin */
 .adm-pilih { display: flex; flex-wrap: wrap; gap: var(--j2) var(--j3); align-items: center; margin: var(--j2) 0; }
 .adm-pilih label { display: inline-flex; gap: 6px; align-items: center; font-size: var(--h-s); color: var(--tinta-2); }
-.gk-panel { margin-top: var(--j3); padding: var(--j3); border: 1px solid var(--garis); border-radius: 12px; background: var(--kertas-3); }
-.gk-panel .gk-kepala { display: flex; flex-wrap: wrap; gap: var(--j2); justify-content: space-between; align-items: center; }
-.gk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--j3); margin-top: var(--j3); }
-.gk { display: grid; gap: var(--j2); padding: var(--j2); background: #fff; border: 1px solid var(--garis); border-radius: 10px; }
-.gk img { width: 100%; display: block; border-radius: 8px; border: 1px solid var(--garis); }
-.gk .aksi { display: flex; flex-wrap: wrap; gap: 6px; }
+.adm-pilih .aksi { display: flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.adm-pilih { padding: var(--j2) var(--j3); background: var(--kertas-3); border: 1px solid var(--garis); border-radius: 10px; }
+.adm-tabel td.gk-aksi { white-space: nowrap; } .adm-tabel .gk-baris { display: inline-flex; flex-wrap: nowrap; gap: 4px; align-items: center; }
+.adm-tabel .gk-baris button, .adm-tabel .jl-aksi button { width: auto; flex: none; margin: 0; white-space: nowrap; }
+#adm-lihat { position: fixed; inset: 0; z-index: 60; background: rgba(21,35,43,.85); display: flex; align-items: center; justify-content: center; padding: 16px; }
+#adm-lihat .kl-in { background: #fff; border-radius: 14px; padding: 14px; max-width: 440px; width: 100%; max-height: 96vh; overflow: auto; display: grid; gap: 10px; }
+#adm-lihat img { width: 100%; border-radius: 8px; border: 1px solid var(--garis); }
+#adm-lihat .aksi { display: flex; flex-wrap: wrap; gap: 6px; }
 </style>
 </head>
 <body>
@@ -1913,7 +1915,7 @@ async function muatPerKelompok() {
 
 /* ----------------------------------------------------------- Admin: guru & PIN, PIN admin, kosongkan data */
 let ADM = null;
-const ADM_PILIH = new Set(); let KARTU = [];
+const ADM_PILIH = new Set(), KARTU = new Map();   // KARTU: id guru → {pin, blob, file}
 /* Kartu PIN (PNG), sama dengan admin Asesmen Merdeka: digambar di <canvas> 1080 px (pas untuk WhatsApp) berisi kop,
    nama & ID guru, PIN besar, aplikasi tempat PIN berlaku beserta alamatnya, cara masuk, dan peringatan rahasia.
    Tidak ada yang dikirim ke server. */
@@ -1955,31 +1957,37 @@ async function gambarKartu(g, denganLogo = true) {
   catch (e) { if (denganLogo) return gambarKartu(g, false); throw e; }   // logo dari berkas lain bisa ditolak peramban: gambar ulang tanpa logo
 }
 const namaBerkasKartu = (g) => `PIN_${g.id}_${String(g.nama).split(",")[0].trim().replace(/[^\w]+/g, "_")}.png`;
-const bisaBagi = (files) => { try { return !!(navigator.canShare && navigator.canShare({ files })); } catch (e) { return false; } };
-async function kartuPin(ids) {
-  const daftar = (ADM ? ADM.guru : []).filter((g) => ids.includes(g.id) && g.aktif && g.status === "acak");
-  if (!daftar.length) return toast("Tidak ada guru ber-PIN pribadi yang dipilih");
-  KARTU.forEach((k) => URL.revokeObjectURL(k.url)); KARTU = [];
-  const panel = $("adm-kartu-panel"), el = $("gk-grid"); panel.classList.remove("hidden"); el.innerHTML = '<p class="kecil redup">Menggambar kartu…</p>';
-  for (const g of daftar) { const blob = await gambarKartu(g); KARTU.push({ g, blob, url: URL.createObjectURL(blob), file: new File([blob], namaBerkasKartu(g), { type: "image/png" }) }); }
-  $("gk-n").textContent = `(${KARTU.length})`; const salinOk = !!(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write);
-  el.innerHTML = KARTU.map((k, i) => `<div class="gk"><img src="${k.url}" alt="Kartu PIN ${esc(k.g.nama)}"><b class="kecil">${esc(k.g.nama)}</b><div class="aksi">${bisaBagi([k.file]) ? `<button class="kecil" data-gk-bagi="${i}">Bagikan</button>` : ""}${salinOk ? `<button class="garis kecil" data-gk-salin="${i}">Salin gambar</button>` : ""}<button class="garis kecil" data-gk-unduh="${i}">Unduh</button></div></div>`).join("");
-  $("gk-bagi").classList.toggle("hidden", !bisaBagi(KARTU.map((k) => k.file)));
-  el.querySelectorAll("[data-gk-bagi]").forEach((b) => b.onclick = async () => { const k = KARTU[+b.dataset.gkBagi];
-    try { await navigator.share({ files: [k.file], title: "PIN pribadi " + k.g.nama, text: `PIN pribadi ${k.g.nama} untuk Matematika Dasar dan Asesmen Merdeka. Rahasia, mohon tidak diteruskan.` }); }
-    catch (e) { if (e.name !== "AbortError") toast("Gagal membagikan: " + e.message); } });
-  el.querySelectorAll("[data-gk-salin]").forEach((b) => b.onclick = async () => { const k = KARTU[+b.dataset.gkSalin];
-    try { await navigator.clipboard.write([new ClipboardItem({ "image/png": k.blob })]); toast("Gambar disalin — tempel (Ctrl+V) di chat WhatsApp " + k.g.nama); }
-    catch (e) { toast("Gagal menyalin: " + e.message + ". Pakai Unduh."); } });
-  el.querySelectorAll("[data-gk-unduh]").forEach((b) => b.onclick = () => { const k = KARTU[+b.dataset.gkUnduh], a = document.createElement("a"); a.href = k.url; a.download = k.file.name; a.click(); });
-  panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
-}
-async function zipKartu() {
-  if (!KARTU.length) return;
-  if (!window.JSZip) await new Promise((ok, gagal) => { const s = document.createElement("script"); s.src = "https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"; s.onload = ok; s.onerror = () => gagal(new Error("Pustaka ZIP tidak bisa dimuat")); document.head.appendChild(s); }).catch((e) => toast(e.message));
-  if (!window.JSZip) return;
-  const z = new JSZip(); KARTU.forEach((k) => z.file(k.file.name, k.blob)); const b = await z.generateAsync({ type: "blob" });
-  const a = document.createElement("a"); a.href = URL.createObjectURL(b); a.download = "Kartu_PIN_guru_RAHASIA.zip"; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+const bisaBagiBerkas = () => { try { return !!(navigator.canShare && navigator.canShare({ files: [new File([""], "kartu.png", { type: "image/png" })] })); } catch (e) { return false; } };
+const bisaSalinGambar = () => !!(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write);
+// Kartu disimpan per guru selama PIN-nya sama, dan disiapkan di latar belakang sesudah tabel tampil, supaya
+// Bagikan/Salin/Unduh langsung jalan saat diklik (peramban hanya mengizinkannya tepat sesudah klik).
+async function kartuDari(g) { const c = KARTU.get(g.id); if (c && c.pin === g.pin) return c;
+  const blob = await gambarKartu(g), k = { pin: g.pin, blob, file: new File([blob], namaBerkasKartu(g), { type: "image/png" }) }; KARTU.set(g.id, k); return k; }
+const kartuSiap = (g) => { const c = KARTU.get(g.id); return c && c.pin === g.pin ? c : null; };
+let SIAP_KE = 0;
+function siapkanKartu(daftar) { const ke = ++SIAP_KE, antre = daftar.filter((g) => !kartuSiap(g));
+  (async () => { for (const g of antre) { if (ke !== SIAP_KE) return; try { await kartuDari(g); } catch (e) { /* dicoba lagi saat diklik */ } await new Promise((r) => setTimeout(r, 20)); } })(); }
+// Tautan unduh dipasang ke halaman dulu: sebagian peramban mengabaikan klik pada tautan yang tidak terpasang
+function unduhBlob(blob, nama) { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = nama; a.style.display = "none";
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 5000); }
+const teksBagi = (g) => `PIN pribadi ${g.nama} untuk Matematika Dasar dan Asesmen Merdeka. Rahasia, mohon tidak diteruskan.`;
+let KL_URL = "";
+function lihatKartu(g, k, pesan) { if (KL_URL) URL.revokeObjectURL(KL_URL); KL_URL = URL.createObjectURL(k.blob);
+  $("kl-img").src = KL_URL; $("kl-nama").textContent = g.nama; $("kl-pesan").textContent = pesan || ""; $("kl-pesan").classList.toggle("hidden", !pesan);
+  $("kl-aksi").innerHTML = (bisaBagiBerkas() ? '<button class="kecil" data-kl="bagi">Bagikan</button>' : "") + (bisaSalinGambar() ? '<button class="garis kecil" data-kl="salin">Salin gambar</button>' : "") + '<button class="garis kecil" data-kl="unduh">Unduh PNG</button>';
+  $("kl-aksi").querySelectorAll("[data-kl]").forEach((b) => b.onclick = () => aksiKartu(b.dataset.kl, g, true)); $("adm-lihat").classList.remove("hidden"); }
+async function aksiKartu(a, g, dariJendela) {
+  if (a === "salin") {
+    // ClipboardItem menerima janji: izin dari klik tetap berlaku walau kartu baru selesai digambar
+    try { window.focus(); await navigator.clipboard.write([new ClipboardItem({ "image/png": kartuDari(g).then((k) => k.blob) })]); toast(`Kartu ${g.nama} disalin — tempel (Ctrl+V) di chat WhatsApp-nya`); }
+    catch (e) { lihatKartu(g, await kartuDari(g), "Peramban menolak menyalin otomatis (" + e.message + "). Salin dari gambar di bawah."); }
+    return;
+  }
+  const k = kartuSiap(g) || await kartuDari(g);
+  if (a === "unduh") { unduhBlob(k.blob, k.file.name); toast(`Diunduh: ${k.file.name} — lihat folder Unduhan`); }
+  else if (a === "lihat") lihatKartu(g, k);
+  else if (a === "bagi") { try { await navigator.share({ files: [k.file], title: "PIN pribadi " + g.nama, text: teksBagi(g) }); }
+    catch (e) { if (e.name !== "AbortError") { if (dariJendela) toast("Gagal membagikan: " + e.message); else lihatKartu(g, k, "Peramban menolak membagikan langsung (" + e.message + "). Coba lagi dari sini, atau unduh/salin gambarnya."); } } }
 }
 async function muatAdmin() {
   try { ADM = await rpc("mtd_admin_guru", { p_pin: PIN }); }
@@ -1994,17 +2002,21 @@ function gambarAdmin() {
   <section class="kartu seksi">
     <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 20a6.5 6.5 0 0 0-3-5.5"/></svg></span>
       <div><h2>Guru dan PIN masuk</h2><p>Semua guru aktif di Data Induk beserta kelompok MD yang diampu (jadwal KBM). PIN pribadi yang sama dipakai di Asesmen Merdeka (Tryout). ${ADM.disinkron ? "Terakhir ditarik " + esc(tglTeks(ADM.disinkron, true)) + "." : "Belum pernah ditarik."}</p></div>
-      <span class="seksi-aksi admin-aksi">${L.length ? '<button class="btn-unduh garis kecil" data-fmt="xlsx" id="adm-unduh" title="Daftar guru beserta PIN masuknya (rahasia)">Unduh daftar PIN</button>' : ""}<button class="garis kecil" id="adm-tarik">Tarik guru dari Data Induk</button>${belum ? `<button class="kecil" id="adm-acak-semua">Buat PIN untuk ${belum} guru</button>` : ""}</span></div>
+      <span class="seksi-aksi admin-aksi"><button class="garis kecil" id="adm-tarik">Tarik guru dari Data Induk</button>${belum ? `<button class="kecil" id="adm-acak-semua">Buat PIN untuk ${belum} guru</button>` : ""}</span></div>
     ${ADM.sementara.length ? `<p class="sesi-peringatan"><b>${ADM.sementara.length} kelompok</b> masih bisa dimasuki dengan nama kelompoknya (${esc(ADM.sementara.join(", "))}), karena belum ada guru yang tercatat untuk kelompok itu di jadwal KBM. Tarik guru dari Data Induk setelah jadwalnya dilengkapi.</p>` : ""}
-    ${L.length ? `<div class="adm-pilih"><label><input type="checkbox" id="adm-pilih-semua"> pilih semua guru ber-PIN pribadi</label><button class="kecil" id="adm-kartu" disabled>Kartu PIN (PNG)</button></div>
-      <div class="gulir seksi-tabel"><table class="tabel adm-tabel" data-beku="2"><thead><tr><th></th><th>Guru</th><th>Kelompok</th><th>PIN masuk</th><th></th></tr></thead><tbody>${L.map((g) => `<tr class="${g.aktif ? "" : "nonaktif"}">
+    ${L.length ? `<div class="adm-pilih"><label><input type="checkbox" id="adm-pilih-semua"> pilih semua guru ber-PIN pribadi</label><span class="kecil redup" id="adm-n-pilih"></span>
+        <span class="aksi"><button class="kecil" id="adm-bagi">Bagikan kartu terpilih</button><button class="garis kecil" id="adm-png">Unduh kartu PNG terpilih</button><button class="btn-unduh garis kecil" data-fmt="xlsx" id="adm-unduh" title="Daftar PIN guru yang dicentang; bila tidak ada yang dicentang, semua guru aktif">Unduh XLSX</button></span></div>
+      <p class="kecil redup">Kartu PIN per guru ada di kolom <b>Kartu PIN</b>: <b>Bagikan</b> (HP) → WhatsApp → chat pribadi guru · <b>Salin</b> lalu tempel (Ctrl+V) di WhatsApp Web · <b>Unduh</b> PNG · <b>Lihat</b> pratinjau. Kirim ke chat pribadi, jangan ke grup.</p>
+      <div class="gulir seksi-tabel"><table class="tabel adm-tabel" data-beku="2"><thead><tr><th></th><th>Guru</th><th>Kelompok</th><th>PIN masuk</th><th>Kartu PIN (PNG)</th><th></th></tr></thead><tbody>${L.map((g) => `<tr class="${g.aktif ? "" : "nonaktif"}">
         <td>${g.aktif && g.status === "acak" ? `<input type="checkbox" data-pilih="${esc(g.id)}" ${ADM_PILIH.has(g.id) ? "checked" : ""} aria-label="Pilih ${esc(g.nama)}">` : ""}</td>
         <td><b>${esc(g.nama)}</b>${g.aktif ? "" : '<span class="kecil redup">Tidak ada lagi di jadwal KBM</span>'}</td>
         <td>${esc(g.kelompok.join(", ") || "–")}</td>
         <td><span class="pin-sel">${statusPin(g)}</span></td>
-        <td class="kanan">${g.aktif ? `<span class="jl-aksi"><button class="garis kecil" data-acak="${esc(g.id)}">${g.status === "acak" ? "Buat ulang" : "Buat PIN"}</button>${g.status === "acak" ? `<button class="garis kecil" data-kartu="${esc(g.id)}">Kartu PNG</button><button class="kecil tutup-merah" data-hapus-pin="${esc(g.id)}">Hapus PIN</button>` : ""}</span>` : ""}</td></tr>`).join("")}</tbody></table></div>
-      <div class="gk-panel hidden" id="adm-kartu-panel"><div class="gk-kepala"><b>Kartu PIN <span class="redup" id="gk-n"></span></b><span class="aksi"><button class="kecil" id="gk-bagi">Bagikan semua</button><button class="btn-unduh garis kecil" data-fmt="zip" id="gk-zip">Unduh semua (.zip)</button><button class="garis kecil" id="gk-tutup">Tutup</button></span></div>
-        <p class="kecil redup">Kirim tiap kartu <b>langsung ke chat pribadi</b> guru yang bersangkutan, jangan ke grup. Di HP: <b>Bagikan</b> → WhatsApp → pilih guru. Di laptop: <b>Salin gambar</b> lalu tempel (Ctrl+V) di WhatsApp Web, atau <b>Unduh</b>.</p><div class="gk-grid" id="gk-grid"></div></div>`
+        <td class="gk-aksi">${g.aktif && g.status === "acak" ? `<span class="gk-baris"><button class="garis kecil" data-k="lihat" data-id="${esc(g.id)}">Lihat</button>${bisaBagiBerkas() ? `<button class="kecil" data-k="bagi" data-id="${esc(g.id)}">Bagikan</button>` : ""}${bisaSalinGambar() ? `<button class="garis kecil" data-k="salin" data-id="${esc(g.id)}">Salin</button>` : ""}<button class="garis kecil" data-k="unduh" data-id="${esc(g.id)}">Unduh</button></span>` : `<span class="kecil redup">${g.aktif ? "buat PIN dulu" : ""}</span>`}</td>
+        <td class="kanan">${g.aktif ? `<span class="jl-aksi"><button class="garis kecil" data-acak="${esc(g.id)}">${g.status === "acak" ? "Buat ulang" : "Buat PIN"}</button>${g.status === "acak" ? `<button class="kecil tutup-merah" data-hapus-pin="${esc(g.id)}">Hapus PIN</button>` : ""}</span>` : ""}</td></tr>`).join("")}</tbody></table></div>
+      <div id="adm-lihat" class="hidden" role="dialog" aria-label="Kartu PIN"><div class="kl-in"><div class="aksi" style="justify-content:space-between"><b id="kl-nama"></b><button class="garis kecil" id="kl-tutup">Tutup</button></div>
+        <p id="kl-pesan" class="kecil hidden" style="margin:0;color:var(--emas-teks)"></p><img id="kl-img" alt="Kartu PIN"><div class="aksi" id="kl-aksi"></div>
+        <p class="kecil redup" style="margin:0">Bila tombol tidak bekerja: klik kanan gambar → <i>Salin gambar</i> / <i>Simpan gambar</i> (laptop), atau tekan lama gambar (HP).</p></div></div>`
       : '<p class="butir redup">Belum ada guru. Tekan <b>Tarik guru dari Data Induk</b>.</p>'}
     <p class="catatan-seksi"><span>PIN guru: PIN pribadi 8 angka buatan admin Matematika Dasar atau operator Asesmen Merdeka; berlaku di kedua aplikasi. Sebelum dibuat, guru bisa masuk Matematika Dasar dengan ID gurunya di Data Induk (mis. G161), tetapi tidak bisa masuk Asesmen Merdeka. Halaman ini hanya terbuka untuk guru yang mengampu kelompok MD. Nama kelompok (mis. MD10-1) hanya bisa dipakai untuk kelompok yang belum punya guru tercatat. Bagikan PIN pribadi langsung ke guru yang bersangkutan.</span></p>
   </section>
@@ -2027,14 +2039,15 @@ function gambarAdmin() {
 
   // Unduh daftar PIN (.xlsx): hanya guru aktif, untuk menjawab guru yang lupa PIN-nya
   if ($("adm-unduh")) $("adm-unduh").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
-    const A = L.filter((g) => g.aktif);
+    const pilih = L.filter((g) => ADM_PILIH.has(g.id) && g.aktif && g.status === "acak"), A = pilih.length ? pilih : L.filter((g) => g.aktif);
     const kolom = [{ t: "No", w: 5, rata: "center" }, { t: "Nama guru", w: 36, tebal: true }, { t: "ID guru", w: 10, rata: "center" },
       { t: "Kelompok", w: 26 }, { t: "Jenis PIN", w: 18 }, { t: "PIN masuk", w: 14, rata: "center", tebal: true }];
     const baris = A.map((g, i) => [i + 1, g.nama, g.id, g.kelompok.join(", "), g.status === "acak" ? "PIN pribadi" : "Sementara (ID guru)", g.status === "acak" ? g.pin : g.id]);
     await unduhBukuXLSX({ namaBerkas: `Daftar_PIN_Guru_Matematika_Dasar_${tglBerkas()}.xlsx`, judulBuku: "Daftar PIN Guru", lembar: [{
       nama: "PIN guru", judul: "Daftar PIN Guru Matematika Dasar", sub: "RAHASIA: jangan dibagikan ke siswa atau grup umum", kolom, baris,
-      info: [["Jumlah guru", `${A.length} guru`], ["Belum punya PIN pribadi", `${A.filter((g) => g.status !== "acak").length} guru`]],
+      info: [["Isi", pilih.length ? `${A.length} guru terpilih` : `semua guru aktif (${A.length})`], ["Belum punya PIN pribadi", `${A.filter((g) => g.status !== "acak").length} guru`]],
       ubin: [["Guru", A.length], ["PIN pribadi", A.filter((g) => g.status === "acak").length], ["Sementara", A.filter((g) => g.status !== "acak").length]] }] });
+    return `Daftar_PIN_Guru_Matematika_Dasar_${tglBerkas()}.xlsx`;
   });
   $("adm-tarik").onclick = async (ev) => {
     const b = ev.currentTarget, t = b.textContent; b.disabled = true; b.textContent = "Menarik…";
@@ -2054,7 +2067,8 @@ function gambarAdmin() {
   };
   const acak = async (ids, pesan) => {
     if (!confirm(pesan)) return;
-    try { const r = await rpc("mtd_admin_acak", { p_pin: PIN, p_guru: ids }); toast(`PIN pribadi dibuat untuk ${r.guru.length} guru`); muatAdmin(); }
+    try { const r = await rpc("mtd_admin_acak", { p_pin: PIN, p_guru: ids }); ADM_PILIH.clear(); r.guru.forEach((g) => ADM_PILIH.add(g.id));
+      toast(`PIN pribadi dibuat untuk ${r.guru.length} guru dan sudah dicentang — bagikan kartunya`); muatAdmin(); }
     catch (e) { toast(e.message); }
   };
   if ($("adm-acak-semua")) $("adm-acak-semua").onclick = () => acak(null, `Buat PIN pribadi untuk ${belum} guru yang belum punya?\n\nSetelah itu ID guru tidak bisa dipakai lagi untuk masuk oleh guru-guru tersebut. Bagikan PIN masing-masing kepada gurunya.`);
@@ -2067,21 +2081,27 @@ function gambarAdmin() {
     if (!confirm(`Hapus PIN pribadi ${g.nama}?\n\nSampai dibuatkan PIN baru, guru ini masuk Matematika Dasar dengan ID gurunya (${g.id}) dan tidak bisa masuk Asesmen Merdeka.`)) return;
     try { await rpc("mtd_admin_hapus_pin", { p_pin: PIN, p_guru: g.id }); toast("PIN pribadi dihapus"); muatAdmin(); } catch (e) { toast(e.message); }
   });
-  // Kartu PIN (PNG): centang satu/beberapa guru ber-PIN pribadi, atau tombol Kartu PNG di barisnya
+  // Kartu PIN (PNG): tombol di tiap baris; centang satu/beberapa guru untuk bagikan/unduh sekaligus dan Unduh XLSX
   const berPin = L.filter((g) => g.aktif && g.status === "acak");
   [...ADM_PILIH].forEach((id) => { if (!berPin.some((g) => g.id === id)) ADM_PILIH.delete(id); });
-  const tombolKartu = () => { const b = $("adm-kartu"); if (!b) return; b.disabled = !ADM_PILIH.size;
-    b.textContent = ADM_PILIH.size ? `Kartu PIN (PNG) untuk ${ADM_PILIH.size} guru terpilih` : "Kartu PIN (PNG) — centang guru dulu";
+  const tombolPilihan = () => { if (!$("adm-n-pilih")) return; const nP = berPin.filter((g) => ADM_PILIH.has(g.id)).length;
+    $("adm-n-pilih").textContent = nP ? `${nP} guru terpilih` : "belum ada yang dicentang";
+    $("adm-bagi").disabled = !nP; $("adm-png").disabled = !nP; $("adm-bagi").classList.toggle("hidden", !bisaBagiBerkas());
+    $("adm-unduh").textContent = nP ? `Unduh XLSX (${nP} guru)` : "Unduh XLSX (semua guru)";
     $("adm-pilih-semua").checked = berPin.length > 0 && berPin.every((g) => ADM_PILIH.has(g.id)); };
-  $("f-admin").querySelectorAll("[data-pilih]").forEach((c) => c.onchange = () => { c.checked ? ADM_PILIH.add(c.dataset.pilih) : ADM_PILIH.delete(c.dataset.pilih); tombolKartu(); });
-  $("f-admin").querySelectorAll("[data-kartu]").forEach((b) => b.onclick = () => kartuPin([b.dataset.kartu]));
+  $("f-admin").querySelectorAll("[data-pilih]").forEach((c) => c.onchange = () => { c.checked ? ADM_PILIH.add(c.dataset.pilih) : ADM_PILIH.delete(c.dataset.pilih); tombolPilihan(); });
+  $("f-admin").querySelectorAll("[data-k]").forEach((b) => b.onclick = () => { const g = L.find((x) => x.id === b.dataset.id); if (g) aksiKartu(b.dataset.k, g); });
   if ($("adm-pilih-semua")) {
     $("adm-pilih-semua").onchange = (e) => { berPin.forEach((g) => e.target.checked ? ADM_PILIH.add(g.id) : ADM_PILIH.delete(g.id));
-      $("f-admin").querySelectorAll("[data-pilih]").forEach((c) => c.checked = ADM_PILIH.has(c.dataset.pilih)); tombolKartu(); };
-    $("adm-kartu").onclick = () => kartuPin([...ADM_PILIH]);
-    $("gk-bagi").onclick = async () => { try { await navigator.share({ files: KARTU.map((k) => k.file), title: "PIN pribadi guru" }); } catch (e) { if (e.name !== "AbortError") toast("Gagal membagikan: " + e.message); } };
-    $("gk-zip").onclick = zipKartu; $("gk-tutup").onclick = () => $("adm-kartu-panel").classList.add("hidden");
-    tombolKartu();
+      $("f-admin").querySelectorAll("[data-pilih]").forEach((c) => c.checked = ADM_PILIH.has(c.dataset.pilih)); tombolPilihan(); };
+    const terpilih = () => berPin.filter((g) => ADM_PILIH.has(g.id));
+    $("adm-bagi").onclick = async () => { const ks = []; for (const g of terpilih()) ks.push(kartuSiap(g) || await kartuDari(g));
+      try { await navigator.share({ files: ks.map((k) => k.file), title: "PIN pribadi guru" }); } catch (e) { if (e.name !== "AbortError") toast("Gagal membagikan: " + e.message + " — bagikan satu per satu dari barisnya"); } };
+    $("adm-png").onclick = async () => { const d = terpilih(); for (const [i, g] of d.entries()) { const k = kartuSiap(g) || await kartuDari(g); unduhBlob(k.blob, k.file.name); if (i < d.length - 1) await new Promise((r) => setTimeout(r, 400)); }
+      toast(`${d.length} kartu diunduh${d.length > 1 ? ' — bila peramban bertanya "unduh beberapa berkas", pilih Izinkan' : ""}`); };
+    $("kl-tutup").onclick = () => $("adm-lihat").classList.add("hidden");
+    $("adm-lihat").onclick = (e) => { if (e.target.id === "adm-lihat") e.target.classList.add("hidden"); };
+    tombolPilihan(); siapkanKartu(berPin);
   }
   $("adm-pin-simpan").onclick = async () => {
     const p1 = $("adm-pin-baru").value.trim(), p2 = $("adm-pin-ulang").value.trim();

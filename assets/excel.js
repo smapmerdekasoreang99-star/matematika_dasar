@@ -1,4 +1,4 @@
-/* Matdas — unduhan Excel (.xlsx) berformat untuk halaman guru.
+/* Unduhan Excel (.xlsx) berformat — dipakai halaman guru Matdas dan admin Asesmen Merdeka (salinan sama di Tryout_Guru/assets/excel.js).
    Gaya mengikuti unduhan Dasbor Hasil Tryout (Tryout_Guru/index.html → bukuHasil):
    kop logo + nama sekolah + judul, garis emas, kepala tabel biru tua, baris
    zebra, kolom beku, siap cetak A4. ExcelJS dimuat hanya saat diperlukan. */
@@ -29,6 +29,8 @@ const XL = { font: "Calibri", gelap: "FF1D2A3A", gelap2: "FF33445A", emas: "FFC2
   kertas: "FFF6F2E8", garis: "FFE7E0D1", garis2: "FFD6CCB6", tinta: "FF221E17", tinta2: "FF5E5548", putih: "FFFFFFFF",
   hijau: "FF2B4B37", hijauMuda: "FFE4EFE7", merah: "FF7C2F1F", merahMuda: "FFF7E4DF" };
 const SEKOLAH = "SMA Plus Merdeka Soreang";
+// Nama aplikasi di kop & kaki lembar; halaman lain (mis. admin Asesmen Merdeka) mengisi window.XL_APLIKASI sebelum memuat berkas ini.
+const APLIKASI_XL = window.XL_APLIKASI || "Matematika Dasar";
 const isiWarna = (c) => ({ type: "pattern", pattern: "solid", fgColor: { argb: c } });
 const isiCF = (c) => ({ type: "pattern", pattern: "solid", fgColor: { argb: c }, bgColor: { argb: c } });
 const garisXL = (c = XL.garis) => ({ style: "thin", color: { argb: c } });
@@ -78,7 +80,7 @@ async function unduhBukuXLSX({ lembar, namaBerkas, judulBuku }) {
     if (logoId !== null) { try { ws.addImage(logoId, { tl: { col: 0.1, row: 0.3 }, ext: { width: 34, height: 48 } }); } catch (e) { /* tanpa logo */ } }
     if (K > 2) { [2, 3, 4].forEach((r) => ws.mergeCells(r, 2, r, K)); }
     sel(ws, 2, 2, SEKOLAH, { size: 14, bold: true, warna: XL.gelap, indent: 1 });
-    sel(ws, 3, 2, `Matematika Dasar${L.sub ? "  ·  " + L.sub : ""}`, { size: 9, warna: XL.tinta2, indent: 1 });
+    sel(ws, 3, 2, `${APLIKASI_XL}${L.sub ? "  ·  " + L.sub : ""}`, { size: 9, warna: XL.tinta2, indent: 1 });
     sel(ws, 4, 2, String(L.judul || judulBuku).toUpperCase(), { size: 12, bold: true, warna: XL.emasTeks, indent: 1 });
     for (let c = 1; c <= K; c++) ws.getCell(5, c).border = { bottom: { style: "medium", color: { argb: XL.emas } } };
     ws.getRow(6).height = 8;
@@ -127,20 +129,21 @@ async function unduhBukuXLSX({ lembar, namaBerkas, judulBuku }) {
     r++;
     (L.catatan || []).forEach((t) => { if (K > 1) ws.mergeCells(r, 1, r, K); sel(ws, r, 1, t, { size: 8, warna: XL.tinta2, bungkus: true }); ws.getRow(r).height = 24; r++; });
     if (K > 1) ws.mergeCells(r, 1, r, K);
-    sel(ws, r, 1, `Diunduh ${tglIndoXL(waktu)} dari halaman guru Matematika Dasar · ${SEKOLAH}`, { size: 8, italic: true, warna: XL.tinta2 });
+    sel(ws, r, 1, `Diunduh ${tglIndoXL(waktu)} dari ${APLIKASI_XL} · ${SEKOLAH}`, { size: 8, italic: true, warna: XL.tinta2 });
 
     ws.views = [{ state: "frozen", xSplit: L.beku ?? 2, ySplit: barisJudul, showGridLines: false }];
     ws.pageSetup = { paperSize: 9, orientation: L.melintang === false ? "portrait" : "landscape", fitToPage: true, fitToWidth: 1, fitToHeight: 0,
       printTitlesRow: `${barisJudul}:${barisJudul}`, horizontalCentered: true,
       margins: { left: 0.4, right: 0.4, top: 0.5, bottom: 0.5, header: 0.2, footer: 0.2 } };
-    ws.headerFooter = { oddFooter: `&L&8${SEKOLAH} · Matematika Dasar&R&8Halaman &P dari &N` };
+    ws.headerFooter = { oddFooter: `&L&8${SEKOLAH} · ${APLIKASI_XL}&R&8Halaman &P dari &N` };
   });
 
   const buf = await wb.xlsx.writeBuffer();
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
-  a.download = namaBerkas; a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  // tautan dipasang ke halaman dulu: sebagian peramban mengabaikan klik pada tautan yang tidak terpasang
+  a.download = namaBerkas; a.style.display = "none"; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 5000);
 }
 
 /* Tombol unduh: "Menyiapkan…" selama berjalan, sama dengan aplikasi lain (ikon & lencana XLSX tetap, digambar CSS). */

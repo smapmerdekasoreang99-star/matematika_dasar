@@ -113,10 +113,11 @@ Siswa dan guru memakai **satu alamat** yang sama. Guru mengetuk tautan
   tetapi ID itu tidak berlaku di Tryout.
 - **PIN admin Matdas** atau **PIN operator Tryout**: semua kelompok, pengaturan umum, guru & PIN.
 
-**Kartu PIN (PNG)** di menu Admin → Guru dan PIN masuk: centang satu atau beberapa guru ber-PIN pribadi
-(atau tombol *Kartu PNG* di barisnya) → kartu berisi nama, PIN, aplikasi tempat PIN berlaku beserta alamatnya,
-dan peringatan rahasia → di HP **Bagikan** ke chat WhatsApp guru, di laptop **Salin gambar** lalu tempel di
-WhatsApp Web, atau **Unduh** / *Unduh semua (.zip)*. Kartu dibuat di peramban, tidak dikirim ke server.
+**Kartu PIN (PNG)** di menu Admin → Guru dan PIN masuk (satu tabel): kolom **Kartu PIN** di tiap baris —
+*Lihat*, **Bagikan** (HP → WhatsApp → chat pribadi guru), **Salin** (tempel di WhatsApp Web), **Unduh** PNG.
+Centang satu atau beberapa guru untuk *Bagikan kartu terpilih*, *Unduh kartu PNG terpilih*, dan **Unduh XLSX**
+(guru terpilih, atau semua guru aktif bila tidak ada yang dicentang). PIN yang baru dibuat langsung tercentang.
+Kartu dibuat di peramban, tidak dikirim ke server.
 Kartu yang sama tersedia di admin Tryout (tab Guru & PIN).
 
 Daftar guru ditarik dari Data Induk lewat `guru_ekspor` (semua guru aktif + kelompok MD + kelas yang
