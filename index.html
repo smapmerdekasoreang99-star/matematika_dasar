@@ -354,7 +354,7 @@ details.peta[open] summary::before { transform: rotate(90deg); }
 <div class="benar-kilat" id="kilat" aria-hidden="true">Benar ✓</div>
 <div class="toast" id="toast" role="status"></div>
 
-<script src="assets/umum.js?v=8"></script>
+<script src="assets/umum.js?v=9"></script>
 <script>
 "use strict";
 const KUNCI_SESI = "mtd_token", KUNCI_NISN = "mtd_nisn";
@@ -692,6 +692,20 @@ document.addEventListener("keydown", (e) => {
 });
 
 /* ----------------------------------------------------------- server */
+// Wi-Fi sekolah bisa tersendat saat ratusan siswa berlatih bersamaan: jawaban dikirim ulang sendiri (jeda
+// acak supaya tidak serentak). Aman: p_soal memberi tahu server soal mana yang dijawab, jadi jawaban yang
+// sudah tercatat tidak dinilai lagi terhadap soal berikutnya (balasan "basi").
+async function kirimJawaban(args) {
+  for (let i = 0; ; i++) {
+    try { return await rpc("mtd_jawab", args, 15000); }
+    catch (e) {
+      if (!e.jaringan || i >= 3) throw e;
+      toast("Sinyal tersendat — mengirim ulang jawaban…");
+      await new Promise((ok) => setTimeout(ok, 1000 * 2 ** i + Math.random() * 1000));
+    }
+  }
+}
+
 async function kirim(waktuHabis) {
   if (sibuk) return;
   const j = teksJawaban();
@@ -699,9 +713,15 @@ async function kirim(waktuHabis) {
   if (j === "" && !waktuHabis) return toast(A.pl ? "Pilih salah satu jawaban dulu." : "Tulis jawabanmu dulu.");
   sibuk = true;
   try {
-    const r = await rpc("mtd_jawab", { p_token: S.token, p_jawaban: j || "" });
+    // soal.id tidak ada di server lama: undefined tidak ikut terkirim, jadi urutan pemasangan tidak penting.
+    const r = await kirimJawaban({ p_token: S.token, p_jawaban: j || "", p_soal: S.soal ? S.soal.id : undefined });
     if (r.habis) return habis();
     S = r;
+    if (r.basi) {
+      toast("Jawabanmu tadi sudah tercatat. Lanjut ke soal berikutnya.");
+      if (S.selesai) return selesai();
+      isiPosisi(); return isiSoal();
+    }
     const h = r.hasil;
     if (h.benar) {
       kilat();

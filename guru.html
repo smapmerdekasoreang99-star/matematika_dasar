@@ -433,6 +433,18 @@ body.lihat .ubah { display: none !important; }
 .kh-app { font-size: 12.5px; color: #221E17; } .kh-app b { display: block; font-size: 13.5px; } .kh-app code { font-size: 11px; color: #1D2A3A; word-break: break-all; }
 .kh-rahasia { background: #F7E4DF; border-top: 3px solid #A8432E; padding: 10px 16px; color: #A8432E; font-weight: 700; font-size: 12.5px; }
 #adm-lihat .aksi { display: flex; flex-wrap: wrap; gap: 6px; }
+/* Ubah PIN guru: dialog berlapis (alasan, ketik ID guru, PIN admin lagi) */
+#adm-ubah { position: fixed; inset: 0; z-index: 60; background: rgba(21,35,43,.85); display: flex; align-items: center; justify-content: center; padding: 16px; }
+#adm-ubah .kl-in { background: #fff; border-radius: 14px; padding: 16px; max-width: 480px; width: 100%; max-height: 96vh; overflow: auto; display: grid; gap: 12px; }
+#adm-ubah .aksi { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+#adm-ubah .up-kotak { background: var(--emas-kabut); border: 1px solid var(--garis); border-radius: 10px; padding: 10px 12px; display: grid; gap: 4px; font-size: var(--h-s); }
+#adm-ubah .up-awas { color: var(--absen-tua); font-weight: 600; }
+#adm-ubah .up-saran { background: var(--hadir-muda); border-radius: 10px; padding: 10px 12px; display: flex; gap: 8px; align-items: center; justify-content: space-between; flex-wrap: wrap; font-size: var(--h-s); }
+#adm-ubah .up-langkah { display: grid; gap: 6px; border: 0; margin: 0; padding: 0; min-width: 0; font-size: var(--h-m); }
+#adm-ubah .up-langkah > span, #adm-ubah legend { font-weight: 700; padding: 0; margin-bottom: 6px; }
+#adm-ubah fieldset label { display: flex; gap: 8px; align-items: flex-start; margin: 2px 0; }
+#adm-ubah input[type=text], #adm-ubah input[type=password], #adm-ubah select { width: 100%; box-sizing: border-box; font: inherit; padding: var(--j2) var(--j3); border: 1px solid var(--garis); border-radius: 8px; background: #fff; }
+.adm-tabel .g-ganti { display: block; font-size: var(--h-xs); color: var(--absen-tua); margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -681,7 +693,7 @@ body.lihat .ubah { display: none !important; }
     <button class="garis" id="kl-tutup">Tutup tampilan</button></div>
 </div>
 
-<script src="assets/umum.js?v=8"></script>
+<script src="assets/umum.js?v=9"></script>
 <script src="assets/simpan.js?v=3"></script>
 <script src="assets/excel.js?v=4"></script>
 <script>
@@ -2043,12 +2055,26 @@ function gambarAdmin() {
         <td>${g.aktif && g.status === "acak" ? `<input type="checkbox" data-pilih="${esc(g.id)}" ${ADM_PILIH.has(g.id) ? "checked" : ""} aria-label="Pilih ${esc(g.nama)}">` : ""}</td>
         <td><b>${esc(g.nama)}</b>${g.aktif ? "" : '<span class="kecil redup">Tidak ada lagi di jadwal KBM</span>'}</td>
         <td>${esc(g.kelompok.join(", ") || "–")}</td>
-        <td><span class="pin-sel">${statusPin(g)}</span></td>
+        <td><span class="pin-sel">${statusPin(g)}</span>${g.n_ganti_90 ? `<span class="g-ganti">diganti/dihapus ${g.n_ganti_90}× dalam 90 hari</span>` : ""}</td>
         <td class="gk-aksi">${g.aktif && g.status === "acak" ? `<span class="gk-baris"><button class="garis kecil" data-k="lihat" data-id="${esc(g.id)}">Kartu</button>${bisaBagiBerkas() ? `<button class="kecil" data-k="bagi" data-id="${esc(g.id)}">Bagikan</button>` : ""}<button class="garis kecil" data-k="unduh" data-id="${esc(g.id)}">Unduh</button></span>` : `<span class="kecil redup">${g.aktif ? "buat PIN dulu" : ""}</span>`}</td>
-        <td class="kanan">${g.aktif ? `<span class="jl-aksi"><button class="garis kecil" data-acak="${esc(g.id)}">${g.status === "acak" ? "Buat ulang" : "Buat PIN"}</button>${g.status === "acak" ? `<button class="kecil tutup-merah" data-hapus-pin="${esc(g.id)}">Hapus PIN</button>` : ""}</span>` : ""}</td></tr>`).join("")}</tbody></table></div>
+        <td class="kanan">${g.status === "acak" ? `<button class="garis kecil" data-ubah="${esc(g.id)}" title="Buat PIN baru atau hapus PIN (dengan alasan dan konfirmasi)">Ubah PIN…</button>` : g.aktif ? `<button class="garis kecil" data-acak="${esc(g.id)}">Buat PIN</button>` : ""}</td></tr>`).join("")}</tbody></table></div>
       <div id="adm-lihat" class="hidden" role="dialog" aria-label="Kartu PIN"><div class="kl-in"><div class="aksi" style="justify-content:space-between"><b id="kl-nama"></b><button class="garis kecil" id="kl-tutup">Tutup</button></div>
         <p id="kl-pesan" class="kecil hidden" style="margin:0;color:var(--emas-teks)"></p><div id="kl-isi"></div><div class="aksi" id="kl-aksi"></div>
-        <p class="kecil redup" style="margin:0">Bila tombol tidak bekerja: klik kanan gambar → <i>Salin gambar</i> / <i>Simpan gambar</i> (laptop), atau tekan lama gambar (HP).</p></div></div>`
+        <p class="kecil redup" style="margin:0">Bila tombol tidak bekerja: klik kanan gambar → <i>Salin gambar</i> / <i>Simpan gambar</i> (laptop), atau tekan lama gambar (HP).</p></div></div>
+      <div id="adm-ubah" class="hidden" role="dialog" aria-label="Ubah PIN guru"><div class="kl-in">
+        <div class="aksi" style="justify-content:space-between"><b id="up-judul">Ubah PIN</b><button class="garis kecil" id="up-tutup">Batal</button></div>
+        <div id="up-riwayat" class="up-kotak"></div>
+        <div class="up-saran" id="up-saran"><span><b>Guru lupa PIN?</b> Tidak perlu diganti — kirim ulang kartunya.</span><button class="kecil" id="up-kartu">Kirim ulang kartu</button></div>
+        <fieldset class="up-langkah"><legend>1. Yang dilakukan</legend>
+          <label><input type="radio" name="up-aksi" value="ulang"> <span><b>Buat PIN baru</b> — PIN lama langsung tidak berlaku</span></label>
+          <label><input type="radio" name="up-aksi" value="hapus"> <span><b>Hapus PIN</b> — guru masuk Matematika Dasar dengan ID gurunya dan tidak bisa masuk Asesmen Merdeka</span></label></fieldset>
+        <label class="up-langkah"><span>2. Alasan</span><select id="up-alasan"><option value="">— pilih alasan —</option><option>PIN diketahui orang lain (siswa/rekan)</option><option>Guru meminta PIN baru</option><option>Guru tidak mengajar lagi / pindah</option><option value="lain">Lainnya…</option></select>
+          <input type="text" id="up-alasan-lain" class="hidden" maxlength="200" placeholder="Tuliskan alasannya (paling sedikit 5 huruf)"></label>
+        <label class="up-langkah"><span>3. Ketik ID guru <b id="up-id-contoh"></b> untuk memastikan gurunya benar</span><input type="text" id="up-id" autocomplete="off" spellcheck="false"></label>
+        <label class="up-langkah"><span>4. Masukkan lagi PIN admin Anda</span><input type="password" id="up-pin" autocomplete="off"></label>
+        <p id="up-pesan" class="kecil hidden" style="margin:0;color:var(--absen-tua);font-weight:600"></p>
+        <p class="kecil redup" style="margin:0">Setiap penggantian dan penghapusan dicatat beserta alasannya dan siapa yang melakukannya.</p>
+        <div class="aksi" style="justify-content:flex-end"><button class="bahaya" id="up-ok" disabled>Ubah PIN</button></div></div></div>`
       : '<p class="butir redup">Belum ada guru. Tekan <b>Tarik guru dari Data Induk</b>.</p>'}
     <p class="catatan-seksi"><span>PIN guru: PIN pribadi 8 angka buatan admin Matematika Dasar atau operator Asesmen Merdeka; berlaku di kedua aplikasi. Sebelum dibuat, guru bisa masuk Matematika Dasar dengan ID gurunya di Data Induk (mis. G161), tetapi tidak bisa masuk Asesmen Merdeka. Halaman ini hanya terbuka untuk guru yang mengampu kelompok MD. Nama kelompok (mis. MD10-1) hanya bisa dipakai untuk kelompok yang belum punya guru tercatat. Bagikan PIN pribadi langsung ke guru yang bersangkutan.</span></p>
   </section>
@@ -2106,13 +2132,49 @@ function gambarAdmin() {
   if ($("adm-acak-semua")) $("adm-acak-semua").onclick = () => acak(null, `Buat PIN pribadi untuk ${belum} guru yang belum punya?\n\nSetelah itu ID guru tidak bisa dipakai lagi untuk masuk oleh guru-guru tersebut. Bagikan PIN masing-masing kepada gurunya.`);
   $("f-admin").querySelectorAll("[data-acak]").forEach((b) => b.onclick = () => {
     const g = L.find((x) => x.id === b.dataset.acak);
-    acak([g.id], g.status === "acak" ? `Buat ulang PIN ${g.nama}?\n\nPIN lama (${g.pin}) tidak berlaku lagi.` : `Buat PIN pribadi untuk ${g.nama}?`);
+    acak([g.id], `Buat PIN pribadi untuk ${g.nama}?`);
   });
-  $("f-admin").querySelectorAll("[data-hapus-pin]").forEach((b) => b.onclick = async () => {
-    const g = L.find((x) => x.id === b.dataset.hapusPin);
-    if (!confirm(`Hapus PIN pribadi ${g.nama}?\n\nSampai dibuatkan PIN baru, guru ini masuk Matematika Dasar dengan ID gurunya (${g.id}) dan tidak bisa masuk Asesmen Merdeka.`)) return;
-    try { await rpc("mtd_admin_hapus_pin", { p_pin: PIN, p_guru: g.id }); toast("PIN pribadi dihapus"); muatAdmin(); } catch (e) { toast(e.message); }
+  // Ubah PIN pribadi — berlapis, karena guru yang PIN-nya sering berganti jadi enggan memakai aplikasi:
+  // tawarkan kirim ulang kartu dulu, tampilkan riwayatnya, lalu wajib alasan + ketik ID guru + PIN admin lagi.
+  // Server (mtd_admin_ubah_pin) memeriksa ulang semuanya dan mencatatnya.
+  let upG = null;
+  const tglUp = (s) => new Date(s).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" });
+  const hariSejak = (s) => Math.floor((Date.now() - new Date(s)) / 864e5);
+  const riwayatPin = (g) => { const n = g.n_ganti_90 || 0, t = g.ganti_terakhir, baru = g.pin_sejak && hariSejak(g.pin_sejak) < 7;
+    return `<div>PIN sekarang ${g.pin_sejak ? `dipakai sejak <b>${esc(tglUp(g.pin_sejak))}</b> (${hariSejak(g.pin_sejak)} hari)` : "dibuat sebelum riwayat PIN dicatat"}.</div>`
+      + `<div>Diganti/dihapus <b>${n}×</b> dalam 90 hari terakhir${t ? ` · terakhir ${esc(tglUp(t.waktu))}, ${t.aksi === "hapus" ? "dihapus" : "diganti"} oleh ${esc(t.oleh || "?")}: “${esc(t.alasan || "")}”` : ""}.</div>`
+      + (n >= 2 || baru ? `<div class="up-awas">${n >= 2 ? "PIN guru ini sudah sering diganti. " : ""}${baru ? "PIN ini baru dibuat; mungkin gurunya belum membaca kartunya. " : ""}Ganti hanya bila benar-benar perlu.</div>` : ""); };
+  const aksiUp = () => ($("adm-ubah").querySelector("[name=up-aksi]:checked") || {}).value;
+  const alasanUp = () => $("up-alasan").value === "lain" ? $("up-alasan-lain").value.trim() : $("up-alasan").value;
+  const cekUbahPin = () => { const a = aksiUp(), b = $("up-ok"); $("up-alasan-lain").classList.toggle("hidden", $("up-alasan").value !== "lain");
+    b.textContent = a === "hapus" ? "Hapus PIN" : a === "ulang" ? "Buat PIN baru" : "Ubah PIN";
+    b.disabled = !(upG && a && alasanUp().length >= 5 && $("up-id").value.trim().toUpperCase() === upG.id.toUpperCase() && $("up-pin").value.trim()); };
+  const tutupUbah = () => { $("adm-ubah").classList.add("hidden"); upG = null; };
+  $("f-admin").querySelectorAll("[data-ubah]").forEach((b) => b.onclick = () => {
+    const g = L.find((x) => x.id === b.dataset.ubah); if (!g) return; upG = g;
+    $("up-judul").textContent = "Ubah PIN · " + g.nama; $("up-id-contoh").textContent = g.id; $("up-riwayat").innerHTML = riwayatPin(g);
+    $("adm-ubah").querySelectorAll("[name=up-aksi]").forEach((r) => r.checked = false);
+    $("up-alasan").value = ""; $("up-alasan-lain").value = ""; $("up-id").value = ""; $("up-pin").value = "";
+    $("up-pesan").classList.add("hidden"); $("up-saran").classList.toggle("hidden", !g.aktif);
+    cekUbahPin(); $("adm-ubah").classList.remove("hidden");
   });
+  if ($("adm-ubah")) {
+    $("up-tutup").onclick = tutupUbah;
+    $("adm-ubah").querySelectorAll("input,select").forEach((i) => i.oninput = i.onchange = cekUbahPin);
+    $("up-kartu").onclick = () => { const g = upG; tutupUbah(); if (g) lihatKartu(g, `PIN tidak diganti. Kirim ulang kartu ini ke chat pribadi ${g.nama}.`); };
+    $("up-ok").onclick = async () => {
+      const g = upG, a = aksiUp(), b = $("up-ok"), t = b.textContent; if (!g || !a) return;
+      b.disabled = true; b.textContent = "Memproses…"; $("up-pesan").classList.add("hidden");
+      try {
+        const r = await rpc("mtd_admin_ubah_pin", { p_pin: PIN, p_guru: g.id, p_aksi: a, p_alasan: alasanUp(), p_id_ketik: $("up-id").value.trim(), p_pin_ulang: $("up-pin").value.trim() });
+        tutupUbah();
+        if (a === "ulang") { ADM_PILIH.clear(); ADM_PILIH.add(g.id); }
+        await muatAdmin(); const baru = ADM && ADM.guru.find((x) => x.id === g.id);
+        if (a === "ulang" && baru && baru.pin) lihatKartu(baru, `PIN baru ${r.pin} sudah berlaku; PIN lama tidak bisa dipakai lagi. Kirim kartu ini ke chat pribadi ${g.nama}.`);
+        else toast(`PIN pribadi ${g.nama} dihapus — sementara masuk Matematika Dasar dengan ID ${g.id}`);
+      } catch (e) { $("up-pesan").textContent = e.message; $("up-pesan").classList.remove("hidden"); b.textContent = t; cekUbahPin(); }
+    };
+  }
   // Kartu PIN (PNG): tombol di tiap baris; centang satu/beberapa guru untuk bagikan/unduh sekaligus dan Unduh XLSX
   const berPin = L.filter((g) => g.aktif && g.status === "acak");
   [...ADM_PILIH].forEach((id) => { if (!berPin.some((g) => g.id === id)) ADM_PILIH.delete(id); });

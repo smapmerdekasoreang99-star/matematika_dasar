@@ -11,22 +11,32 @@ const SB = (() => {
   return c && c.url && c.key ? c : null;
 })();
 
-async function rpc(fn, args) {
+/* batas (ms, opsional): permintaan yang menggantung dibatalkan. Galat jaringan/gerbang (bukan penolakan
+   dari fungsi) diberi tanda .jaringan supaya pemanggil yang aman diulang bisa mengirim ulang. */
+async function rpc(fn, args, batas) {
   if (!SB) throw new Error("Server belum diatur (config.js belum ada).");
-  let r;
+  const ac = batas ? new AbortController() : null, tm = ac && setTimeout(() => ac.abort(), batas);
+  let r, t;
   try {
     r = await fetch(`${SB.url}/rest/v1/rpc/${fn}`, {
       method: "POST",
       headers: { "Content-Type": "application/json", apikey: SB.key, Authorization: "Bearer " + SB.key },
       body: JSON.stringify(args || {}),
+      signal: ac ? ac.signal : undefined,
     });
+    t = await r.text();
   } catch (e) {
-    throw new Error("Tidak tersambung ke server. Periksa internet lalu coba lagi.");
-  }
-  const t = await r.text();
+    const g = new Error("Tidak tersambung ke server. Periksa internet lalu coba lagi.");
+    g.jaringan = true;
+    throw g;
+  } finally { clearTimeout(tm); }
   let j = null;
   try { j = t ? JSON.parse(t) : null; } catch (e) { /* bukan JSON */ }
-  if (!r.ok) throw new Error((j && (j.message || j.hint)) || t || ("Galat " + r.status));
+  if (!r.ok) {
+    const g = new Error((j && (j.message || j.hint)) || t || ("Galat " + r.status));
+    if (r.status >= 502 || (r.status >= 500 && !j)) g.jaringan = true;
+    throw g;
+  }
   return j;
 }
 
