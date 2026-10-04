@@ -109,7 +109,10 @@ async function unduhBukuXLSX({ lembar, namaBerkas, judulBuku }) {
     const barisJudul = r;
     kolom.forEach((k, i) => sel(ws, r, i + 1, k.t, { bold: true, warna: XL.putih, fill: XL.gelap, rata: "center", bungkus: true,
       tepi: { top: garisXL(XL.gelap), left: garisXL(XL.gelap2), right: garisXL(XL.gelap2), bottom: { style: "medium", color: { argb: XL.emas } } } }));
-    ws.getRow(r).height = 30; r++;
+    ws.getRow(r).height = 30;
+    // Kepala tabel: kata tidak terpotong di tengah (pasKepalaExcel, 4 Oktober 2026; assets/kepala-excel.js).
+    if (window.pasKepalaExcel) window.pasKepalaExcel(ws, barisJudul, barisJudul, { kolomAwal: 1, kolomAkhir: K });
+    r++;
     const awal = r;
     if (!L.baris.length) { if (K > 1) ws.mergeCells(r, 1, r, K); sel(ws, r, 1, "Tidak ada data.", { italic: true, warna: XL.tinta2, rata: "center" }); r++; }
     L.baris.forEach((b, i) => {
