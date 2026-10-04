@@ -39,6 +39,11 @@ perubahan lewat [`../database_tryout/`](../database_tryout/README.md)
    tingkat dan level tetap tersimpan. Saat masuk lagi, siswa mulai dari
    nomor 1 di level itu. Memuat ulang halaman di tengah sesi **tidak**
    mengulang nomor.
+6. Sinyal tersendat saat mengirim jawaban: halaman mengirim ulang sendiri (sampai 3 kali,
+   jeda acak; permintaan yang menggantung dibatalkan setelah 15 detik). Jawaban yang
+   ternyata sudah tercatat **tidak dinilai dua kali**: halaman mengirim ID soal yang
+   dijawab (`p_soal`), dan bila soalnya sudah berganti server hanya membalas keadaan
+   terkini. Siswa melihat "Jawabanmu tadi sudah tercatat" lalu lanjut ke soal berikutnya.
 
 ## Soal dibuat otomatis
 
@@ -174,6 +179,36 @@ diampu), sama dengan yang dipakai Tryout.
   - *Kosongkan data latihan*: hapus data latihan **semua** siswa, hanya dengan
     **PIN kepala sekolah** (`tka_privat.pin_kepsek_matdas`, bukan PIN guru) dan
     mengetik KOSONGKAN. Data siswa, pengaturan, tingkat & level tetap.
+
+## Ujian bersama (ratusan siswa sekaligus)
+
+Diukur 4 Okt 2026 di server Supabase Tryout (paket gratis, Tokyo) dengan 800 siswa tiruan
+dalam 24 kelompok:
+
+| Panggilan | Waktu di server |
+|---|---|
+| Masuk (`mtd_masuk`) | ±3,5 ms |
+| Menjawab (`mtd_jawab`) | ±2,5 ms |
+| Lapor keluar halaman | ±0,3 ms |
+| Rekap 1 kelompok (riwayat ±1.500 jawaban/siswa) | ±45 ms |
+
+- 800 siswa yang menjawab rata-rata tiap 8 detik ≈ 100 jawaban/detik, kira-kira seperempat
+  satu inti CPU. Kunci data hanya per siswa, jadi siswa tidak saling menunggu. Siswa tidak
+  melakukan polling; server dipanggil hanya saat masuk, menjawab, dan kembali ke halaman.
+- Rekap (Kemajuan dan Daftar siswa, diperbarui tiap 30 detik oleh setiap guru/pengawas)
+  membaca ringkasan per siswa `mtd_ringkas`, yang diperbarui trigger di `mtd_jawaban`
+  (termasuk saat data latihan dihapus), jadi tidak melambat seiring riwayat bertambah.
+- Hambatan yang lebih mungkin: **Wi-Fi sekolah**. Satu access point praktis melayani
+  30–50 perangkat. Siswa yang memakai kuota HP sendiri tidak terpengaruh.
+- **Membuka per tingkat dengan jeda 3–5 menit** tidak diperlukan oleh server, tetapi
+  membantu jaringan (lonjakan memuat halaman dan tersambung ke Wi-Fi tersebar) dan pengawas
+  (sempat membuka sesi, membagikan kode akses, menolong yang gagal masuk). Pakai kode akses
+  berbeda per kelompok/ruang: masuk hanya dengan NISN, jadi kode itulah yang mencegah siswa
+  masuk atas nama teman (yang akan menutup sesi temannya).
+- Menguji beban: jangan memasukkan ratusan ribu baris dalam **satu** transaksi ke project
+  ini (trigger ringkasan memperbarui baris yang sama berulang kali tanpa sempat dibersihkan).
+  Pada 4 Okt 2026 uji seperti itu membuat project tidak merespons ±12 menit. Pakai data
+  kecil dan `set local statement_timeout = '60s'`.
 
 ## Memasang
 
