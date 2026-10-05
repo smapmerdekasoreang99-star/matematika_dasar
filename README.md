@@ -1,8 +1,9 @@
 # Matdas — Matematika Dasar
 
 Latihan hitung berjenjang untuk siswa SMA Plus Merdeka Soreang. Siswa naik
-**Tingkat → Level** satu per satu: 10 soal benar di satu level, naik ke level
-berikutnya. Setelah semua level di satu tingkat tuntas, siswa pindah ke tingkat
+**Tingkat → Level** satu per satu: 10 soal di satu level (jumlahnya bisa diatur), naik ke level
+berikutnya. Bila jawaban salah, siswa *mengulang nomor itu dengan soal pengganti
+sampai benar* (bawaan) atau *lanjut ke nomor berikutnya*, sesuai pengaturan guru. Setelah semua level di satu tingkat tuntas, siswa pindah ke tingkat
 berikutnya.
 
 | Berkas | Untuk siapa | Isi |
@@ -157,7 +158,8 @@ diampu), sama dengan yang dipakai Tryout.
 - **Aturan & Jalur Khusus**:
   1. *Profil aturan*: kumpulan aturan bernama yang bisa dipakai ulang (strategi guru,
      dengan catatan). Bisa dibedakan: halaman dibuka/ditutup, kode akses, tampilkan
-     jawaban benar, soal benar per level, batas salah, pecahan sederhana, lama sesi,
+     jawaban benar, bila jawaban salah (lanjut / ulangi sampai benar), jumlah soal
+     per level, batas salah, pecahan sederhana, lama sesi,
      batas waktu per soal, pengawasan keluar halaman (batas, toleransi, kode buka).
      Isian kosong mengikuti lapisan di bawahnya; kode "-" = sengaja tanpa kode.
      Yang boleh masuk dan titik awal siswa baru tetap umum.
@@ -170,13 +172,15 @@ diampu), sama dengan yang dipakai Tryout.
   Analisis siswa menampilkan *Aturan yang berlaku* beserta asal tiap aturan.
 - **Pengaturan Umum**, dikelompokkan seperti *Pengaturan ujian* di Dasbor Hasil Tryout:
   - *Halaman Latihan*: dibuka/ditutup, yang boleh masuk (anggota kelompok MD
-    saja / semua siswa aktif), tampilkan jawaban benar saat salah, kode akses.
+    saja / semua siswa aktif), tampilkan jawaban benar saat salah, bila jawaban
+    salah (*Lanjut nomor berikutnya*: tuntas setelah nomor terakhir selama salah
+    tidak melewati batas; *Ulangi sampai benar*: soal pengganti di nomor yang sama), kode akses.
   - *Pengawasan keluar halaman* (sama dengan Tryout: alarm bunyi + getar,
     layar peringatan, klik kanan dan salin dicegah): batas keluar (tercapai → latihan dikunci),
     toleransi detik (lebih singkat hanya dicatat), kode buka untuk pengawas
     (kosong = PIN guru atau PIN admin). Kunci bertahan walau
     siswa keluar lalu masuk lagi, sampai dibuka atau waktu sesinya habis.
-  - *Aturan naik level*: soal benar per level, batas salah, batas waktu per
+  - *Aturan naik level*: jumlah soal per level (kunci `n_benar`), batas salah, batas waktu per
     soal, pecahan wajib paling sederhana.
   - *Sesi & titik awal*: lama sesi dan titik awal siswa baru (Penjumlahan
     Dasar, atau tingkat pertama sesuai kelompoknya: MD11 → MD11).

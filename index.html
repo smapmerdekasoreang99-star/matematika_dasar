@@ -79,6 +79,7 @@
 .titik i { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--garis-2); background: var(--kertas-2);
   display: inline-flex; align-items: center; justify-content: center; font-style: normal; font-size: 11px; font-weight: 700; color: var(--tinta-3); }
 .titik i.ok { background: var(--hadir); border-color: var(--hadir); color: #fff; }
+.titik i.x { background: var(--absen-muda); border-color: var(--absen); color: var(--absen-tua); }
 .titik i.kini { border-color: var(--emas-tua); background: var(--emas-muda); color: var(--emas-teks); transform: scale(1.12); }
 .kesempatan { display: flex; align-items: center; gap: var(--j2); flex-wrap: wrap; font-size: var(--h-s); color: var(--tinta-2); }
 .kesempatan .hati { display: inline-flex; gap: 4px; }
@@ -360,6 +361,9 @@ details.peta[open] summary::before { transform: rotate(90deg); }
 const KUNCI_SESI = "mtd_token", KUNCI_NISN = "mtd_nisn";
 let S = null;                 // paket terakhir dari server
 let A = null;                 // isian jawaban
+// Mode "Lanjut nomor berikutnya": nomor yang dijawab salah di level ini (hanya untuk titik kemajuan; hilang bila halaman dimuat ulang)
+const lanjutMode = () => S && S.atur && S.atur.bila_salah === "lanjut";
+let salahNo = new Set(), naikTertunda = null;
 let sibuk = false, akhirSesi = 0, akhirSoal = 0, jamTimer = null, menungguLanjut = false, menungguNaik = false;
 
 /* ----------------------------------------------------------- tampilan */
@@ -376,7 +380,7 @@ function isiPosisi() {
   $("p-batang").style.width = (100 * S.ringkas.lewat / Math.max(1, S.ringkas.total)) + "%";
   $("p-ke").textContent = `${S.ringkas.lewat} dari ${S.ringkas.total} level tuntas`;
   let t = "";
-  for (let i = 1; i <= nb; i++) t += `<i class="${i < S.nomor ? "ok" : i === S.nomor ? "kini" : ""}">${i < S.nomor ? "✓" : i}</i>`;
+  for (let i = 1; i <= nb; i++) t += i < S.nomor && salahNo.has(i) ? '<i class="x">✕</i>' : `<i class="${i < S.nomor ? "ok" : i === S.nomor ? "kini" : ""}">${i < S.nomor ? "✓" : i}</i>`;
   $("p-titik").innerHTML = t;
   // Sisa kesempatan salah sebagai bulatan: lebih cepat dipahami daripada kalimat.
   const ks = $("p-salah");
@@ -716,7 +720,11 @@ async function kirim(waktuHabis) {
     // soal.id tidak ada di server lama: undefined tidak ikut terkirim, jadi urutan pemasangan tidak penting.
     const r = await kirimJawaban({ p_token: S.token, p_jawaban: j || "", p_soal: S.soal ? S.soal.id : undefined });
     if (r.habis) return habis();
+    const nomorTadi = S.nomor;
     S = r;
+    const hh = r.hasil;
+    if (!hh || hh.naik || hh.ulang || S.nomor === 1) salahNo = new Set();
+    if (hh && !hh.benar && !hh.naik && !hh.ulang && lanjutMode()) salahNo.add(nomorTadi);
     if (r.basi) {
       toast("Jawabanmu tadi sudah tercatat. Lanjut ke soal berikutnya.");
       if (S.selesai) return selesai();
@@ -782,6 +790,9 @@ function salah(h) {
   $("f-saran").classList.toggle("hidden", !sr);
   $("f-ulang").textContent = h.ulang ? `Salahmu di level ini sudah lebih dari ${S.atur.batas_salah}. Level ini diulang dari nomor 1. Tetap semangat!` : "";
   $("f-ulang").classList.toggle("hidden", !h.ulang);
+  // Mode lanjut: salah di nomor terakhir tetap menuntaskan level, jadi setelah kartu ini tampil kartu naik level
+  naikTertunda = h.naik ? h : null;
+  $("btn-lanjut").textContent = h.ulang ? "Ulangi dari nomor 1 →" : h.naik ? "Lanjut →" : lanjutMode() ? "Lanjut ke nomor berikutnya →" : "Lanjut ke soal pengganti →";
   $("k-salah").classList.remove("hidden");
   isiPosisi();
   $("btn-lanjut").focus();
@@ -790,6 +801,7 @@ function salah(h) {
 $("btn-lanjut").onclick = () => {
   menungguLanjut = false;
   $("k-salah").classList.add("hidden");
+  if (naikTertunda) { const n = naikTertunda; naikTertunda = null; return naik(n); }
   $("k-soal").classList.remove("hidden");
   isiSoal();
 };

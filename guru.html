@@ -1264,9 +1264,10 @@ const ATUR_KHUSUS = [
   { g: "Halaman latihan", f: [
     { k: "aktif", l: "Halaman latihan", t: "ya", on: "Dibuka", off: "Ditutup", ro: true },
     { k: "kode_akses", l: "Kode akses", t: "kode", ro: true },
-    { k: "tampil_kunci", l: "Jawaban benar saat salah", t: "ya", on: "Ditampilkan", off: "Disembunyikan" } ] },
+    { k: "tampil_kunci", l: "Jawaban benar saat salah", t: "ya", on: "Ditampilkan", off: "Disembunyikan" },
+    { k: "bila_salah", l: "Bila jawaban salah", t: "pilih", opsi: [["lanjut", "Lanjut nomor berikutnya"], ["ulang", "Ulangi sampai benar"]] } ] },
   { g: "Naik level", f: [
-    { k: "n_benar", l: "Soal benar per level", t: "angka", sat: "soal", min: 1, maks: 50 },
+    { k: "n_benar", l: "Jumlah soal per level", t: "angka", sat: "soal", min: 1, maks: 50 },
     { k: "batas_salah", l: "Batas salah per level", t: "angka", sat: "kali", min: 0, maks: 50 },
     { k: "pecahan_sederhana", l: "Pecahan paling sederhana", t: "ya", on: "Wajib", off: "Tidak wajib" } ] },
   { g: "Waktu", f: [
@@ -1278,7 +1279,7 @@ const ATUR_KHUSUS = [
     { k: "kode_buka", l: "Kode buka kunci", t: "kode" } ] },
 ];
 const SEMUA_KHUSUS = ATUR_KHUSUS.flatMap((g) => g.f);
-const nilaiAturTeks = (x, v) => x.t === "ya" ? (v ? x.on : x.off) : x.t === "kode" ? (v ? v : "tanpa kode")
+const nilaiAturTeks = (x, v) => x.t === "ya" ? (v ? x.on : x.off) : x.t === "pilih" ? ((x.opsi.find((o) => o[0] === (v || "ulang")) || [])[1] || v) : x.t === "kode" ? (v ? v : "tanpa kode")
   : x.k === "batas_salah" || x.k === "batas_waktu_soal" || x.k === "maks_keluar" ? (v ? `${v} ${x.sat}` : "tanpa batas") : `${v} ${x.sat}`;
 // "Dipakai oleh" untuk profil dan tahapan: kelompok (beserta jumlah anggotanya) dan siswa yang dipilih langsung
 const dipakaiTeks = (kel, nKel, nSiswa) => [kel.length ? `kelompok ${kel.join(", ")} (${nKel} siswa)` : "", nSiswa ? `${nSiswa} siswa dipilih langsung` : ""].filter(Boolean).join(" · ");
@@ -1359,6 +1360,7 @@ function bukaEditorProfil(p) {
   const kendali = (x) => {
     const v = a[x.k];
     if (x.t === "ya") return `<select data-pk="${x.k}"><option value="">— ikut umum (${U[x.k] ? x.on : x.off}) —</option><option value="true" ${v === true ? "selected" : ""}>${x.on}</option><option value="false" ${v === false ? "selected" : ""}>${x.off}</option></select>`;
+    if (x.t === "pilih") return `<select data-pk="${x.k}"><option value="">— ikut umum (${esc(nilaiAturTeks(x, U[x.k]))}) —</option>${x.opsi.map((o) => `<option value="${o[0]}" ${v === o[0] ? "selected" : ""}>${o[1]}</option>`).join("")}</select>`;
     if (x.t === "kode") return `<input type="text" data-pk="${x.k}" maxlength="20" autocomplete="off" spellcheck="false" placeholder="ikut umum (${esc(U[x.k] || "tanpa kode")})" value="${v === undefined ? "" : v === "" ? "-" : esc(v)}" style="text-transform:uppercase">`;
     return `<span class="grup"><input type="number" data-pk="${x.k}" min="${x.min}" max="${x.maks}" inputmode="numeric" placeholder="${U[x.k]}" value="${v === undefined ? "" : v}"><span class="satuan">${x.sat}</span></span>`;
   };
@@ -1377,6 +1379,7 @@ function bukaEditorProfil(p) {
       const el = ed.querySelector(`[data-pk="${x.k}"]`), v = el.value.trim();
       if (v === "") continue;
       if (x.t === "ya") aturan[x.k] = v === "true";
+      else if (x.t === "pilih") aturan[x.k] = v;
       else if (x.t === "kode") aturan[x.k] = v.toUpperCase();
       else { const n = Number(v); if (!Number.isInteger(n) || n < x.min || n > x.maks) return toast(`${x.l}: isi ${x.min}–${x.maks} atau kosongkan.`); aturan[x.k] = n; }
     }
@@ -1893,6 +1896,8 @@ const SEKSI = [
     { k: "peserta", umum: true, jenis: "pilih", l: "Yang boleh masuk", s: "Kelompok MD diambil dari Data Induk lewat admin Aplikasi Tryout Guru.",
       pilih: [["md", "Anggota kelompok MD saja", "MD10-1, MD11-2, … di Data Induk → Kelompok Belajar"], ["semua", "Semua siswa aktif", "Siapa pun yang terdaftar di Tryout boleh berlatih"]] },
     { k: "tampil_kunci", jenis: "ya", l: "Tampilkan jawaban benar saat siswa salah", s: "Bila dimatikan, siswa hanya diberi tahu jawabannya belum tepat (beserta saran bila kesalahannya dikenali).", on: "Ditampilkan", off: "Disembunyikan" },
+    { k: "bila_salah", jenis: "pilih", l: "Bila jawaban salah", s: "Berlaku untuk setiap nomor di level yang sedang dikerjakan.",
+      pilih: [["lanjut", "Lanjut nomor berikutnya", "Setiap nomor dijawab sekali. Level tuntas setelah nomor terakhir, selama salahnya tidak melewati batas salah"], ["ulang", "Ulangi sampai benar", "Jawaban salah diganti soal baru di nomor yang sama; nomor maju hanya bila benar"]] },
   ] },
   { ikon: "perisai", judul: "Pengawasan keluar halaman", ket: "Seperti Tryout: setiap kali siswa meninggalkan halaman latihan, alarm berbunyi (dan HP bergetar), muncul peringatan, dan kejadiannya dicatat.", baris: [
     { k: "maks_keluar", jenis: "angka", satuan: "kali", maks: 20, l: "Batas keluar halaman", s: "Saat batas tercapai, latihan dikunci sampai dibuka guru. 0 = tanpa batas (tetap dicatat)." },
@@ -1900,7 +1905,7 @@ const SEKSI = [
     { k: "kode_buka", jenis: "kode", l: "Kode buka kunci", s: "Diketik guru di perangkat siswa yang terkunci. Kosong = PIN guru atau PIN admin." },
   ], catatan: "Kunci tetap berlaku walau siswa keluar lalu masuk lagi, sampai dibuka atau waktu sesinya habis. Guru juga bisa membuka kunci dari <b>Sesi Kegiatan</b>, yang juga menampilkan jumlah keluar halaman tiap siswa." },
   { ikon: "tangga", judul: "Aturan naik level", ket: "Kapan siswa tuntas satu level dan kapan level diulang.", baris: [
-    { k: "n_benar", jenis: "angka", satuan: "soal", min: 1, maks: 50, l: "Soal benar untuk tuntas satu level", s: "Bawaan 10." },
+    { k: "n_benar", jenis: "angka", satuan: "soal", min: 1, maks: 50, l: "Jumlah soal per level", s: "Bawaan 10. Banyaknya nomor di satu level; cara menjawab nomor yang salah diatur di \"Bila jawaban salah\"." },
     { k: "batas_salah", jenis: "angka", satuan: "kali", maks: 50, l: "Batas salah per level", s: "Lebih dari batas ini, level diulang dari nomor 1. 0 = tanpa batas." },
     { k: "batas_waktu_soal", jenis: "angka", satuan: "detik", maks: 600, l: "Batas waktu per soal", s: "Waktu habis dihitung salah. 0 = tanpa batas waktu." },
     { k: "pecahan_sederhana", jenis: "ya", l: "Jawaban pecahan wajib paling sederhana", s: "Bila wajib, 2/4 untuk kunci 1/2 dihitung salah (siswa diberi tahu nilainya sudah benar).", on: "Wajib", off: "Tidak wajib" },
@@ -1918,7 +1923,8 @@ function ringkasAtur(a) {
   $("atur-ringkas").innerHTML = [
     ...(ATUR_KEL ? [] : [c("info", "Peserta", a.peserta === "semua" ? "Semua siswa" : "Kelompok MD")]),
     c(a.maks_keluar > 0 ? "on" : "", "Batas keluar", a.maks_keluar > 0 ? `${a.maks_keluar}×` : "tanpa batas"),
-    c("info", "Tuntas", `${a.n_benar} soal benar`),
+    c("info", "Soal per level", `${a.n_benar} soal`),
+    c("info", "Bila salah", a.bila_salah === "lanjut" ? "lanjut" : "ulangi sampai benar"),
     c("info", "Sesi", `${a.durasi_menit} menit`),
   ].join("");
 }
