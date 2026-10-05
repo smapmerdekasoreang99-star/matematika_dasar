@@ -102,9 +102,13 @@ Di tab yang sama, tombol **Coba** membuka level itu di tab baru sebagai **uji co
 guru mengerjakan soal seperti siswa tanpa akun siswa (akun sementara `UJI-…`, tidak
 masuk rekap, terhapus sendiri setelah sehari), tetap bisa walau Halaman Latihan ditutup.
 
-Tab **Tingkat dan Level Soal** di `guru.html` menampilkan 10 soal acak beserta
-kuncinya untuk setiap level, supaya guru bisa memeriksa kesesuaiannya dengan
-modul.
+Tab **Tahapan Level** di `guru.html` menampilkan 10 soal acak (tombol **Contoh**)
+untuk setiap level, supaya guru bisa memeriksa kesesuaiannya dengan modul. Soal
+tampil tanpa jawaban; centang **Tampilkan Jawaban** untuk kuncinya (beserta
+pembahasan bila server mengirim kolom `pembahasan`), dan **Mode Layar Penuh** untuk
+memproyeksikannya: kisi simetris yang ukuran hurufnya menyesuaikan layar, dengan
+tombol ✕ / ← Kembali (atau Esc, atau tombol Kembali peramban) untuk kembali ke
+halaman sebelumnya.
 
 ## Untuk guru
 

@@ -252,10 +252,39 @@ button.tutup-merah { background: var(--absen-muda); color: var(--absen-tua); }
 .lv-baris .no { flex: 0 0 auto; min-width: 64px; text-align: center; font-size: var(--h-xs); font-weight: 700; letter-spacing: .04em; color: var(--sakit-tua);
   background: var(--sakit-muda); border-radius: var(--r-bulat); padding: 3px 10px; }
 .lv-baris .kt { flex: 1; }
-.contoh { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--j1) var(--j4); padding: var(--j2) 0 var(--j3) 76px; font-size: var(--h-n); }
-.contoh .k { color: var(--hadir-tua); font-weight: 700; }
+.contoh { padding: var(--j2) 0 var(--j3) 76px; font-size: var(--h-n); }
+.contoh-isi { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--j1) var(--j4); }
+.contoh .k, .ct-layar .k { color: var(--hadir-tua); font-weight: 700; }
 .contoh .contoh-baca { grid-column: 1 / -1; border-bottom: 1px dashed var(--garis); padding-bottom: var(--j2); }
+.ct-alat { display: flex; flex-wrap: wrap; gap: var(--j2) var(--j5); margin-bottom: var(--j3); padding-bottom: var(--j2); border-bottom: 1px solid var(--garis); }
+.ct-alat label.cek, .ctl-kepala label.cek { display: inline-flex; align-items: center; gap: 6px; font-size: var(--h-s); font-weight: 600; cursor: pointer; min-height: 32px; }
+.ct-alat input, .ctl-kepala input { width: 18px; height: 18px; accent-color: var(--emas); }
+/* Jawaban disembunyikan tanpa menggeser susunan; pembahasan dilipat sepenuhnya */
+.tanpa-jawab .ct-jwb { visibility: hidden; }
+.tanpa-jawab .ct-bahas { display: none; }
+.ct-bahas { display: block; margin-top: var(--j1); font-size: .86em; color: var(--tinta-2); line-height: 1.5; }
+.ct-bahas ol { margin: 0; padding-left: 1.3em; }
 @media (max-width: 560px) { .contoh { padding-left: 0; } }
+/* Contoh soal satu layar penuh, untuk diproyeksikan: kisi simetris, huruf menyesuaikan layar */
+.ct-layar { position: fixed; inset: 0; z-index: var(--lapis-tirai); background: var(--kertas); display: flex; flex-direction: column; }
+.ct-layar.hidden { display: none; }
+body.ct-terkunci { overflow: hidden; }
+.ctl-kepala { display: flex; align-items: center; gap: var(--j3); padding: var(--j2) var(--j4); background: var(--kertas-2); border-bottom: 1px solid var(--garis); flex-wrap: wrap; }
+.ctl-judul { flex: 1 1 0; min-width: 0; display: grid; line-height: 1.25; }
+.ctl-judul b, .ctl-judul span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ctl-judul b { font-size: var(--h-judul-s); }
+.ctl-judul span { font-size: var(--h-s); color: var(--tinta-2); }
+@media (max-width: 640px) { .ctl-judul { flex-basis: calc(100% - 180px); } .ctl-x { order: 1; } .ctl-kepala label.cek, #ctl-lain { order: 2; } .ctl-kepala label.cek { flex: 1; } }
+.ctl-x { width: var(--sentuh); height: var(--sentuh); padding: 0; font-size: 20px; line-height: 1; }
+.ctl-isi { flex: 1; min-height: 0; display: grid; grid-auto-flow: column; gap: var(--j3) var(--j5); padding: var(--j4) var(--j5) var(--j5); counter-reset: ct; }
+.ctl-isi .ct-item { counter-increment: ct; min-height: 0; overflow: hidden; display: flex; flex-wrap: wrap; align-items: center; align-content: center; gap: 0 .35em;
+  padding: .2em .6em .2em max(1.9em, 34px); position: relative; background: var(--kertas-2); border: 1px solid var(--garis); border-radius: var(--r3); line-height: 1.35; }
+.ctl-isi .ct-item::before { content: counter(ct) "."; position: absolute; left: max(.55em, 10px); top: 50%; transform: translateY(-50%); font-size: max(.6em, 12px); font-weight: 700; color: var(--tinta-3); }
+.ctl-isi .ct-bahas { flex-basis: 100%; }
+.ctl-isi .contoh-baca .ct-soal { flex-basis: 100%; }
+/* Layar terlalu kecil untuk memuat semuanya pada huruf terbaca: satu kolom yang digulir */
+.ctl-isi.ctl-gulir { grid-template-rows: none !important; grid-auto-flow: row; grid-auto-rows: max-content; overflow-y: auto; }
+.ctl-isi.ctl-gulir .ct-item { overflow: visible; min-height: auto; padding-top: .5em; padding-bottom: .5em; }
 
 /* Peringatan belum pernah sinkron: harus menonjol, bukan sekadar teks redup */
 .sinkron-tegas { display: flex; gap: var(--j3); align-items: center; background: var(--emas-muda); border: 1px solid var(--emas);
@@ -599,7 +628,7 @@ body.lihat .ubah { display: none !important; }
     <div id="p-tingkat" class="hidden">
       <div class="kepala-hal"><div><span class="eyebrow">Materi</span><h1>Tahapan Level</h1>
         <p>Susunan MD10, MD11, dan MD12. Lihat contoh soal, coba kerjakan sendiri, atau tutup tingkat yang belum dipakai.</p></div></div>
-      <p class="redup kecil">Soal dibuat acak oleh server dari aturan tiap level. Tekan <b>Contoh</b> untuk melihat 10 soal acak beserta kuncinya, atau <b>Coba</b> untuk mengerjakannya sendiri seperti siswa (uji coba guru: terbuka di tab baru, tidak memakai akun siswa, tidak masuk rekap, tetap bisa walau Halaman Latihan ditutup). Tingkat yang ditutup dilewati siswa.</p>
+      <p class="redup kecil">Soal dibuat acak oleh server dari aturan tiap level. Tekan <b>Contoh</b> untuk melihat 10 soal acak (centang <b>Tampilkan Jawaban</b> untuk kuncinya, <b>Mode Layar Penuh</b> untuk diproyeksikan), atau <b>Coba</b> untuk mengerjakannya sendiri seperti siswa (uji coba guru: terbuka di tab baru, tidak memakai akun siswa, tidak masuk rekap, tetap bisa walau Halaman Latihan ditutup). Tingkat yang ditutup dilewati siswa.</p>
       <div id="t-tingkat"></div>
     </div>
 
@@ -691,6 +720,17 @@ body.lihat .ubah { display: none !important; }
 <div class="kode-layar hidden" id="kode-layar" role="dialog" aria-modal="true" aria-labelledby="kl-kel">
   <div class="kl-isi"><span class="kl-label" id="kl-kel"></span><span class="kl-ket">Kode akses latihan</span><b id="kl-kode"></b><span class="kl-ket" id="kl-sampai"></span>
     <button class="garis" id="kl-tutup">Tutup tampilan</button></div>
+</div>
+<!-- Contoh soal satu layar penuh (Tahapan Level → Contoh → Mode Layar Penuh) -->
+<div class="ct-layar hidden" id="ct-layar" role="dialog" aria-modal="true" aria-labelledby="ctl-judul">
+  <div class="ctl-kepala">
+    <button class="garis kecil" id="ctl-kembali">← Kembali</button>
+    <div class="ctl-judul"><b id="ctl-judul"></b><span id="ctl-ket"></span></div>
+    <label class="cek"><input type="checkbox" id="ctl-jawab"> Tampilkan Jawaban</label>
+    <button class="garis kecil" id="ctl-lain">Contoh lain</button>
+    <button class="garis ctl-x" id="ctl-tutup" aria-label="Tutup layar penuh" title="Tutup (Esc)">✕</button>
+  </div>
+  <div class="ctl-isi" id="ctl-isi"></div>
 </div>
 
 <script src="assets/umum.js?v=9"></script>
@@ -1103,6 +1143,18 @@ $("dl-terapkan").onclick = async () => {
 // BUKA = { umum_aktif, sekarang, kelompok: [{ kelompok, buka, sampai, kode, n_siswa, n_online }] }
 let BUKA = null, sesiT = null;
 const LAMA_SESI = [30, 45, 60, 90, 120];
+// Bawaan lama sesi = "Lama satu sesi" dari profil aturan kelompok, atau Pengaturan Umum bila kelompok
+// tidak berprofil. Pilihan guru di daftar diingat supaya tidak kembali ke bawaan saat daftar diperbarui.
+const MENIT_PILIH = {};
+function menitBawaan(kel) {
+  const p = PROFIL.find((x) => x.id === PROFIL_KEL[kel]), m = +((p && p.aturan && p.aturan.durasi_menit) || (G.atur && G.atur.durasi_menit));
+  return m > 0 ? m : 90;
+}
+function pilihMenit(kel) {
+  const pilih = MENIT_PILIH[kel] || menitBawaan(kel), bawaan = menitBawaan(kel);
+  const L = [...new Set([...LAMA_SESI, bawaan, pilih])].sort((a, b) => a - b);
+  return `<select data-menit="${esc(kel)}" aria-label="Lama sesi ${esc(kel)}">${L.map((m) => `<option value="${m}" ${m === pilih ? "selected" : ""}>${m} menit${m === bawaan ? " (profil)" : ""}</option>`).join("")}</select>`;
+}
 async function muatSesi() {
   if (!MODE_MD) return;
   try { BUKA = await rpc("mtd_buka_daftar", { p_pin: PIN }); BUKA.selisih = Date.now() - new Date(BUKA.sekarang).getTime(); }
@@ -1133,14 +1185,17 @@ function gambarSesi() {
         <div class="sesi-kode">${buka ? `<small>Kode akses</small><b>${esc(k.kode)}</b>` : ""}</div>
         <div class="sesi-aksi">${!boleh ? "" : buka
           ? `<button class="garis kecil" data-layar="${esc(k.kelompok)}">Tampilkan kode</button><button class="garis kecil" data-tambah="${esc(k.kelompok)}">+15 menit</button><button class="kecil bahaya" data-tutup="${esc(k.kelompok)}">Tutup sekarang</button>`
-          : `<select data-menit="${esc(k.kelompok)}" aria-label="Lama sesi ${esc(k.kelompok)}">${LAMA_SESI.map((m) => `<option value="${m}" ${m === 90 ? "selected" : ""}>${m} menit</option>`).join("")}</select><button class="kecil" data-buka="${esc(k.kelompok)}">Buka sesi</button>`}</div></div>`;
+          : `${pilihMenit(k.kelompok)}<button class="kecil" data-buka="${esc(k.kelompok)}">Buka sesi</button>`}</div></div>`;
     }).join("");
     const cari = (k) => BUKA.kelompok.find((x) => x.kelompok === k);
+  $("sesi-isi").querySelectorAll("[data-menit]").forEach((s) => s.onchange = () => {
+    if (+s.value === menitBawaan(s.dataset.menit)) delete MENIT_PILIH[s.dataset.menit]; else MENIT_PILIH[s.dataset.menit] = +s.value;
+  });
   $("sesi-isi").querySelectorAll("[data-buka]").forEach((b) => b.onclick = async () => {
     const k = b.dataset.buka, m = +$("sesi-isi").querySelector(`[data-menit="${CSS.escape(k)}"]`).value;
     const sampai = new Date(Date.now() + m * 60000);
     if (!confirm(`Buka latihan untuk ${k} selama ${m} menit?\n\nSiswa ${k} memasukkan kode akses yang muncul setelah ini. Halaman tertutup sendiri pukul ${jamTeks(sampai)}, dan siswa yang masih berlatih saat itu ikut selesai.`)) return;
-    try { const r = await rpc("mtd_buka_kelompok", { p_pin: PIN, p_kelompok: [k], p_menit: m }); await muatSesi(); tampilKode(k); toast(`Sesi ${k} dibuka, kode ${r.kelompok[0].kode}`); }
+    try { const r = await rpc("mtd_buka_kelompok", { p_pin: PIN, p_kelompok: [k], p_menit: m }); delete MENIT_PILIH[k]; await muatSesi(); tampilKode(k); toast(`Sesi ${k} dibuka, kode ${r.kelompok[0].kode}`); }
     catch (e) { toast(e.message); }
   });
   $("sesi-isi").querySelectorAll("[data-tambah]").forEach((b) => b.onclick = async () => {
@@ -1235,7 +1290,7 @@ async function muatProfil(diam) {
   $("dl-profil").innerHTML = '<option value="">Ikut kelompok / umum</option>' + PROFIL.map((p) => `<option value="${p.id}">${esc(p.nama)}</option>`).join("");
   $("dl-profil").value = PROFIL.some((p) => String(p.id) === v) ? v : "";
   PILIH_KUNCI = ""; if (PILIH.size && PANEL_MASSAL) isiDefaultMassal();
-  gambarProfil(); gambarKelompokAturan(); gambarInfoKelompok();
+  gambarProfil(); gambarKelompokAturan(); gambarInfoKelompok(); gambarSesi();
 }
 // Semua siswa (untuk jumlah anggota kelompok, konfirmasi, dan Cek aturan siswa)
 async function muatSemua() {
@@ -1714,29 +1769,13 @@ function gambarTingkat() {
     } catch (e) { if (w) w.close(); toast(e.message); }
     b.disabled = false;
   });
-  $("t-tingkat").querySelectorAll("[data-contoh]").forEach((b) => b.onclick = async () => {
-    const [kode, lv] = b.dataset.contoh.split("|"), box = $(`c-${kode}-${lv}`);
-    b.disabled = true;
-    try {
-      const soal = await rpc("mtd_contoh", { p_pin: PIN, p_tingkat: kode, p_level: +lv, p_n: 10 });
-      box.innerHTML = soal.map((s) => s.bentuk === "hilang"
-        ? `<div>${soalHtml(s.teks)} <span class="redup">→</span> <span class="k"><span class="kotak-soal">□</span> = ${kunciHtml(s.kunci)}</span></div>`
-        : s.bentuk === "persamaan"
-        ? `<div>${soalHtml(s.teks)} <span class="redup">→</span> <span class="k"><i class="var">${esc(s.var || "x")}</i> = ${kunciHtml(s.kunci)}</span></div>`
-        : s.bentuk === "urut"
-        ? `<div class="contoh-baca">${soalHtml(s.teks)} <span class="redup">→</span> <span class="k">${kunciHtml(s.kunci)}</span></div>`
-        : s.bentuk === "notasi"
-        ? `<div>${soalHtml(s.teks)} <span class="op">=</span> <span class="k">${kunciHtml(s.kunci, "notasi")}</span></div>`
-        : s.bentuk === "pilihan"
-        ? `<div class="contoh-baca">${soalHtml(s.teks)} <span class="k">Kunci: ${esc(s.kunci)}</span></div>`
-        : s.bentuk === "cerita"
-        ? `<div class="contoh-baca">${soalHtml(s.teks)} <span class="redup">→</span> <span class="k">${kunciHtml(s.kunci)}</span></div>`
-        : ["spldv", "pola"].includes(s.bentuk)
-        ? `<div>${soalHtml(s.teks)} <span class="redup">→</span> <span class="k">${kunciHtml(s.kunci, s.bentuk)}</span></div>`
-        : `<div>${soalHtml(s.teks)} <span class="op">=</span> <span class="k">${kunciHtml(s.kunci)}</span></div>`).join("");
-      box.classList.remove("hidden"); b.textContent = "Contoh lain";
-    } catch (e) { toast(e.message); }
-    b.disabled = false;
+  $("t-tingkat").querySelectorAll("[data-contoh]").forEach((b) => b.onclick = () => muatContoh(b));
+  $("t-tingkat").querySelectorAll("[data-contoh]").forEach((b) => {
+    const box = $(`c-${b.dataset.contoh.replace("|", "-")}`);
+    box.onchange = (e) => {
+      if (e.target.matches("[data-ct-jawab]")) box.classList.toggle("tanpa-jawab", !e.target.checked);
+      if (e.target.matches("[data-ct-layar]")) e.target.checked ? bukaLayarContoh(box) : tutupLayarContoh();
+    };
   });
   $("t-tingkat").querySelectorAll("[data-aktif]").forEach((b) => b.onclick = async () => {
     try { await rpc("mtd_set_tingkat_aktif", { p_pin: PIN, p_kode: b.dataset.aktif, p_aktif: b.dataset.nilai === "true" });
@@ -1744,6 +1783,100 @@ function gambarTingkat() {
     catch (e) { toast(e.message); }
   });
 }
+
+/* Contoh soal: soal tampil lebih dulu, jawaban (dan pembahasan bila server mengirimnya) lewat centang
+   "Tampilkan Jawaban". Jawaban disembunyikan dengan CSS supaya susunan tidak bergeser saat dicentang. */
+function contohItem(s) {
+  const jwb = (isi, panah = true) => `<span class="ct-jwb">${panah ? '<span class="redup">→</span> ' : ""}<span class="k">${isi}</span></span>`;
+  const bahas = Array.isArray(s.pembahasan) && s.pembahasan.length
+    ? `<span class="ct-bahas"><ol>${s.pembahasan.map((x) => `<li>${esc(x)}</li>`).join("")}</ol></span>`
+    : s.pembahasan ? `<span class="ct-bahas">${esc(s.pembahasan).replace(/\n/g, "<br>")}</span>` : "";
+  const baca = ["urut", "pilihan", "cerita"].includes(s.bentuk);
+  const isi = s.bentuk === "hilang" ? jwb(`<span class="kotak-soal">□</span> = ${kunciHtml(s.kunci)}`)
+    : s.bentuk === "persamaan" ? jwb(`<i class="var">${esc(s.var || "x")}</i> = ${kunciHtml(s.kunci)}`)
+    : s.bentuk === "notasi" ? `<span class="op">=</span> ${jwb(kunciHtml(s.kunci, "notasi"), false)}`
+    : s.bentuk === "pilihan" ? jwb(`Kunci: ${esc(s.kunci)}`, false)
+    : ["urut", "cerita"].includes(s.bentuk) ? jwb(kunciHtml(s.kunci))
+    : ["spldv", "pola"].includes(s.bentuk) ? jwb(kunciHtml(s.kunci, s.bentuk))
+    : `<span class="op">=</span> ${jwb(kunciHtml(s.kunci), false)}`;
+  return `<div class="ct-item${baca ? " contoh-baca" : ""}"><span class="ct-soal">${soalHtml(s.teks)}</span> ${isi}${bahas}</div>`;
+}
+async function muatContoh(b) {
+  const [kode, lv] = b.dataset.contoh.split("|"), box = $(`c-${kode}-${lv}`);
+  b.disabled = true; $("ctl-lain").disabled = true;
+  try {
+    const soal = await rpc("mtd_contoh", { p_pin: PIN, p_tingkat: kode, p_level: +lv, p_n: 10 });
+    // Centang yang sudah dipilih dipertahankan saat menekan "Contoh lain"
+    const jawab = !!box.querySelector("[data-ct-jawab]:checked"), layar = !!box.querySelector("[data-ct-layar]:checked");
+    box.innerHTML = `<div class="ct-alat"><label class="cek"><input type="checkbox" data-ct-jawab${jawab ? " checked" : ""}> Tampilkan Jawaban</label>
+      <label class="cek"><input type="checkbox" data-ct-layar${layar ? " checked" : ""}> Mode Layar Penuh</label></div>
+      <div class="contoh-isi">${soal.map(contohItem).join("")}</div>`;
+    box.classList.toggle("tanpa-jawab", !jawab);
+    box.classList.remove("hidden"); b.textContent = "Contoh lain";
+    if (CT.box === box) isiLayarContoh();
+  } catch (e) { toast(e.message); }
+  b.disabled = false; $("ctl-lain").disabled = false;
+}
+
+/* Mode layar penuh: salinan soal di kisi simetris (kolom terisi dari atas ke bawah), ukuran huruf dicari
+   yang terbesar yang masih muat di setiap kotak. Tutup lewat ✕, ← Kembali, Esc, atau tombol Kembali peramban. */
+const CT = { box: null };
+function bukaLayarContoh(box) {
+  const [kode, lv] = box.id.slice(2).split(/-(?=\d+$)/), t = G.tingkat.find((x) => x.kode === kode), l = t && t.level.find((x) => x.level === +lv);
+  CT.box = box;
+  $("ctl-judul").textContent = t ? `${t.nama} · Level ${lv}` : `Level ${lv}`;
+  $("ctl-ket").textContent = [t ? `MD${t.modul}` : "", l ? l.ket : ""].filter(Boolean).join(" · ");
+  $("ct-layar").classList.remove("hidden"); document.body.classList.add("ct-terkunci");
+  isiLayarContoh();
+  history.pushState({ ctLayar: true }, "");
+  const el = $("ct-layar");
+  if (el.requestFullscreen) el.requestFullscreen().catch(() => {}).then(() => setTimeout(pasLayarContoh, 120));
+  $("ctl-tutup").focus();
+}
+function isiLayarContoh() {
+  const jawab = !!CT.box.querySelector("[data-ct-jawab]:checked");
+  $("ctl-jawab").checked = jawab;
+  $("ctl-isi").innerHTML = CT.box.querySelector(".contoh-isi").innerHTML;
+  $("ctl-isi").classList.toggle("tanpa-jawab", !jawab);
+  pasLayarContoh();
+}
+function pasLayarContoh() {
+  const isi = $("ctl-isi"), item = [...isi.children];
+  if (!CT.box || !item.length) return;
+  const panjang = item.filter((x) => x.classList.contains("contoh-baca")).length > item.length / 2;
+  const kol = item.length <= 4 || innerWidth < 720 || (panjang && innerWidth < 1100) ? 1 : 2;
+  const baris = Math.ceil(item.length / kol);
+  isi.style.gridTemplateColumns = `repeat(${kol}, minmax(0, 1fr))`;
+  isi.style.gridTemplateRows = `repeat(${baris}, minmax(0, 1fr))`;
+  // Pencarian biner ukuran huruf: terbesar yang tidak membuat satu kotak pun meluap
+  isi.classList.remove("ctl-gulir");
+  const muat = () => item.every((x) => x.scrollHeight <= x.clientHeight + 1 && x.scrollWidth <= x.clientWidth + 1);
+  let lo = 14, hi = 96;
+  isi.style.fontSize = lo + "px";
+  if (!muat()) { isi.style.gridTemplateColumns = "minmax(0, 1fr)"; isi.classList.add("ctl-gulir"); isi.style.fontSize = "18px"; return; }
+  while (hi - lo > 1) { const m = (lo + hi) >> 1; isi.style.fontSize = m + "px"; if (muat()) lo = m; else hi = m; }
+  isi.style.fontSize = lo + "px";
+}
+function tutupLayarContoh() {
+  if (!CT.box) return;
+  const box = CT.box; CT.box = null;
+  $("ct-layar").classList.add("hidden"); document.body.classList.remove("ct-terkunci");
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  if (history.state && history.state.ctLayar) history.back();
+  const c = box.querySelector("[data-ct-layar]");
+  c.checked = false; box.scrollIntoView({ block: "center" }); c.focus();
+}
+$("ctl-tutup").onclick = $("ctl-kembali").onclick = tutupLayarContoh;
+$("ctl-lain").onclick = () => CT.box && muatContoh(document.querySelector(`[data-contoh="${CT.box.id.slice(2).replace(/-(?=\d+$)/, "|")}"]`));
+$("ctl-jawab").onchange = (e) => {
+  const c = CT.box && CT.box.querySelector("[data-ct-jawab]");
+  if (c) { c.checked = e.target.checked; CT.box.classList.toggle("tanpa-jawab", !c.checked); }
+  $("ctl-isi").classList.toggle("tanpa-jawab", !e.target.checked); pasLayarContoh();
+};
+addEventListener("popstate", tutupLayarContoh);
+addEventListener("resize", () => { if (CT.box) pasLayarContoh(); });
+document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && CT.box) tutupLayarContoh(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && CT.box) tutupLayarContoh(); });
 
 /* ----------------------------------------------------------- pengaturan */
 /* Dikelompokkan seperti "Pengaturan ujian" di Dasbor Hasil Tryout, istilahnya "Halaman Latihan".
