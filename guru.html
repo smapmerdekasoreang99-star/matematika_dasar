@@ -1658,24 +1658,24 @@ function catatanOtomatis(D) {
   const berat = D.tuntas.filter((x) => x.percobaan >= 3 || x.n_salah >= 8).slice(-3);
   if (berat.length) c.push("Level yang dulu sulit dituntaskan: " + berat.map((x) => `${esc(x.nama_tingkat)} Lv ${x.level} (${x.percobaan}× mencoba, ${x.n_salah} salah)`).join("; ") + ".");
   const h = D.harian, akhir = h.length ? h[h.length - 1].tanggal : null;
-  const aktif14 = h.filter((x) => (Date.now() - new Date(x.tanggal)) / 86400000 <= 14).length, p14 = hadirPertemuan(D, 14);
+  const aktif14 = h.filter((x) => (Date.now() - new Date(x.tanggal)) / 86400000 <= 14).length, p2 = hadirPertemuan(D, 60, 2);
   c.push(!akhir ? "Belum berlatih dalam 2 bulan terakhir."
-    : p14 && p14.total ? `Berlatih di ${p14.hadir} dari ${p14.total} pertemuan dalam 14 hari terakhir; terakhir ${tglTeks(akhir)}.`
-    : `Berlatih ${aktif14} hari dalam 14 hari terakhir; terakhir ${tglTeks(akhir)}.`);
+    : p2 && p2.total ? `Berlatih di ${p2.hadir} dari ${p2.total} pertemuan terakhir; terakhir berlatih ${tglTeks(akhir)}.`
+    : `Berlatih ${aktif14} hari dalam 2 minggu terakhir; terakhir ${tglTeks(akhir)}.`);
   if (nJ) c.push(`Seluruhnya ${nJ} soal dijawab, ${Math.round(100 * nB / nJ)}% benar.`);
   return c;
 }
 
-/* Pertemuan yang diikuti siswa dalam `hari` terakhir, dari D.pertemuan (jadwal KBM
+/* Pertemuan yang diikuti siswa dalam `hari` terakhir (atau `n` pertemuan terakhir saja), dari D.pertemuan (jadwal KBM
    kelompoknya, lewat mtd_detail). Pertemuan dianggap diikuti bila ada latihan sejak
    tanggal itu sampai sebelum pertemuan berikutnya — latihan di rumah ikut pertemuan
    terdekat sebelumnya. null bila kelompok belum berjadwal (6 Oktober 2026). */
-function hadirPertemuan(D, hari) {
+function hadirPertemuan(D, hari, n) {
   const P = (D.pertemuan || []).map((x) => String(x).slice(0, 10));
   if (!P.length) return null;
   const batas = new Date(Date.now() - hari * 864e5).toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
   const tgl = (D.harian || []).map((x) => String(x.tanggal).slice(0, 10));
-  const dalam = P.filter((p) => p >= batas);
+  const dalam = P.filter((p) => p >= batas).slice(n ? -n : 0);
   const hadir = dalam.filter((p) => { const akhir = P[P.indexOf(p) + 1] || "9999-12-31"; return tgl.some((t) => t >= p && t < akhir); }).length;
   return { hadir, total: dalam.length };
 }
