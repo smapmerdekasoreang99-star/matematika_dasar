@@ -157,7 +157,13 @@
 .kl-dua { display: flex; align-items: center; justify-content: center; gap: clamp(24px, 5vw, 72px); flex-wrap: wrap; }
 .kl-kode-kol { display: grid; justify-items: center; gap: var(--j2); }
 #kl-qr { background: #fff; padding: clamp(10px, 1.6vw, 18px); border-radius: 12px; line-height: 0; }
-#kl-qr img, #kl-qr canvas { width: min(46vh, 42vw, 420px) !important; height: auto !important; image-rendering: pixelated; }
+#kl-qr { cursor: zoom-in; }
+#kl-qr img, #kl-qr canvas { width: min(70vh, 52vw) !important; height: auto !important; image-rendering: pixelated; }
+/* Ketuk QR: QR saja, sebesar mungkin, untuk siswa di barisan belakang */
+.kode-layar.qr-saja .kl-kode-kol, .kode-layar.qr-saja .kl-url, .kode-layar.qr-saja #kl-tutup { display: none; }
+.kode-layar.qr-saja #kl-qr { cursor: zoom-out; }
+.kode-layar.qr-saja #kl-qr img, .kode-layar.qr-saja #kl-qr canvas { width: min(88vh, 92vw) !important; }
+.kl-petunjuk { font-size: clamp(12px, 1.3vw, 15px); color: #8d97a4; }
 #kl-qr.hidden + .kl-kode-kol #kl-kode { font-size: clamp(96px, 22vw, 260px); }
 .kl-url { font-size: clamp(12px, 1.4vw, 16px); color: #aab3bf; word-break: break-all; }
 .kl-isi button { margin-top: var(--j4); background: transparent; color: #fff; border-color: rgba(255,255,255,.4); }
@@ -730,7 +736,7 @@ body.lihat .ubah { display: none !important; }
   <div class="kl-isi"><span class="kl-label" id="kl-kel"></span>
     <div class="kl-dua"><div id="kl-qr" class="hidden" aria-label="QR halaman latihan beserta kode akses"></div>
       <div class="kl-kode-kol"><span class="kl-ket">Kode akses latihan</span><b id="kl-kode"></b><span class="kl-ket" id="kl-sampai"></span></div></div>
-    <span class="kl-url" id="kl-url"></span>
+    <span class="kl-url" id="kl-url"></span><span class="kl-petunjuk" id="kl-petunjuk"></span>
     <button class="garis" id="kl-tutup">Tutup tampilan</button></div>
 </div>
 <!-- Contoh soal satu layar penuh (Tahapan Level → Contoh → Mode Layar Penuh) -->
@@ -1251,16 +1257,20 @@ async function tampilKode(nama) {
   const dasar = new URL("./", location.href).href;
   $("kl-kel").textContent = k.kelompok; $("kl-kode").textContent = k.kode; $("kl-sampai").textContent = `Berlaku sampai pukul ${jamTeks(k.sampai)}`;
   $("kl-url").textContent = dasar.replace(/\/$/, "");
-  const qr = $("kl-qr"); qr.innerHTML = ""; qr.classList.add("hidden");
+  const qr = $("kl-qr"); qr.innerHTML = ""; qr.classList.add("hidden"); $("kode-layar").classList.remove("qr-saja"); $("kl-petunjuk").textContent = "";
   $("kode-layar").classList.remove("hidden"); $("kl-tutup").focus();
   try {
     await muatQR();
-    new QRCode(qr, { text: `${dasar}index.html#kode=${encodeURIComponent(k.kode)}`, width: 420, height: 420, correctLevel: QRCode.CorrectLevel.M });
+    // Tautan pendek + koreksi L (cukup untuk layar, tidak tergores): QR lebih renggang, kotaknya lebih besar,
+    // sehingga terbaca dari jauh (TV 50 inci, kelas sampai 10 m — 6 Oktober 2026).
+    new QRCode(qr, { text: `${dasar}#kode=${encodeURIComponent(k.kode)}`, width: 1024, height: 1024, correctLevel: QRCode.CorrectLevel.L });
+    $("kl-petunjuk").textContent = "Ketuk QR untuk memperbesar";
     qr.removeAttribute("title");   // qrcodejs memasang title berisi tautan lengkap (dengan kode)
     qr.classList.remove("hidden");
   } catch (e) { /* tanpa QR: kode saja seperti dulu */ }
 }
 $("kl-tutup").onclick = () => $("kode-layar").classList.add("hidden");
+$("kl-qr").onclick = () => $("kode-layar").classList.toggle("qr-saja");
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("kode-layar").classList.add("hidden"); });
 // Hitung mundur diperbarui tiap 20 detik; data diambil ulang tiap menit selama tab Kemajuan terbuka.
 setInterval(() => { if (BUKA && !document.hidden && !$("p-daftar").classList.contains("hidden")) gambarSesi(); }, 20000);
