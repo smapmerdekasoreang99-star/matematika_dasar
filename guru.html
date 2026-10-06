@@ -2068,7 +2068,7 @@ async function muatPerKelompok() {
     const ptk = (L.find((r) => r.pertemuan) || {}).pertemuan;
     const sesi = BUKA && BUKA.kelompok.find((x) => x.kelompok === k), buka = sesi && sesi.buka && sisaSesi(sesi) > 0;
     return `<tr class="klik" data-kel="${esc(k)}"><td><b>${esc(k)}</b></td><td class="angka">${L.length}</td><td class="angka">${mulai.length}</td><td class="angka">${aktif7}</td>
-      <td class="kecil">${ptk ? esc(tglTeks(ptk)) : '<span class="redup" title="Belum ada jadwal di Data Induk; dihitung 7 hari terakhir">7 hari</span>'}</td>
+      <td class="kecil">${ptk ? esc(tglTeks(ptk)) : '<span class="redup" title="Jadwal pertemuan kelompok ini belum ada. Tarik guru dari Data Induk (admin); bila tetap kosong, isi jadwal KBM kelompok ini di Data Induk. Sementara dihitung 7 hari terakhir.">Belum ada jadwal</span>'}</td>
       <td class="angka">${rata.toLocaleString("id-ID", { maximumFractionDigits: 1 })}</td><td class="angka">${nJ ? Math.round(100 * nB / nJ) + "%" : "–"}</td>
       <td class="angka">${macet ? `<span class="lencana buruk">${macet}</span>` : '<span class="redup">0</span>'}</td>
       <td class="angka">${diam ? `<span class="lencana emas">${diam}</span>` : '<span class="redup">0</span>'}</td>
