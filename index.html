@@ -258,6 +258,7 @@ details.peta[open] summary::before { transform: rotate(90deg); }
       <div id="akses-isian">
         <label class="isian" for="akses">Kode akses</label>
         <input type="text" id="akses" inputmode="numeric" autocomplete="off" style="text-transform:uppercase">
+        <div class="hidden" id="akses-qr" style="color:var(--hadir-tua);margin-top:4px;font-size:var(--h-xs);font-weight:600">✓ Kode akses dari QR sudah terisi. Tinggal ketik NISN-mu.</div>
       </div>
       <div id="masuk-pesan" class="pesan buruk hidden" role="alert"></div>
       <button id="btn-masuk" class="tombol-masuk">Mulai latihan →</button>
@@ -1049,6 +1050,16 @@ function tampilKunci() {
   if (uji) {
     try { return mulai(await rpc("mtd_lanjut", { p_token: uji[1] })); }
     catch (e) { history.replaceState(null, "", location.pathname); return toast("Uji coba sudah berakhir. Mulai lagi dari halaman guru."); }
+  }
+  // Dari QR guru: index.html#kode=XXXX → kode akses terisi, siswa tinggal mengetik NISN.
+  // Kode dihapus dari alamat supaya tidak ikut tersimpan atau terbagi (6 Oktober 2026).
+  const dariQR = location.hash.match(/kode=([A-Za-z0-9]{1,16})/);
+  if (dariQR) {
+    history.replaceState(null, "", location.pathname);
+    $("akses").value = decodeURIComponent(dariQR[1]).toUpperCase();
+    $("akses-isian").classList.remove("hidden");
+    $("akses-qr").classList.remove("hidden");
+    $("nisn").focus();
   }
   const tok = ssGet(KUNCI_SESI, null);
   if (!tok) return;
