@@ -1596,7 +1596,7 @@ function batangMendatar(wadah, data, satuan, catatan) {
 
 /* Garis kumulatif level tuntas per hari aktif. */
 function garisKemajuan(wadah, titik) {
-  if (!titik.length) { wadah.innerHTML = '<p class="redup kecil">Belum ada latihan dalam 60 hari terakhir.</p>'; return; }
+  if (!titik.length) { wadah.innerHTML = '<p class="redup kecil">Belum ada latihan dalam 2 bulan terakhir.</p>'; return; }
   const W = Math.max(300, wadah.clientWidth || 720), H = 220, kiri = 36, kanan = 16, atas = 14, bawah = 30;
   const maks = Math.max(1, ...titik.map((t) => t.kum)), n = titik.length;
   const sx = (i) => kiri + (n === 1 ? (W - kiri - kanan) / 2 : i * (W - kiri - kanan) / (n - 1));
@@ -1659,7 +1659,7 @@ function catatanOtomatis(D) {
   if (berat.length) c.push("Level yang dulu sulit dituntaskan: " + berat.map((x) => `${esc(x.nama_tingkat)} Lv ${x.level} (${x.percobaan}× mencoba, ${x.n_salah} salah)`).join("; ") + ".");
   const h = D.harian, akhir = h.length ? h[h.length - 1].tanggal : null;
   const aktif14 = h.filter((x) => (Date.now() - new Date(x.tanggal)) / 86400000 <= 14).length, p14 = hadirPertemuan(D, 14);
-  c.push(!akhir ? "Belum berlatih dalam 60 hari terakhir."
+  c.push(!akhir ? "Belum berlatih dalam 2 bulan terakhir."
     : p14 && p14.total ? `Berlatih di ${p14.hadir} dari ${p14.total} pertemuan dalam 14 hari terakhir; terakhir ${tglTeks(akhir)}.`
     : `Berlatih ${aktif14} hari dalam 14 hari terakhir; terakhir ${tglTeks(akhir)}.`);
   if (nJ) c.push(`Seluruhnya ${nJ} soal dijawab, ${Math.round(100 * nB / nJ)}% benar.`);
@@ -1704,7 +1704,7 @@ function gambarSiswa() {
       [nJ ? Math.round(100 * nB / nJ) + "%" : "–", `akurasi (${nJ} soal)`, "akurasi", !nJ ? "" : nB / nJ >= .8 ? "baik" : nB / nJ >= .6 ? "emas" : "buruk"],
       [nB ? lamaTeks(rata) : "–", "rata-rata per soal benar", "waktu"],
       ...(() => { const p = hadirPertemuan(D, 60);
-        return [p && p.total ? [`${p.hadir}/${p.total}`, "pertemuan diikuti (60 hari)", "aktif"] : [D.harian.length, "hari berlatih (60 hari)", "aktif"]]; })(),
+        return [p && p.total ? [`${p.hadir}/${p.total}`, "pertemuan diikuti sejak kelompoknya mulai", "aktif"] : [D.harian.length, "hari berlatih (2 bulan terakhir)", "aktif"]]; })(),
       [p && !p.selesai ? Math.max(1, p.percobaan) : "–", "percobaan level sekarang", "ulang", p && p.percobaan >= 3 ? "buruk" : ""],
     ])}</div>
     ${ATURAN_SISWA ? (() => { const khusus = Object.keys(ATURAN_SISWA.asal || {}).length;
@@ -1712,7 +1712,7 @@ function gambarSiswa() {
         <span class="lencana ${khusus ? "emas" : ""}">${khusus ? khusus + " aturan khusus" : "Pengaturan Umum"}</span></summary>
         ${aturanBerlakuHtml(ATURAN_SISWA)}</details>`; })() : ""}
     <div class="kartu"><h2>Catatan otomatis</h2><ul class="catatan">${catatanOtomatis(D).map((x) => `<li>${x}</li>`).join("")}</ul></div>
-    <div class="kartu"><h2>Kemajuan level tuntas</h2><p class="redup kecil" style="margin-top:0">Jumlah level tuntas (kumulatif) pada hari-hari berlatih, 60 hari terakhir.</p><div class="grafik" id="g-maju"></div></div>
+    <div class="kartu"><h2>Kemajuan level tuntas</h2><p class="redup kecil" style="margin-top:0">Jumlah level tuntas (kumulatif) pada hari-hari berlatih, 2 bulan terakhir.</p><div class="grafik" id="g-maju"></div></div>
     <div class="dua">
       <div class="kartu"><h2>Jenis kesalahan</h2>
         ${D.jenis_salah.length ? `<table class="tabel">${D.jenis_salah.map((x) => `<tr><td>${esc(jenisLabel(x.jenis))}</td>
