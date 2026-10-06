@@ -1658,10 +1658,26 @@ function catatanOtomatis(D) {
   const berat = D.tuntas.filter((x) => x.percobaan >= 3 || x.n_salah >= 8).slice(-3);
   if (berat.length) c.push("Level yang dulu sulit dituntaskan: " + berat.map((x) => `${esc(x.nama_tingkat)} Lv ${x.level} (${x.percobaan}× mencoba, ${x.n_salah} salah)`).join("; ") + ".");
   const h = D.harian, akhir = h.length ? h[h.length - 1].tanggal : null;
-  const aktif14 = h.filter((x) => (Date.now() - new Date(x.tanggal)) / 86400000 <= 14).length;
-  c.push(akhir ? `Berlatih ${aktif14} hari dalam 14 hari terakhir; terakhir ${tglTeks(akhir)}.` : "Belum berlatih dalam 60 hari terakhir.");
+  const aktif14 = h.filter((x) => (Date.now() - new Date(x.tanggal)) / 86400000 <= 14).length, p14 = hadirPertemuan(D, 14);
+  c.push(!akhir ? "Belum berlatih dalam 60 hari terakhir."
+    : p14 && p14.total ? `Berlatih di ${p14.hadir} dari ${p14.total} pertemuan dalam 14 hari terakhir; terakhir ${tglTeks(akhir)}.`
+    : `Berlatih ${aktif14} hari dalam 14 hari terakhir; terakhir ${tglTeks(akhir)}.`);
   if (nJ) c.push(`Seluruhnya ${nJ} soal dijawab, ${Math.round(100 * nB / nJ)}% benar.`);
   return c;
+}
+
+/* Pertemuan yang diikuti siswa dalam `hari` terakhir, dari D.pertemuan (jadwal KBM
+   kelompoknya, lewat mtd_detail). Pertemuan dianggap diikuti bila ada latihan sejak
+   tanggal itu sampai sebelum pertemuan berikutnya — latihan di rumah ikut pertemuan
+   terdekat sebelumnya. null bila kelompok belum berjadwal (6 Oktober 2026). */
+function hadirPertemuan(D, hari) {
+  const P = (D.pertemuan || []).map((x) => String(x).slice(0, 10));
+  if (!P.length) return null;
+  const batas = new Date(Date.now() - hari * 864e5).toLocaleDateString("sv-SE", { timeZone: "Asia/Jakarta" });
+  const tgl = (D.harian || []).map((x) => String(x.tanggal).slice(0, 10));
+  const dalam = P.filter((p) => p >= batas);
+  const hadir = dalam.filter((p) => { const akhir = P[P.indexOf(p) + 1] || "9999-12-31"; return tgl.some((t) => t >= p && t < akhir); }).length;
+  return { hadir, total: dalam.length };
 }
 
 function gambarSiswa() {
@@ -1687,7 +1703,8 @@ function gambarSiswa() {
       [totalTuntas, "level dituntaskan sendiri", "level", "baik"],
       [nJ ? Math.round(100 * nB / nJ) + "%" : "–", `akurasi (${nJ} soal)`, "akurasi", !nJ ? "" : nB / nJ >= .8 ? "baik" : nB / nJ >= .6 ? "emas" : "buruk"],
       [nB ? lamaTeks(rata) : "–", "rata-rata per soal benar", "waktu"],
-      [D.harian.length, "hari berlatih (60 hari)", "aktif"],
+      ...(() => { const p = hadirPertemuan(D, 60);
+        return [p && p.total ? [`${p.hadir}/${p.total}`, "pertemuan diikuti (60 hari)", "aktif"] : [D.harian.length, "hari berlatih (60 hari)", "aktif"]]; })(),
       [p && !p.selesai ? Math.max(1, p.percobaan) : "–", "percobaan level sekarang", "ulang", p && p.percobaan >= 3 ? "buruk" : ""],
     ])}</div>
     ${ATURAN_SISWA ? (() => { const khusus = Object.keys(ATURAN_SISWA.asal || {}).length;
