@@ -931,7 +931,7 @@ $("btn-unduh-rekap").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () 
         { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }, { t: "Catatan", w: 24, bungkus: true, size: 9 }],
       baris: R.map((r, i) => [i + 1, r.nama, r.nisn, r.kelompok, r.kelas, r.tingkat ? (r.selesai ? "Tamat" : r.nama_tingkat) : "Belum mulai",
         r.tingkat && !r.selesai ? r.level : "", r.lewat, Math.round(100 * r.lewat / Math.max(1, jumlah)), r.n_jawab, r.n_benar,
-        r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", Math.round(r.detik / 60), r.pt_total ? `${r.pt_hadir}/${r.pt_total}` : `${r.hari} hari`, r.tuntas_pt, waktuXL(r.terakhir),
+        r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", Math.round(r.detik / 60), r.pt_total ? `${r.pt_hadir}/${r.pt_total}` : `${r.hari} kali`, r.tuntas_pt, waktuXL(r.terakhir),
         status(r).map((s) => s.t).join(", ")]),
       warnaSel: (b, j) => j === 16 && /Macet|Terkunci/.test(b[16]) ? { warna: XL.merah, tebal: true } : j === 16 && /Tidak aktif|Akurasi/.test(b[16]) ? { warna: XL.emasTeks } : null,
       catatan: ["Macet: 3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih sejak pertemuan terakhir kelompoknya (hari pertemuan dari jadwal KBM Data Induk; kelompok tanpa jadwal: 7 hari terakhir). Pertemuan diikuti: pertemuan yang ada latihannya (sampai sebelum pertemuan berikutnya), sejak kelompoknya mulai. Akurasi: hijau ≥ 80%, kuning 60–79%, merah < 60%."] },
@@ -1678,7 +1678,7 @@ function catatanOtomatis(D) {
   const aktif14 = h.filter((x) => (Date.now() - new Date(x.tanggal)) / 86400000 <= 14).length, p2 = hadirPertemuan(D, 60, 2);
   c.push(!akhir ? "Belum berlatih dalam 2 bulan terakhir."
     : p2 && p2.total ? `Berlatih di ${p2.hadir} dari ${p2.total} pertemuan terakhir; terakhir berlatih ${tglTeks(akhir)}.`
-    : `Berlatih ${aktif14} hari dalam 2 minggu terakhir; terakhir ${tglTeks(akhir)}.`);
+    : `Berlatih ${aktif14} kali dalam 2 minggu terakhir; terakhir ${tglTeks(akhir)}. (Kelompoknya belum berjadwal, jadi belum bisa dihitung per pertemuan.)`);
   if (nJ) c.push(`Seluruhnya ${nJ} soal dijawab, ${Math.round(100 * nB / nJ)}% benar.`);
   return c;
 }
@@ -1721,7 +1721,7 @@ function gambarSiswa() {
       [nJ ? Math.round(100 * nB / nJ) + "%" : "–", `akurasi (${nJ} soal)`, "akurasi", !nJ ? "" : nB / nJ >= .8 ? "baik" : nB / nJ >= .6 ? "emas" : "buruk"],
       [nB ? lamaTeks(rata) : "–", "rata-rata per soal benar", "waktu"],
       ...(() => { const p = hadirPertemuan(D, 60);
-        return [p && p.total ? [`${p.hadir}/${p.total}`, "pertemuan diikuti sejak kelompoknya mulai", "aktif"] : [D.harian.length, "hari berlatih (2 bulan terakhir)", "aktif"]]; })(),
+        return [p && p.total ? [`${p.hadir}/${p.total}`, "pertemuan diikuti sejak kelompoknya mulai", "aktif"] : [D.harian.length, "kali berlatih (2 bulan terakhir)", "aktif"]]; })(),
       [p && !p.selesai ? Math.max(1, p.percobaan) : "–", "percobaan level sekarang", "ulang", p && p.percobaan >= 3 ? "buruk" : ""],
     ])}</div>
     ${ATURAN_SISWA ? (() => { const khusus = Object.keys(ATURAN_SISWA.asal || {}).length;
