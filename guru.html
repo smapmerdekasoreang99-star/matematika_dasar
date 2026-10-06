@@ -920,14 +920,14 @@ $("btn-unduh-rekap").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () 
         { t: "Kelompok MD", w: 12, rata: "center" }, { t: "Rombel", w: 9, rata: "center" }, { t: "Tingkat sekarang", w: 26 },
         { t: "Level", w: 7, rata: "center" }, { t: `Level tuntas /${jumlah}`, w: 11, rata: "center" }, { t: "Kemajuan", w: 10, rata: "center", fmt: '0"%"' },
         { t: "Soal dijawab", w: 9, rata: "center" }, { t: "Benar", w: 8, rata: "center" }, { t: "Akurasi", w: 9, rata: "center", fmt: '0"%"', cf: CF_PERSEN },
-        { t: "Menit latihan", w: 9, rata: "center" }, { t: "Hari latihan", w: 8, rata: "center" }, { t: "Tuntas pertemuan terakhir", w: 10, rata: "center" },
+        { t: "Menit latihan", w: 9, rata: "center" }, { t: "Pertemuan diikuti", w: 10, rata: "center" }, { t: "Tuntas pertemuan terakhir", w: 10, rata: "center" },
         { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }, { t: "Catatan", w: 24, bungkus: true, size: 9 }],
       baris: R.map((r, i) => [i + 1, r.nama, r.nisn, r.kelompok, r.kelas, r.tingkat ? (r.selesai ? "Tamat" : r.nama_tingkat) : "Belum mulai",
         r.tingkat && !r.selesai ? r.level : "", r.lewat, Math.round(100 * r.lewat / Math.max(1, jumlah)), r.n_jawab, r.n_benar,
-        r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", Math.round(r.detik / 60), r.hari, r.tuntas_pt, waktuXL(r.terakhir),
+        r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", Math.round(r.detik / 60), r.pt_total ? `${r.pt_hadir}/${r.pt_total}` : `${r.hari} hari`, r.tuntas_pt, waktuXL(r.terakhir),
         status(r).map((s) => s.t).join(", ")]),
       warnaSel: (b, j) => j === 16 && /Macet|Terkunci/.test(b[16]) ? { warna: XL.merah, tebal: true } : j === 16 && /Tidak aktif|Akurasi/.test(b[16]) ? { warna: XL.emasTeks } : null,
-      catatan: ["Macet: 3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih sejak pertemuan terakhir kelompoknya (hari pertemuan dari jadwal KBM Data Induk; kelompok tanpa jadwal: 7 hari terakhir). Akurasi: hijau ≥ 80%, kuning 60–79%, merah < 60%."] },
+      catatan: ["Macet: 3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih sejak pertemuan terakhir kelompoknya (hari pertemuan dari jadwal KBM Data Induk; kelompok tanpa jadwal: 7 hari terakhir). Pertemuan diikuti: pertemuan yang ada latihannya (sampai sebelum pertemuan berikutnya), sejak kelompoknya mulai. Akurasi: hijau ≥ 80%, kuning 60–79%, merah < 60%."] },
     { nama: "Sebaran Tingkat", judul: "Sebaran Posisi Siswa per Tingkat", sub: `${grup}: ${pilih}`, beku: 0, melintang: false,
       kolom: [{ t: "Urutan", w: 8, rata: "center" }, { t: "Tingkat", w: 34, tebal: true }, { t: "Jumlah level", w: 12, rata: "center" }, { t: "Siswa di tingkat ini", w: 16, rata: "center" }],
       baris: sebaran.concat(tamat ? [["", "Tamat semua tingkat", "", tamat]] : []).concat([["", "Belum pernah masuk", "", R.length - mulai.length]]) },
@@ -1712,7 +1712,7 @@ function gambarSiswa() {
         <span class="lencana ${khusus ? "emas" : ""}">${khusus ? khusus + " aturan khusus" : "Pengaturan Umum"}</span></summary>
         ${aturanBerlakuHtml(ATURAN_SISWA)}</details>`; })() : ""}
     <div class="kartu"><h2>Catatan otomatis</h2><ul class="catatan">${catatanOtomatis(D).map((x) => `<li>${x}</li>`).join("")}</ul></div>
-    <div class="kartu"><h2>Kemajuan level tuntas</h2><p class="redup kecil" style="margin-top:0">Jumlah level tuntas (kumulatif) pada hari-hari berlatih, 2 bulan terakhir.</p><div class="grafik" id="g-maju"></div></div>
+    <div class="kartu"><h2>Kemajuan level tuntas</h2><p class="redup kecil" style="margin-top:0">Jumlah level tuntas (kumulatif) pada tiap tanggal berlatih, 2 bulan terakhir.</p><div class="grafik" id="g-maju"></div></div>
     <div class="dua">
       <div class="kartu"><h2>Jenis kesalahan</h2>
         ${D.jenis_salah.length ? `<table class="tabel">${D.jenis_salah.map((x) => `<tr><td>${esc(jenisLabel(x.jenis))}</td>
