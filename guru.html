@@ -260,6 +260,7 @@ button.tutup-merah { background: var(--absen-muda); color: var(--absen-tua); }
 .contoh .contoh-baca { grid-column: 1 / -1; border-bottom: 1px dashed var(--garis); padding-bottom: var(--j2); }
 .ct-alat { display: flex; flex-wrap: wrap; gap: var(--j2) var(--j5); margin-bottom: var(--j3); padding-bottom: var(--j2); border-bottom: 1px solid var(--garis); }
 .ct-alat label.cek, .ctl-kepala label.cek { display: inline-flex; align-items: center; gap: 6px; font-size: var(--h-s); font-weight: 600; cursor: pointer; min-height: 32px; }
+.ct-alat [data-ct-tutup] { margin-left: auto; }
 .ct-alat input, .ctl-kepala input { width: 18px; height: 18px; accent-color: var(--emas); }
 /* Jawaban disembunyikan tanpa menggeser susunan; pembahasan dilipat sepenuhnya */
 .tanpa-jawab .ct-jwb { visibility: hidden; }
@@ -1781,6 +1782,8 @@ function gambarSiswa() {
 /* ----------------------------------------------------------- tingkat dan level soal */
 function gambarTingkat() {
   const bolehUbah = PERAN !== "pengawas";
+  // Tingkat yang sedang dibuka (dilipat-buka) tetap terbuka setelah tombol Tutup/Buka ditekan
+  const terbuka = new Set([...$("t-tingkat").querySelectorAll("details[open][data-kode]")].map((d) => d.dataset.kode));
   let modul = null, h = "";
   const NAMA_MODUL = { 10: "Bilangan bulat, positif-negatif, dan pecahan", 11: "Desimal, persen, notasi baku, dan eksponen", 12: "Aljabar, pola bilangan, dan logika" };
   G.tingkat.forEach((t) => {
@@ -1791,7 +1794,7 @@ function gambarTingkat() {
       h += `<div class="kartu modul-kartu modul-${t.modul}"><div class="modul-kepala"><span class="md">MD${t.modul}</span>
         <div><h2>Modul Kelas ${t.modul}</h2><p>${NAMA_MODUL[t.modul] || ""} · ${sm.length} tingkat · ${sm.reduce((a, x) => a + x.level.length, 0)} level</p></div></div>`;
     }
-    h += `<details class="tk-baris"><summary><span class="tk-no">${t.urut}</span><span class="tk-nama"><b>${esc(t.nama)}</b><span>${t.level.length} level${t.level.length - levelBuka(t).length ? ` · ${t.level.length - levelBuka(t).length} ditutup` : ""}</span></span>
+    h += `<details class="tk-baris" data-kode="${t.kode}"${terbuka.has(t.kode) ? " open" : ""}><summary><span class="tk-no">${t.urut}</span><span class="tk-nama"><b>${esc(t.nama)}</b><span>${t.level.length} level${t.level.length - levelBuka(t).length ? ` · ${t.level.length - levelBuka(t).length} ditutup` : ""}</span></span>
         ${t.aktif ? "" : '<span class="lencana buruk">ditutup</span>'}<span class="tk-panah" aria-hidden="true"></span></summary><div class="tk-isi">
       ${PERAN === "admin" ? `<p class="ubah tk-alat"><button class="garis kecil" data-aktif="${t.kode}" data-nilai="${!t.aktif}">${t.aktif ? "Tutup tingkat ini" : "Buka tingkat ini"}</button></p>` : ""}
       ${t.level.map((l) => `<div class="lv-baris${l.aktif === false ? " tutup" : ""}"><span class="no">Level ${l.level}</span><span class="kt">${esc(l.ket)}</span>
@@ -1824,10 +1827,7 @@ function gambarTingkat() {
     const [kode, lv] = b.dataset.lvAktif.split("|"), buka = b.dataset.nilai === "true";
     b.disabled = true;
     try { await rpc("mtd_set_level_aktif", { p_pin: PIN, p_tingkat: kode, p_level: +lv, p_aktif: buka });
-      const terbuka = [...$("t-tingkat").querySelectorAll("details[open] [data-aktif], details[open] [data-lv-aktif]")].map((x) => x.closest("details").querySelector("summary").textContent);
       G = await rpc("mtd_guru_masuk", { p_pin: PIN }); gambarTingkat();
-      // Tingkat yang sedang dibuka tetap terbuka setelah digambar ulang
-      $("t-tingkat").querySelectorAll("details").forEach((d) => { if (terbuka.includes(d.querySelector("summary").textContent)) d.open = true; });
       toast(buka ? `Level ${lv} dibuka` : `Level ${lv} ditutup — dilewati siswa bertahapan umum`); }
     catch (e) { toast(e.message); b.disabled = false; }
   });
@@ -1863,10 +1863,15 @@ async function muatContoh(b) {
     // Centang yang sudah dipilih dipertahankan saat menekan "Contoh lain"
     const jawab = !!box.querySelector("[data-ct-jawab]:checked"), layar = !!box.querySelector("[data-ct-layar]:checked");
     box.innerHTML = `<div class="ct-alat"><label class="cek"><input type="checkbox" data-ct-jawab${jawab ? " checked" : ""}> Tampilkan Jawaban</label>
-      <label class="cek"><input type="checkbox" data-ct-layar${layar ? " checked" : ""}> Mode Layar Penuh</label></div>
+      <label class="cek"><input type="checkbox" data-ct-layar${layar ? " checked" : ""}> Mode Layar Penuh</label>
+      <button class="garis kecil" data-ct-tutup title="Lipat contoh soal">Tutup contoh ▲</button></div>
       <div class="contoh-isi">${soal.map(contohItem).join("")}</div>`;
     box.classList.toggle("tanpa-jawab", !jawab);
     box.classList.remove("hidden"); b.textContent = "Contoh lain";
+    box.querySelector("[data-ct-tutup]").onclick = () => {
+      if (CT.box === box) tutupLayarContoh();
+      box.classList.add("hidden"); box.innerHTML = ""; b.textContent = "Contoh";
+    };
     if (CT.box === box) isiLayarContoh();
   } catch (e) { toast(e.message); }
   b.disabled = false; $("ctl-lain").disabled = false;
