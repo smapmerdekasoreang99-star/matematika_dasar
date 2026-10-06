@@ -252,6 +252,8 @@ button.tutup-merah { background: var(--absen-muda); color: var(--absen-tua); }
 .lv-baris .no { flex: 0 0 auto; min-width: 64px; text-align: center; font-size: var(--h-xs); font-weight: 700; letter-spacing: .04em; color: var(--sakit-tua);
   background: var(--sakit-muda); border-radius: var(--r-bulat); padding: 3px 10px; }
 .lv-baris .kt { flex: 1; }
+.lv-baris.tutup .kt, .lv-baris.tutup .no { opacity: .55; }
+.jl-tutup { margin: 2px 0 var(--j2) 34px; font-size: var(--h-xs); color: var(--emas-teks); }
 .contoh { padding: var(--j2) 0 var(--j3) 76px; font-size: var(--h-n); }
 .contoh-isi { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--j1) var(--j4); }
 .contoh .k, .ct-layar .k { color: var(--hadir-tua); font-weight: 700; }
@@ -627,8 +629,8 @@ body.lihat .ubah { display: none !important; }
     <!-- Tingkat -->
     <div id="p-tingkat" class="hidden">
       <div class="kepala-hal"><div><span class="eyebrow">Materi</span><h1>Tahapan Level</h1>
-        <p>Susunan MD10, MD11, dan MD12. Lihat contoh soal, coba kerjakan sendiri, atau tutup tingkat yang belum dipakai.</p></div></div>
-      <p class="redup kecil">Soal dibuat acak oleh server dari aturan tiap level. Tekan <b>Contoh</b> untuk melihat 10 soal acak (centang <b>Tampilkan Jawaban</b> untuk kuncinya, <b>Mode Layar Penuh</b> untuk diproyeksikan), atau <b>Coba</b> untuk mengerjakannya sendiri seperti siswa (uji coba guru: terbuka di tab baru, tidak memakai akun siswa, tidak masuk rekap, tetap bisa walau Halaman Latihan ditutup). Tingkat yang ditutup dilewati siswa.</p>
+        <p>Susunan MD10, MD11, dan MD12. Lihat contoh soal, coba kerjakan sendiri, atau tutup tingkat dan level yang belum dipakai.</p></div></div>
+      <p class="redup kecil">Soal dibuat acak oleh server dari aturan tiap level. Tekan <b>Contoh</b> untuk melihat 10 soal acak (centang <b>Tampilkan Jawaban</b> untuk kuncinya, <b>Mode Layar Penuh</b> untuk diproyeksikan), atau <b>Coba</b> untuk mengerjakannya sendiri seperti siswa (uji coba guru: terbuka di tab baru, tidak memakai akun siswa, tidak masuk rekap, tetap bisa walau Halaman Latihan ditutup). Tingkat atau level yang ditutup dilewati siswa yang memakai tahapan umum; siswa yang sedang berada di sana tetap menyelesaikannya. Tahapan Khusus tidak terpengaruh.</p>
       <div id="t-tingkat"></div>
     </div>
 
@@ -856,9 +858,13 @@ $("pil-kelas").onchange = muatKelas;
 $("pil-urut").onchange = () => gambarKelas();
 $("btn-muat").onclick = muatKelas;
 
+/* Level jalur umum: tingkat terbuka dan level terbuka saja (6 Oktober 2026). */
+const levelBuka = (t) => t.level.filter((l) => l.aktif !== false);
+const jumlahLevelUmum = () => G.tingkat.filter((t) => t.aktif).reduce((a, t) => a + levelBuka(t).length, 0);
+
 function gambarKelas() {
   const R = REKAP.slice();
-  const mulai = R.filter((r) => r.tingkat), jumlah = G.tingkat.filter((t) => t.aktif).reduce((a, t) => a + t.level.length, 0);
+  const mulai = R.filter((r) => r.tingkat), jumlah = jumlahLevelUmum();
   const rata = mulai.length ? mulai.reduce((a, r) => a + r.lewat, 0) / mulai.length : 0;
   const macet = R.filter((r) => status(r).some((s) => s.t === "Macet")).length;
   const diam = R.filter((r) => r.tingkat && !aktifPertemuan(r)).length;
@@ -902,12 +908,12 @@ const urutKelompok = (a, b) => String(MODE_MD ? a.kelompok || "~" : a.kelas).loc
 // Unduh rekap (.xlsx): lembar Rekap Kemajuan + Sebaran per Tingkat.
 $("btn-unduh-rekap").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
   if (!REKAP.length) throw new Error("Belum ada data. Muat ulang dulu.");
-  const jumlah = G.tingkat.filter((t) => t.aktif).reduce((a, t) => a + t.level.length, 0);
+  const jumlah = jumlahLevelUmum();
   const grup = MODE_MD ? "Kelompok" : "Kelas", pilih = labelPilihan("pil-kelas");
   const R = REKAP.slice().sort(urutKelompok), mulai = R.filter((r) => r.tingkat);
   const rata = mulai.length ? mulai.reduce((a, r) => a + r.lewat, 0) / mulai.length : 0;
   const nJ = R.reduce((a, r) => a + r.n_jawab, 0), nB = R.reduce((a, r) => a + r.n_benar, 0);
-  const sebaran = G.tingkat.filter((t) => t.aktif).map((t) => [t.urut, t.nama, t.level.length, R.filter((r) => r.tingkat === t.kode && !r.selesai).length]);
+  const sebaran = G.tingkat.filter((t) => t.aktif).map((t) => [t.urut, t.nama, levelBuka(t).length, R.filter((r) => r.tingkat === t.kode && !r.selesai).length]);
   const tamat = R.filter((r) => r.selesai).length;
   const nama = `Rekap_Matematika_Dasar_${potongNama(pilih) || "semua"}_${tglBerkas()}.xlsx`;
   await unduhBukuXLSX({ namaBerkas: nama, judulBuku: "Rekap Kemajuan", lembar: [
@@ -1066,7 +1072,7 @@ function isiDefaultMassal() {
 function isiPilihPosisi() {
   $("dl-tk").innerHTML = G.tingkat.map((t) => `<option value="${t.kode}">${esc(t.nama)}${t.aktif ? "" : " (ditutup)"}</option>`).join("");
   const isiLv = () => { const t = G.tingkat.find((x) => x.kode === $("dl-tk").value);
-    $("dl-lv").innerHTML = (t ? t.level : []).map((l) => `<option value="${l.level}">Level ${l.level}: ${esc(l.ket)}</option>`).join(""); };
+    $("dl-lv").innerHTML = (t ? t.level : []).map((l) => `<option value="${l.level}">Level ${l.level}: ${esc(l.ket)}${l.aktif === false ? " (ditutup)" : ""}</option>`).join(""); };
   $("dl-tk").onchange = isiLv; isiLv();
 }
 const namaTerpilih = () => { const nm = DAFTAR.filter((r) => PILIH.has(r.nisn)).map((r) => r.nama);
@@ -1449,13 +1455,23 @@ async function muatJalur(diam) {
   try { JALUR = await rpc("mtd_jalur_daftar", { p_pin: PIN }); } catch (e) { if (!diam) toast(e.message); return; }
   isiPilihTahapan(); gambarJalur(); gambarKelompokAturan(); gambarInfoKelompok();
 }
+/* Bagian langkah tahapan yang DITUTUP admin di Tahapan Level (6 Oktober 2026). Tahapan Khusus
+   tetap mengerjakannya; tanda ini hanya memberi tahu guru. null bila tidak ada. */
+function tutupDiLangkah(l) {
+  const t = G.tingkat.find((x) => x.kode === l.tingkat);
+  if (!t) return null;
+  if (!t.aktif) return "Tingkat ini ditutup admin";
+  const lv = t.level.filter((x) => x.aktif === false && x.level >= l.dari && x.level <= l.sampai).map((x) => x.level);
+  return lv.length ? `Level ${lv.join(", ")} ditutup admin` : null;
+}
+
 function gambarJalur() {
   const boleh = PERAN !== "pengawas";
   $("jl-daftar").innerHTML = JALUR.length ? JALUR.map((j) => { const pakai = dipakaiTeks(j.kelompok, j.n_kelompok_siswa, j.n_sendiri);
     return `<div class="butir">
       <div class="jl-kepala"><div><h2>${esc(j.nama)}</h2><span class="redup kecil">${j.langkah.reduce((a, l) => a + (l.sampai - l.dari + 1), 0)} level · ${j.n_siswa} siswa sedang di tahapan ini · ujung: ${j.akhir === "lanjut" ? "lanjut ke urutan umum" : "berhenti"}</span></div>
         ${j.boleh_ubah ? `<span class="jl-aksi"><button class="garis kecil" data-ubah-jalur="${j.id}">Ubah</button><button class="kecil bahaya" data-hapus-jalur="${j.id}">Hapus</button></span>` : `<span class="redup kecil">dibuat ${esc(j.pemilik || "admin")}</span>`}</div>
-      <ol class="jl-langkah">${j.langkah.map((l) => `<li><b>${esc(namaTingkat(l.tingkat))}</b><span>Level ${l.dari === l.sampai ? l.dari : l.dari + "–" + l.sampai}</span></li>`).join("")}
+      <ol class="jl-langkah">${j.langkah.map((l) => { const tt = tutupDiLangkah(l); return `<li><b>${esc(namaTingkat(l.tingkat))}</b><span>Level ${l.dari === l.sampai ? l.dari : l.dari + "–" + l.sampai}</span>${tt ? `<span class="lencana emas" title="Ditutup untuk tahapan umum; siswa di tahapan ini tetap mengerjakannya">${esc(tt)}</span>` : ""}</li>`; }).join("")}
         <li class="jl-ujung">${j.akhir === "lanjut" ? "Lanjut ke urutan umum" : "Selesai"}</li></ol>
       <div class="pr-pakai ${pakai ? "" : "redup"}">${pakai ? "<b>Dipakai oleh:</b> " + esc(pakai) : "Belum dipakai kelompok atau siswa"}</div></div>`; }).join("")
     : '<p class="butir kosong-data">Belum ada tahapan khusus. Tekan <b>+ Buat tahapan</b> untuk menyusun tahapan remedial atau pengayaan.</p>';
@@ -1472,9 +1488,9 @@ function bukaEditorJalur(j) {
   const ed = $("jl-editor"), langkah = j ? j.langkah.map((l) => ({ ...l })) : [{ tingkat: G.tingkat[0].kode, dari: 1, sampai: G.tingkat[0].level.length }];
   const opsiTingkat = (pilih) => [10, 11, 12].map((m) => {
     const ts = G.tingkat.filter((t) => t.modul === m);
-    return ts.length ? `<optgroup label="MD${m}">${ts.map((t) => `<option value="${t.kode}" ${t.kode === pilih ? "selected" : ""}>${esc(t.nama)}${t.aktif ? "" : " (ditutup)"}</option>`).join("")}</optgroup>` : "";
+    return ts.length ? `<optgroup label="MD${m}">${ts.map((t) => `<option value="${t.kode}" ${t.kode === pilih ? "selected" : ""}>${esc(t.nama)}${!t.aktif ? " (ditutup admin)" : t.level.some((x) => x.aktif === false) ? ` (${t.level.filter((x) => x.aktif === false).length} level ditutup admin)` : ""}</option>`).join("")}</optgroup>` : "";
   }).join("");
-  const opsiLevel = (k, pilih) => (G.tingkat.find((t) => t.kode === k) || { level: [] }).level.map((l) => `<option value="${l.level}" ${l.level === pilih ? "selected" : ""}>Level ${l.level}</option>`).join("");
+  const opsiLevel = (k, pilih) => (G.tingkat.find((t) => t.kode === k) || { level: [] }).level.map((l) => `<option value="${l.level}" ${l.level === pilih ? "selected" : ""}>Level ${l.level}${l.aktif === false ? " (ditutup admin)" : ""}</option>`).join("");
   const gambar = () => {
     ed.innerHTML = `<h2>${j ? "Ubah tahapan" : "Tahapan baru"}</h2>
       <label class="isian" for="jl-nama">Nama tahapan</label><input type="text" id="jl-nama" maxlength="80" placeholder="mis. Remedial Pembagian MD10" value="${esc(j ? j.nama : $("jl-nama")?.value || "")}">
@@ -1483,7 +1499,7 @@ function bukaEditorJalur(j) {
         <select data-i="${i}" data-f="tingkat" aria-label="Tingkat">${opsiTingkat(l.tingkat)}</select>
         <span class="redup kecil">dari</span><select data-i="${i}" data-f="dari" aria-label="Dari level">${opsiLevel(l.tingkat, l.dari)}</select>
         <span class="redup kecil">sampai</span><select data-i="${i}" data-f="sampai" aria-label="Sampai level">${opsiLevel(l.tingkat, l.sampai)}</select>
-        <button class="kecil garis" data-naik="${i}" title="Naikkan" ${i ? "" : "disabled"}>↑</button><button class="kecil tutup-merah" data-hapus="${i}" title="Hapus langkah" ${langkah.length > 1 ? "" : "disabled"}>✕</button></div>`).join("")}</div>
+        <button class="kecil garis" data-naik="${i}" title="Naikkan" ${i ? "" : "disabled"}>↑</button><button class="kecil tutup-merah" data-hapus="${i}" title="Hapus langkah" ${langkah.length > 1 ? "" : "disabled"}>✕</button></div>${tutupDiLangkah(l) ? `<p class="jl-tutup">⚠ ${esc(tutupDiLangkah(l))} untuk tahapan umum. Siswa di tahapan ini <b>tetap mengerjakannya</b>.</p>` : ""}`).join("")}</div>
       <p><button class="garis kecil" id="jl-tambah">+ Tambah langkah</button></p>
       <div class="isian">Setelah langkah terakhir</div>
       <div class="pilihan"><label><input type="radio" name="jl-akhir" value="berhenti" ${(j ? j.akhir : "berhenti") === "berhenti" ? "checked" : ""}><span><b>Berhenti</b><span>Siswa selesai; guru memutuskan langkah berikutnya</span></span></label>
@@ -1746,7 +1762,7 @@ function gambarSiswa() {
   garisKemajuan($("g-maju"), titik);
   if (bolehUbah) {
     const isiLv = () => { const t = G.tingkat.find((x) => x.kode === $("pp-tingkat").value);
-      $("pp-level").innerHTML = t.level.map((l) => `<option value="${l.level}" ${p && p.tingkat === t.kode && p.level === l.level ? "selected" : ""}>Level ${l.level}: ${esc(l.ket)}</option>`).join(""); };
+      $("pp-level").innerHTML = t.level.map((l) => `<option value="${l.level}" ${p && p.tingkat === t.kode && p.level === l.level ? "selected" : ""}>Level ${l.level}: ${esc(l.ket)}${l.aktif === false ? " (ditutup)" : ""}</option>`).join(""); };
     $("pp-tingkat").onchange = isiLv; isiLv();
     $("pp-simpan").onclick = async () => {
       const t = $("pp-tingkat"), l = $("pp-level");
@@ -1775,10 +1791,12 @@ function gambarTingkat() {
       h += `<div class="kartu modul-kartu modul-${t.modul}"><div class="modul-kepala"><span class="md">MD${t.modul}</span>
         <div><h2>Modul Kelas ${t.modul}</h2><p>${NAMA_MODUL[t.modul] || ""} · ${sm.length} tingkat · ${sm.reduce((a, x) => a + x.level.length, 0)} level</p></div></div>`;
     }
-    h += `<details class="tk-baris"><summary><span class="tk-no">${t.urut}</span><span class="tk-nama"><b>${esc(t.nama)}</b><span>${t.level.length} level</span></span>
+    h += `<details class="tk-baris"><summary><span class="tk-no">${t.urut}</span><span class="tk-nama"><b>${esc(t.nama)}</b><span>${t.level.length} level${t.level.length - levelBuka(t).length ? ` · ${t.level.length - levelBuka(t).length} ditutup` : ""}</span></span>
         ${t.aktif ? "" : '<span class="lencana buruk">ditutup</span>'}<span class="tk-panah" aria-hidden="true"></span></summary><div class="tk-isi">
       ${PERAN === "admin" ? `<p class="ubah tk-alat"><button class="garis kecil" data-aktif="${t.kode}" data-nilai="${!t.aktif}">${t.aktif ? "Tutup tingkat ini" : "Buka tingkat ini"}</button></p>` : ""}
-      ${t.level.map((l) => `<div class="lv-baris"><span class="no">Level ${l.level}</span><span class="kt">${esc(l.ket)}</span>
+      ${t.level.map((l) => `<div class="lv-baris${l.aktif === false ? " tutup" : ""}"><span class="no">Level ${l.level}</span><span class="kt">${esc(l.ket)}</span>
+        ${l.aktif === false ? '<span class="lencana buruk" title="Dilewati siswa yang memakai tahapan umum; Tahapan Khusus tidak terpengaruh">ditutup</span>' : ""}
+        ${PERAN === "admin" ? `<button class="garis kecil" data-lv-aktif="${t.kode}|${l.level}" data-nilai="${l.aktif === false}">${l.aktif === false ? "Buka" : "Tutup"}</button>` : ""}
         <button class="garis kecil" data-contoh="${t.kode}|${l.level}">Contoh</button><button class="kecil" data-coba="${t.kode}|${l.level}" title="Kerjakan level ini seperti siswa">Coba</button></div><div class="contoh hidden" id="c-${t.kode}-${l.level}"></div>`).join("")}
       </div></details>`;
   });
@@ -1801,6 +1819,17 @@ function gambarTingkat() {
       if (e.target.matches("[data-ct-jawab]")) box.classList.toggle("tanpa-jawab", !e.target.checked);
       if (e.target.matches("[data-ct-layar]")) e.target.checked ? bukaLayarContoh(box) : tutupLayarContoh();
     };
+  });
+  $("t-tingkat").querySelectorAll("[data-lv-aktif]").forEach((b) => b.onclick = async () => {
+    const [kode, lv] = b.dataset.lvAktif.split("|"), buka = b.dataset.nilai === "true";
+    b.disabled = true;
+    try { await rpc("mtd_set_level_aktif", { p_pin: PIN, p_tingkat: kode, p_level: +lv, p_aktif: buka });
+      const terbuka = [...$("t-tingkat").querySelectorAll("details[open] [data-aktif], details[open] [data-lv-aktif]")].map((x) => x.closest("details").querySelector("summary").textContent);
+      G = await rpc("mtd_guru_masuk", { p_pin: PIN }); gambarTingkat();
+      // Tingkat yang sedang dibuka tetap terbuka setelah digambar ulang
+      $("t-tingkat").querySelectorAll("details").forEach((d) => { if (terbuka.includes(d.querySelector("summary").textContent)) d.open = true; });
+      toast(buka ? `Level ${lv} dibuka` : `Level ${lv} ditutup — dilewati siswa bertahapan umum`); }
+    catch (e) { toast(e.message); b.disabled = false; }
   });
   $("t-tingkat").querySelectorAll("[data-aktif]").forEach((b) => b.onclick = async () => {
     try { await rpc("mtd_set_tingkat_aktif", { p_pin: PIN, p_kode: b.dataset.aktif, p_aktif: b.dataset.nilai === "true" });
