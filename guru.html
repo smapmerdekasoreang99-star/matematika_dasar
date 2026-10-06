@@ -541,7 +541,7 @@ body.lihat .ubah { display: none !important; }
       <div id="pk-siswa">
       <div class="kartu">
         <div class="gulir"><table class="tabel" id="t-kelas" data-beku="2"></table></div>
-        <p class="redup kecil">Macet: sudah 3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih 7 hari terakhir. Ketuk nama untuk melihat analisisnya.</p>
+        <p class="redup kecil">Macet: sudah 3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih sejak pertemuan terakhir kelompoknya (hari pertemuan dari jadwal KBM Data Induk; kelompok tanpa jadwal: 7 hari terakhir). Ketuk nama untuk melihat analisisnya.</p>
       </div>
       </div>
       <!-- Per Kelompok: ringkasan & sebaran kelompok terpilih, lalu perbandingan antarkelompok -->
@@ -553,7 +553,7 @@ body.lihat .ubah { display: none !important; }
         <div class="grafik" id="g-sebaran"></div>
       </div>
       <div class="kartu"><h2>Perbandingan kelompok</h2><div class="gulir"><table class="tabel" id="t-perkelompok" data-beku="1"></table></div>
-        <p class="redup kecil">Ketuk baris kelompok untuk menampilkan ringkasan dan sebarannya di atas. Macet: 3 kali atau lebih mengulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih 7 hari terakhir.</p></div>
+        <p class="redup kecil">Ketuk baris kelompok untuk menampilkan ringkasan dan sebarannya di atas. Macet: 3 kali atau lebih mengulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih sejak pertemuan terakhir kelompoknya (hari pertemuan dari jadwal KBM Data Induk; kelompok tanpa jadwal: 7 hari terakhir).</p></div>
       </div>
     </div>
 
@@ -822,6 +822,11 @@ const ubinHtml = (a) => a.map(([n, l, ik, cls]) => `<div class="${cls || ""}"><s
 
 /* ----------------------------------------------------------- kemajuan kelas */
 const hariSejak = (iso) => iso ? (Date.now() - new Date(iso)) / 86400000 : Infinity;
+/* MD tidak setiap hari: "aktif" = berlatih sejak pertemuan terakhir kelompoknya
+   (r.sejak dari mtd_rekap, menurut jadwal KBM Data Induk); kelompok tanpa jadwal
+   jatuh ke 7 hari terakhir seperti dulu (6 Oktober 2026). */
+const sejakPertemuan = (r) => r.sejak ? new Date(r.sejak) : new Date(Date.now() - 7 * 864e5);
+const aktifPertemuan = (r) => !!r.terakhir && new Date(r.terakhir) >= sejakPertemuan(r);
 function status(r) {
   const s = [];
   if (!r.tingkat) return [{ t: "Belum mulai", c: "" , bobot: 2 }];
@@ -831,7 +836,7 @@ function status(r) {
   else if (r.aturan_kelompok) s.push({ t: "Aturan kelompok: " + r.aturan_kelompok, c: "", bobot: 0 });
   if (r.selesai) s.push({ t: "Tamat", c: "baik", bobot: 0 });
   if (!r.selesai && (r.percobaan >= 3 || r.salah_sini >= 8)) s.push({ t: "Macet", c: "buruk", bobot: 4 });
-  if (hariSejak(r.terakhir) >= 7) s.push({ t: "Tidak aktif", c: "emas", bobot: 3 });
+  if (!aktifPertemuan(r)) s.push({ t: "Tidak aktif", c: "emas", bobot: 3 });
   if (r.n_jawab >= 20 && r.n_benar / r.n_jawab < 0.7) s.push({ t: "Akurasi rendah", c: "emas", bobot: 1 });
   return s;
 }
@@ -856,12 +861,12 @@ function gambarKelas() {
   const mulai = R.filter((r) => r.tingkat), jumlah = G.tingkat.filter((t) => t.aktif).reduce((a, t) => a + t.level.length, 0);
   const rata = mulai.length ? mulai.reduce((a, r) => a + r.lewat, 0) / mulai.length : 0;
   const macet = R.filter((r) => status(r).some((s) => s.t === "Macet")).length;
-  const diam = R.filter((r) => r.tingkat && hariSejak(r.terakhir) >= 7).length;
-  const aktif7 = R.filter((r) => hariSejak(r.terakhir) < 7).length;
+  const diam = R.filter((r) => r.tingkat && !aktifPertemuan(r)).length;
+  const aktif7 = R.filter(aktifPertemuan).length;
   $("k-ubin").innerHTML = ubinHtml([
-    [R.length, "siswa", "siswa"], [mulai.length, "sudah mulai", "mulai", "baik"], [aktif7, "berlatih 7 hari terakhir", "aktif", "baik"],
+    [R.length, "siswa", "siswa"], [mulai.length, "sudah mulai", "mulai", "baik"], [aktif7, "berlatih pertemuan terakhir", "aktif", "baik"],
     [rata.toLocaleString("id-ID", { maximumFractionDigits: 1 }), `rata-rata level tuntas (dari ${jumlah})`, "level", "emas"],
-    [macet, "macet", "macet", macet ? "buruk" : "redup-ubin"], [diam, "tidak aktif ≥ 7 hari", "diam", diam ? "emas" : "redup-ubin"],
+    [macet, "macet", "macet", macet ? "buruk" : "redup-ubin"], [diam, "tidak berlatih pertemuan terakhir", "diam", diam ? "emas" : "redup-ubin"],
   ]);
 
   // sebaran per tingkat
@@ -877,13 +882,13 @@ function gambarKelas() {
     : bobot(b) - bobot(a) || a.lewat - b.lewat || a.nama.localeCompare(b.nama));
   const semua = !$("pil-kelas").value;
   $("t-kelas").innerHTML = `<thead><tr><th>No</th><th>Nama</th>${semua ? `<th>${MODE_MD ? "Kelompok" : "Kelas"}</th>` : ""}<th>Posisi sekarang</th><th>Kemajuan</th>
-    <th class="angka">Level tuntas 7 hari</th><th class="angka">Akurasi</th><th class="angka">Waktu latihan</th><th>Terakhir</th><th>Catatan</th></tr></thead><tbody>` +
+    <th class="angka" title="Level tuntas sejak pertemuan terakhir kelompoknya">Tuntas pertemuan terakhir</th><th class="angka">Akurasi</th><th class="angka">Waktu latihan</th><th>Terakhir</th><th>Catatan</th></tr></thead><tbody>` +
     (R.length ? R.map((r, i) => {
       const ak = r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) + "%" : "–";
       return `<tr class="klik" data-n="${esc(r.nisn)}"><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>${semua ? `<td>${esc(MODE_MD ? r.kelompok || "–" : r.kelas)}</td>` : ""}
         <td class="posisi">${r.tingkat ? `<span class="pos-nm">${esc(r.nama_tingkat)}</span><span class="pos-lv">Level ${r.level}</span>` : '<span class="redup">–</span>'}</td>
         <td><div class="maju"><div class="batang"><i style="width:${100 * r.lewat / Math.max(1, jumlah)}%"></i></div><span>${r.lewat}/${jumlah}</span></div></td>
-        <td class="angka">${r.tuntas_7}</td><td class="angka">${ak}</td><td class="angka">${r.detik ? lamaTeks(r.detik) : "–"}</td>
+        <td class="angka">${r.tuntas_pt}</td><td class="angka">${ak}</td><td class="angka">${r.detik ? lamaTeks(r.detik) : "–"}</td>
         <td>${sejakTeks(r.terakhir)}</td><td><span class="lencana-daftar">${status(r).map((s) => `<span class="lencana ringkas ${s.c}" title="${esc(s.t)}">${esc(s.t)}</span>`).join("")}</span></td></tr>`;
     }).join("") : '<tr><td colspan="10" class="kosong-data">Tidak ada siswa.</td></tr>') + "</tbody>";
   $("t-kelas").querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = () => bukaSiswa(tr.dataset.n));
@@ -910,19 +915,19 @@ $("btn-unduh-rekap").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () 
       info: [[grup, pilih], ["Jumlah siswa", `${R.length} siswa`], ["Total level aktif", `${jumlah} level`]],
       ubin: [["Siswa", R.length], ["Sudah mulai", mulai.length], ["Rata-rata level", Math.round(rata * 10) / 10],
         ["Akurasi", nJ ? Math.round(100 * nB / nJ) + "%" : "–"], ["Macet", R.filter((r) => status(r).some((s) => s.t === "Macet")).length],
-        ["Tidak aktif ≥ 7 hr", R.filter((r) => r.tingkat && hariSejak(r.terakhir) >= 7).length]],
+        ["Tidak berlatih pertemuan terakhir", R.filter((r) => r.tingkat && !aktifPertemuan(r)).length]],
       kolom: [{ t: "No", w: 5, rata: "center" }, { t: "Nama", w: 30, tebal: true }, { t: "NISN", w: 13, rata: "center" },
         { t: "Kelompok MD", w: 12, rata: "center" }, { t: "Rombel", w: 9, rata: "center" }, { t: "Tingkat sekarang", w: 26 },
         { t: "Level", w: 7, rata: "center" }, { t: `Level tuntas /${jumlah}`, w: 11, rata: "center" }, { t: "Kemajuan", w: 10, rata: "center", fmt: '0"%"' },
         { t: "Soal dijawab", w: 9, rata: "center" }, { t: "Benar", w: 8, rata: "center" }, { t: "Akurasi", w: 9, rata: "center", fmt: '0"%"', cf: CF_PERSEN },
-        { t: "Menit latihan", w: 9, rata: "center" }, { t: "Hari latihan", w: 8, rata: "center" }, { t: "Tuntas 7 hari", w: 8, rata: "center" },
+        { t: "Menit latihan", w: 9, rata: "center" }, { t: "Hari latihan", w: 8, rata: "center" }, { t: "Tuntas pertemuan terakhir", w: 10, rata: "center" },
         { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }, { t: "Catatan", w: 24, bungkus: true, size: 9 }],
       baris: R.map((r, i) => [i + 1, r.nama, r.nisn, r.kelompok, r.kelas, r.tingkat ? (r.selesai ? "Tamat" : r.nama_tingkat) : "Belum mulai",
         r.tingkat && !r.selesai ? r.level : "", r.lewat, Math.round(100 * r.lewat / Math.max(1, jumlah)), r.n_jawab, r.n_benar,
-        r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", Math.round(r.detik / 60), r.hari, r.tuntas_7, waktuXL(r.terakhir),
+        r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", Math.round(r.detik / 60), r.hari, r.tuntas_pt, waktuXL(r.terakhir),
         status(r).map((s) => s.t).join(", ")]),
       warnaSel: (b, j) => j === 16 && /Macet|Terkunci/.test(b[16]) ? { warna: XL.merah, tebal: true } : j === 16 && /Tidak aktif|Akurasi/.test(b[16]) ? { warna: XL.emasTeks } : null,
-      catatan: ["Macet: 3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih 7 hari terakhir. Akurasi: hijau ≥ 80%, kuning 60–79%, merah < 60%."] },
+      catatan: ["Macet: 3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih sejak pertemuan terakhir kelompoknya (hari pertemuan dari jadwal KBM Data Induk; kelompok tanpa jadwal: 7 hari terakhir). Akurasi: hijau ≥ 80%, kuning 60–79%, merah < 60%."] },
     { nama: "Sebaran Tingkat", judul: "Sebaran Posisi Siswa per Tingkat", sub: `${grup}: ${pilih}`, beku: 0, melintang: false,
       kolom: [{ t: "Urutan", w: 8, rata: "center" }, { t: "Tingkat", w: 34, tebal: true }, { t: "Jumlah level", w: 12, rata: "center" }, { t: "Siswa di tingkat ini", w: 16, rata: "center" }],
       baris: sebaran.concat(tamat ? [["", "Tamat semua tingkat", "", tamat]] : []).concat([["", "Belum pernah masuk", "", R.length - mulai.length]]) },
@@ -971,24 +976,24 @@ function saringDaftar() {
 function gambarDaftar() {
   const D = DAFTAR, semua = !$("dl-kelompok").value;
   const n = (f) => D.filter(f).length, kunci = n((r) => r.terkunci);
-  const keluar7 = D.reduce((a, r) => a + (r.keluar_7 || 0), 0);
+  const keluar7 = D.reduce((a, r) => a + (r.keluar_pt || 0), 0);
   $("dl-ubin").innerHTML = ubinHtml([
     [D.length, MODE_MD ? "siswa di daftar" : "siswa", "siswa"], [n((r) => r.online), "sedang berlatih sekarang", "aktif", "baik"],
     [n((r) => !r.tingkat), "belum pernah masuk", "diam", "emas"], [kunci, "terkunci (keluar halaman)", "kunci", kunci ? "buruk" : "redup-ubin"],
-    [keluar7, "keluar halaman, 7 hari", "keluar", keluar7 ? "emas" : "redup-ubin"],
+    [keluar7, "keluar halaman, pertemuan terakhir", "keluar", keluar7 ? "emas" : "redup-ubin"],
   ]);
   const R = saringDaftar();
   const ada = new Set(DAFTAR.map((r) => r.nisn));
   [...PILIH].forEach((n) => { if (!ada.has(n)) PILIH.delete(n); });
   const semuaDipilih = R.length > 0 && R.every((r) => PILIH.has(r.nisn));
   $("t-daftar").innerHTML = `<thead><tr><th class="pilih ubah"><input type="checkbox" id="dl-semua" ${semuaDipilih ? "checked" : ""} title="Pilih semua yang tampil" aria-label="Pilih semua siswa yang tampil"></th><th>No</th><th>Nama</th><th>NISN</th><th>NIS</th><th>Rombel</th>${semua && MODE_MD ? "<th>Kelompok</th>" : ""}
-    <th>Status</th><th>Posisi</th><th class="angka" title="Keluar halaman latihan yang dihitung, 7 hari terakhir">Keluar hlm.</th><th></th></tr></thead><tbody>` +
+    <th>Status</th><th>Posisi</th><th class="angka" title="Keluar halaman latihan yang dihitung, sejak pertemuan terakhir kelompoknya">Keluar hlm.</th><th></th></tr></thead><tbody>` +
     (R.length ? R.map((r, i) => `<tr class="klik ${PILIH.has(r.nisn) ? "dipilih" : ""}" data-n="${esc(r.nisn)}"><td class="pilih ubah"><input type="checkbox" data-pilih="${esc(r.nisn)}" ${PILIH.has(r.nisn) ? "checked" : ""} aria-label="Pilih ${esc(r.nama)}"></td><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>
       <td class="nisn">${esc(r.nisn)}</td><td class="nisn">${esc(r.nis || "–")}</td><td>${esc(r.kelas)}</td>
       ${semua && MODE_MD ? `<td>${esc(r.kelompok || "–")}</td>` : ""}
       <td>${statusDaftar(r)}</td>
       <td class="posisi">${r.tingkat ? `<span class="pos-nm">${esc(r.nama_tingkat)}</span><span class="pos-lv">Level ${r.level}</span>` : '<span class="redup">–</span>'}</td>
-      <td class="angka">${r.keluar_7 || '<span class="redup">0</span>'}</td>
+      <td class="angka">${r.keluar_pt || '<span class="redup">0</span>'}</td>
       <td>${r.terkunci ? `<button class="kecil" data-buka="${esc(r.nisn)}">Buka kunci</button>` : ""}</td></tr>`).join("")
       : `<tr><td colspan="11" class="kosong-data">${D.length ? "Tidak ada siswa yang cocok dengan pencarian." : "Tidak ada siswa."}</td></tr>`) + "</tbody>";
   $("t-daftar").querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = (e) => {
@@ -1531,9 +1536,9 @@ $("dl-unduh").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
   const st = (r) => r.terkunci ? "Terkunci" : r.online ? "Sedang berlatih" : !r.tingkat ? "Belum pernah masuk" : r.selesai ? "Tamat" : "Pernah masuk";
   const kolom = [{ t: "No", w: 5, rata: "center" }, { t: "Nama", w: 32, tebal: true }, { t: "NISN", w: 13, rata: "center" }, { t: "NIS", w: 9, rata: "center" },
     { t: "Rombel", w: 9, rata: "center" }, { t: "Kelompok MD", w: 12, rata: "center" }, { t: "Status", w: 18 }, { t: "Tingkat sekarang", w: 26 },
-    { t: "Level", w: 7, rata: "center" }, { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }, { t: "Keluar halaman (7 hari)", w: 11, rata: "center" }];
+    { t: "Level", w: 7, rata: "center" }, { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }, { t: "Keluar halaman (pertemuan terakhir)", w: 13, rata: "center" }];
   const baris = (L) => L.map((r, i) => [i + 1, r.nama, r.nisn, r.nis, r.kelas, r.kelompok, st(r), r.tingkat ? r.nama_tingkat : "", r.tingkat && !r.selesai ? r.level : "",
-    waktuXL(r.terakhir), r.keluar_7 || 0]);
+    waktuXL(r.terakhir), r.keluar_pt || 0]);
   const warnaSel = (b, j) => j === 6 && b[6] === "Terkunci" ? { warna: XL.merah, tebal: true } : j === 6 && b[6] === "Sedang berlatih" ? { warna: XL.hijau, tebal: true }
     : j === 10 && b[10] >= 3 ? { warna: XL.merah, tebal: true } : null;
   const lembar = (nama, L, judulGrup) => ({ nama, judul: "Daftar Siswa", sub: `${grup}: ${judulGrup}`, kolom, baris: baris(L), warnaSel,
@@ -2058,18 +2063,20 @@ async function muatPerKelompok() {
   R.forEach((r) => { const k = r.kelompok || "Tanpa kelompok"; if (!m.has(k)) m.set(k, []); m.get(k).push(r); });
   const baris = [...m].sort((x, y) => x[0].localeCompare(y[0], "id", { numeric: true })).map(([k, L]) => {
     const mulai = L.filter((r) => r.tingkat), nJ = L.reduce((t, r) => t + r.n_jawab, 0), nB = L.reduce((t, r) => t + r.n_benar, 0);
-    const macet = L.filter((r) => status(r).some((x) => x.t === "Macet")).length, diam = L.filter((r) => r.tingkat && hariSejak(r.terakhir) >= 7).length;
-    const rata = mulai.length ? mulai.reduce((t, r) => t + r.lewat, 0) / mulai.length : 0, aktif7 = L.filter((r) => hariSejak(r.terakhir) < 7).length;
+    const macet = L.filter((r) => status(r).some((x) => x.t === "Macet")).length, diam = L.filter((r) => r.tingkat && !aktifPertemuan(r)).length;
+    const rata = mulai.length ? mulai.reduce((t, r) => t + r.lewat, 0) / mulai.length : 0, aktif7 = L.filter(aktifPertemuan).length;
+    const ptk = (L.find((r) => r.pertemuan) || {}).pertemuan;
     const sesi = BUKA && BUKA.kelompok.find((x) => x.kelompok === k), buka = sesi && sesi.buka && sisaSesi(sesi) > 0;
     return `<tr class="klik" data-kel="${esc(k)}"><td><b>${esc(k)}</b></td><td class="angka">${L.length}</td><td class="angka">${mulai.length}</td><td class="angka">${aktif7}</td>
+      <td class="kecil">${ptk ? esc(tglTeks(ptk)) : '<span class="redup" title="Belum ada jadwal di Data Induk; dihitung 7 hari terakhir">7 hari</span>'}</td>
       <td class="angka">${rata.toLocaleString("id-ID", { maximumFractionDigits: 1 })}</td><td class="angka">${nJ ? Math.round(100 * nB / nJ) + "%" : "–"}</td>
       <td class="angka">${macet ? `<span class="lencana buruk">${macet}</span>` : '<span class="redup">0</span>'}</td>
       <td class="angka">${diam ? `<span class="lencana emas">${diam}</span>` : '<span class="redup">0</span>'}</td>
       <td>${buka ? `<span class="lencana baik"><span class="titik-on"></span>Dibuka · ${sisaSesi(sesi)} mnt</span>` : '<span class="redup kecil">Ditutup</span>'}</td></tr>`;
   });
-  $("t-perkelompok").innerHTML = `<thead><tr><th>Kelompok</th><th class="angka">Siswa</th><th class="angka">Sudah mulai</th><th class="angka">Berlatih 7 hari</th>
+  $("t-perkelompok").innerHTML = `<thead><tr><th>Kelompok</th><th class="angka">Siswa</th><th class="angka">Sudah mulai</th><th class="angka">Berlatih pertemuan terakhir</th><th>Pertemuan terakhir</th>
     <th class="angka">Rata-rata level tuntas</th><th class="angka">Akurasi</th><th class="angka">Macet</th><th class="angka">Tidak aktif</th><th>Sesi latihan</th></tr></thead>
-    <tbody>${baris.join("") || '<tr><td colspan="9" class="kosong-data">Tidak ada siswa.</td></tr>'}</tbody>`;
+    <tbody>${baris.join("") || '<tr><td colspan="10" class="kosong-data">Tidak ada siswa.</td></tr>'}</tbody>`;
   $("t-perkelompok").querySelectorAll("[data-kel]").forEach((tr) => tr.onclick = () => {
     if ([...$("pil-kelas").options].some((o) => o.value === tr.dataset.kel)) $("pil-kelas").value = tr.dataset.kel;
     muatKelas();
@@ -2260,7 +2267,8 @@ function gambarAdmin() {
       const nMd = j.filter((g) => (g.kelompok || []).length).length;
       if (!confirm(`Tertarik ${j.length} guru dari Data Induk (${nMd} di antaranya mengampu ${nKel} kelompok MD).\n\nSimpan? Guru yang tidak ada lagi di Data Induk dinonaktifkan. PIN pribadi yang sudah dibuat tetap berlaku.`)) return;
       const h = await rpc("mtd_sinkron_guru", { p_pin: PIN, p_rows: j });
-      toast(`${h.jumlah} guru disimpan (${h.baru} baru${h.dinonaktifkan ? `, ${h.dinonaktifkan} dinonaktifkan` : ""})`); muatAdmin();
+      toast(`${h.jumlah} guru disimpan (${h.baru} baru${h.dinonaktifkan ? `, ${h.dinonaktifkan} dinonaktifkan` : ""})`
+        + (h.kelompok_berjadwal != null ? ` · jadwal pertemuan ${h.kelompok_berjadwal} kelompok MD` : "")); muatAdmin();
     } catch (e) { toast(e.message); } finally { b.disabled = false; b.textContent = t; }
   };
   const acak = async (ids, pesan) => {
