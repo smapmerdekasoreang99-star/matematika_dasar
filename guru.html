@@ -1259,6 +1259,8 @@ async function tampilKode(nama) {
   $("kl-url").textContent = dasar.replace(/\/$/, "");
   const qr = $("kl-qr"); qr.innerHTML = ""; qr.classList.add("hidden"); $("kode-layar").classList.remove("qr-saja"); $("kl-petunjuk").textContent = "";
   $("kode-layar").classList.remove("hidden"); $("kl-tutup").focus();
+  // Layar penuh (taskbar dan jendela peramban hilang); harus dipanggil langsung dari tekanan tombol, sebelum menunggu apa pun.
+  if (document.documentElement.requestFullscreen && !document.fullscreenElement) $("kode-layar").requestFullscreen().catch(() => {});
   try {
     await muatQR();
     // Tautan pendek + koreksi L (cukup untuk layar, tidak tergores): QR lebih renggang, kotaknya lebih besar,
@@ -1269,9 +1271,12 @@ async function tampilKode(nama) {
     qr.classList.remove("hidden");
   } catch (e) { /* tanpa QR: kode saja seperti dulu */ }
 }
-$("kl-tutup").onclick = () => $("kode-layar").classList.add("hidden");
+const tutupKode = () => { $("kode-layar").classList.add("hidden"); if (document.fullscreenElement === $("kode-layar")) document.exitFullscreen().catch(() => {}); };
+$("kl-tutup").onclick = tutupKode;
 $("kl-qr").onclick = () => $("kode-layar").classList.toggle("qr-saja");
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("kode-layar").classList.add("hidden"); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") tutupKode(); });
+// Keluar layar penuh (Esc / F11 / gestur) sekaligus menutup tampilan kode, supaya tidak tersisa setengah
+document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && !$("kode-layar").classList.contains("hidden")) $("kode-layar").classList.add("hidden"); });
 // Hitung mundur diperbarui tiap 20 detik; data diambil ulang tiap menit selama tab Kemajuan terbuka.
 setInterval(() => { if (BUKA && !document.hidden && !$("p-daftar").classList.contains("hidden")) gambarSesi(); }, 20000);
 
