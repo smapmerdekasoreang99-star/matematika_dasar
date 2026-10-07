@@ -225,6 +225,7 @@ span.ab-asal.a-umum { background: var(--kertas-3); color: var(--tinta-2); box-sh
 .massal .m-panel { display: grid; gap: var(--j2); padding-top: var(--j2); border-top: 1px solid var(--gelap-2); }
 .massal .m-panel.hidden { display: none; }
 /* Kolom posisi: nama tingkat lalu level di bawahnya */
+#t-perkelompok th { vertical-align: bottom; line-height: 1.45; } #t-perkelompok td.posisi { min-width: 160px; }
 td.posisi { min-width: 200px; } td.posisi .pos-nm { display: block; font-weight: 600; line-height: 1.35; } td.posisi .pos-lv { display: block; font-size: var(--h-xs); color: var(--tinta-2); }
 .massal .m-kepala { display: flex; align-items: center; gap: var(--j3); flex-wrap: wrap; }
 .massal .m-baris { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: var(--j3); align-items: start; }
@@ -2199,8 +2200,9 @@ async function muatPerKelompok() {
       <td class="angka">${diam ? `<span class="lencana emas">${diam}</span>` : '<span class="redup">0</span>'}</td>
       <td>${buka ? `<span class="lencana baik"><span class="titik-on"></span>Dibuka · ${sisaSesi(sesi)} mnt</span>` : '<span class="redup kecil">Ditutup</span>'}</td></tr>`;
   });
-  $("t-perkelompok").innerHTML = `<thead><tr><th>Kelompok</th><th class="angka">Siswa</th><th class="angka">Sudah mulai</th><th class="angka">Berlatih pertemuan terakhir</th><th>Pertemuan terakhir</th>
-    <th class="angka">Rata-rata level tuntas</th><th title="Siswa yang paling belakang (sudah mulai). Arahkan penunjuk ke sel untuk melihat namanya.">Posisi terendah</th><th title="Siswa yang paling depan. Arahkan penunjuk ke sel untuk melihat namanya.">Posisi tertinggi</th><th class="angka">Akurasi</th><th class="angka">Macet</th><th class="angka">Tidak aktif</th><th>Sesi latihan</th></tr></thead>
+  // Judul kolom dua baris supaya tabel tidak terlalu lebar
+  $("t-perkelompok").innerHTML = `<thead><tr><th>Kelompok</th><th class="angka">Siswa</th><th class="angka">Sudah<br>mulai</th><th class="angka">Siswa berlatih<br>pertemuan terakhir</th><th>Pertemuan<br>terakhir</th>
+    <th class="angka">Rata-rata<br>level tuntas</th><th title="Siswa yang paling belakang (sudah mulai). Arahkan penunjuk ke sel untuk melihat namanya.">Posisi<br>terendah</th><th title="Siswa yang paling depan. Arahkan penunjuk ke sel untuk melihat namanya.">Posisi<br>tertinggi</th><th class="angka">Akurasi</th><th class="angka">Macet</th><th class="angka">Tidak<br>aktif</th><th>Sesi<br>latihan</th></tr></thead>
     <tbody>${baris.join("") || '<tr><td colspan="12" class="kosong-data">Tidak ada siswa.</td></tr>'}</tbody>`;
   $("t-perkelompok").querySelectorAll("[data-kel]").forEach((tr) => tr.onclick = () => {
     if ([...$("pil-kelas").options].some((o) => o.value === tr.dataset.kel)) $("pil-kelas").value = tr.dataset.kel;
