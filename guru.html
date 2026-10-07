@@ -144,10 +144,16 @@
 .sesi-nama, .sesi-status, .sesi-kode { display: grid; gap: 2px; justify-items: start; }
 .sesi-nama b { font-size: var(--h-b); } .sesi-baris small { font-size: var(--h-xs); color: var(--tinta-2); }
 .sesi-kode b { font-size: 26px; font-weight: 800; letter-spacing: .14em; font-variant-numeric: tabular-nums; color: var(--tinta); line-height: 1.1; }
-.sesi-aksi { display: flex; gap: var(--j2); flex-wrap: wrap; justify-content: flex-end; }
-.sesi-aksi select { width: auto; padding: var(--j2); font-size: var(--h-m); }
-.sesi-tambah { display: inline-flex; align-items: center; gap: var(--j2); font-size: var(--h-s); }
-.sesi-tambah input { width: 64px; padding: var(--j2); font-size: var(--h-m); text-align: center; }
+.sesi-aksi { display: grid; grid-template-columns: 1fr 1fr; gap: var(--j2); }
+.sesi-aksi button, .sesi-aksi select { width: 100%; min-height: 38px; }
+.sesi-aksi select { padding: var(--j2) var(--j3); font-size: var(--h-s); }
+.sesi-tambah { grid-column: 1 / -1; display: flex; align-items: stretch; min-height: 38px; overflow: hidden;
+  border: 1.5px solid var(--garis-2); border-radius: var(--r2); background: #fff; }
+.sesi-tambah:focus-within { border-color: var(--emas-tua); box-shadow: 0 0 0 4px rgba(194,148,51,.14); }
+.sesi-aksi .sesi-tambah button { flex: 1; width: auto; min-height: 0; border: 0; border-right: 1.5px solid var(--garis-2); border-radius: 0; }
+.sesi-tambah input[type=number] { width: 64px; flex: none; padding: 0 var(--j1); border: 0; border-radius: 0; font-size: var(--h-m); font-weight: 700; text-align: center; box-shadow: none; }
+.sesi-tambah input[type=number]:focus { box-shadow: none; }
+.sesi-tambah .satuan { display: flex; align-items: center; padding: 0 var(--j3); border-left: 1px solid var(--garis); background: var(--kertas-3); font-size: var(--h-s); color: var(--tinta-2); }
 .sesi-ringkas { margin: 0; padding: var(--j3) var(--j5); background: var(--kertas-3); border-bottom: 1px solid var(--garis); font-size: var(--h-s); line-height: 1.5; }
 .sesi-peringatan { margin: 0; padding: var(--j3) var(--j5); background: var(--emas-kabut); border-bottom: 1px solid var(--garis); font-size: var(--h-s); }
 @media (max-width: 720px) { .sesi-baris { grid-template-columns: 1fr auto; padding: var(--j3) var(--j4); } .sesi-status { grid-column: 1 / -1; grid-row: 2; } .sesi-aksi { grid-column: 1 / -1; justify-content: flex-start; } }
@@ -1220,7 +1226,7 @@ function gambarSesi() {
           : '<span class="lencana">Ditutup</span><small>siswa tidak bisa masuk</small>'}</div>
         <div class="sesi-kode">${buka ? `<small>Kode akses</small><b>${esc(k.kode)}</b>` : ""}</div>
         <div class="sesi-aksi">${!boleh ? "" : buka
-          ? `<button class="garis kecil" data-layar="${esc(k.kelompok)}">QR &amp; kode masuk</button><span class="sesi-tambah"><button class="garis kecil" data-tambah="${esc(k.kelompok)}" title="Memperpanjang sesi yang sedang berjalan; kode akses tetap">Tambah lagi sesi +</button><input type="number" data-tambah-menit="${esc(k.kelompok)}" min="1" max="300" step="1" inputmode="numeric" value="${MENIT_TAMBAH[k.kelompok] || 15}" aria-label="Menit tambahan ${esc(k.kelompok)}">menit</span><button class="kecil bahaya" data-tutup="${esc(k.kelompok)}">Tutup sekarang</button>`
+          ? `<span class="sesi-tambah"><button class="garis kecil" data-tambah="${esc(k.kelompok)}" title="Memperpanjang sesi yang sedang berjalan; kode akses tetap">Tambah lagi sesi +</button><input type="number" data-tambah-menit="${esc(k.kelompok)}" min="1" max="300" step="1" inputmode="numeric" value="${MENIT_TAMBAH[k.kelompok] || 15}" aria-label="Menit tambahan ${esc(k.kelompok)}"><span class="satuan">menit</span></span><button class="garis kecil" data-layar="${esc(k.kelompok)}">QR &amp; kode masuk</button><button class="kecil bahaya" data-tutup="${esc(k.kelompok)}">Tutup sekarang</button>`
           : `${pilihMenit(k.kelompok)}<button class="kecil" data-buka="${esc(k.kelompok)}">Buka sesi</button>`}</div></div>`;
     }).join("");
     const cari = (k) => BUKA.kelompok.find((x) => x.kelompok === k);
