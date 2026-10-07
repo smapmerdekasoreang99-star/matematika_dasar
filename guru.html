@@ -588,6 +588,7 @@ body.lihat .ubah { display: none !important; }
           <option value="kunci">Terkunci</option>
           <option value="belum">Belum pernah masuk</option>
           <option value="mulai">Sudah pernah masuk</option>
+          <option value="selesai">Sudah selesai</option>
         </select>
         <button class="garis kecil" id="dl-muat">Muat ulang</button>
         <button class="btn-unduh utama" data-fmt="xlsx" id="dl-unduh" title="Daftar sesuai saringan; Semua kelompok = satu lembar per kelompok">Unduh daftar</button>
@@ -845,6 +846,8 @@ const hariSejak = (iso) => iso ? (Date.now() - new Date(iso)) / 86400000 : Infin
    jatuh ke 7 hari terakhir seperti dulu (6 Oktober 2026). */
 const sejakPertemuan = (r) => r.sejak ? new Date(r.sejak) : new Date(Date.now() - 7 * 864e5);
 const aktifPertemuan = (r) => !!r.terakhir && new Date(r.terakhir) >= sejakPertemuan(r);
+// Selesai: siswa di tahapan khusus yang ujungnya "Berhenti" berhenti di langkah terakhir; tanpa tahapan = tamat semua level.
+const selesaiTeks = (r) => r.jalur ? "Selesai tahapan" : "Tamat";
 function status(r) {
   const s = [];
   if (!r.tingkat) return [{ t: "Belum mulai", c: "" , bobot: 2 }];
@@ -852,7 +855,7 @@ function status(r) {
   if (r.jalur) s.push({ t: "Tahapan: " + r.jalur, c: "biru", bobot: 0 });
   if (r.aturan) s.push({ t: "Aturan: " + r.aturan, c: "emas", bobot: 0 });
   else if (r.aturan_kelompok) s.push({ t: "Aturan kelompok: " + r.aturan_kelompok, c: "", bobot: 0 });
-  if (r.selesai) s.push({ t: "Tamat", c: "baik", bobot: 0 });
+  if (r.selesai) s.push({ t: selesaiTeks(r), c: "baik", bobot: 0 });
   if (!r.selesai && (r.percobaan >= 3 || r.salah_sini >= 8)) s.push({ t: "Macet", c: "buruk", bobot: 4 });
   if (!aktifPertemuan(r)) s.push({ t: "Tidak aktif", c: "emas", bobot: 3 });
   if (r.n_jawab >= 20 && r.n_benar / r.n_jawab < 0.7) s.push({ t: "Akurasi rendah", c: "emas", bobot: 1 });
@@ -944,7 +947,7 @@ $("btn-unduh-rekap").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () 
         { t: "Soal dijawab", w: 9, rata: "center" }, { t: "Benar", w: 8, rata: "center" }, { t: "Akurasi", w: 9, rata: "center", fmt: '0"%"', cf: CF_PERSEN },
         { t: "Menit latihan", w: 9, rata: "center" }, { t: "Pertemuan diikuti", w: 10, rata: "center" }, { t: "Tuntas pertemuan terakhir", w: 10, rata: "center" },
         { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }, { t: "Catatan", w: 24, bungkus: true, size: 9 }],
-      baris: R.map((r, i) => [i + 1, r.nama, r.nisn, r.kelompok, r.kelas, r.tingkat ? (r.selesai ? "Tamat" : r.nama_tingkat) : "Belum mulai",
+      baris: R.map((r, i) => [i + 1, r.nama, r.nisn, r.kelompok, r.kelas, r.tingkat ? (r.selesai ? selesaiTeks(r) : r.nama_tingkat) : "Belum mulai",
         r.tingkat && !r.selesai ? r.level : "", r.lewat, Math.round(100 * r.lewat / Math.max(1, jumlah)), r.n_jawab, r.n_benar,
         r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", Math.round(r.detik / 60), r.pt_total ? `${r.pt_hadir}/${r.pt_total}` : `${r.hari} kali`, r.tuntas_pt, waktuXL(r.terakhir),
         status(r).map((s) => s.t).join(", ")]),
@@ -973,6 +976,7 @@ const PILIH = new Set();
 $("dl-cari").oninput = () => gambarDaftar();
 
 const statusDaftar = (r) => r.terkunci ? '<span class="lencana buruk">Terkunci</span>'
+  : r.selesai && r.jalur && !r.online ? `<span class="lencana ringkas baik" title="Sudah menuntaskan tahapan &quot;${esc(r.jalur)}&quot;; guru memutuskan langkah berikutnya">✓ Selesai: ${esc(r.jalur)}</span>`
   : r.jalur && !r.online ? `<span class="lencana ringkas biru" title="${r.jalur_siswa ? "Tahapan khusus dipilih untuk siswa ini" : "Tahapan khusus kelompok"}">Tahapan: ${esc(r.jalur)}</span>`
   : r.jalur_siswa && r.tahapan_kelompok && !r.online ? `<span class="lencana" title="Tahapan umum dipilih untuk siswa ini; tidak ikut tahapan kelompok">Tahapan umum (siswa)</span>`
   : r.aturan && !r.online ? `<span class="lencana ringkas emas" title="Profil aturan khusus siswa: ${esc(r.aturan)}">Aturan: ${esc(r.aturan)}</span>`
@@ -992,7 +996,7 @@ function tingkatSiswa(r) {
 function saringDaftar() {
   const q = $("dl-cari").value.trim().toLowerCase(), st = $("dl-status").value, tk = $("dl-tingkat").value;
   return DAFTAR.filter((r) => (!tk || tingkatSiswa(r) === tk) && (!q || [r.nama, r.nisn, r.nis].some((v) => String(v || "").toLowerCase().includes(q)))
-    && (!st || (st === "online" ? r.online : st === "kunci" ? r.terkunci : st === "belum" ? !r.tingkat : !!r.tingkat)));
+    && (!st || (st === "online" ? r.online : st === "kunci" ? r.terkunci : st === "belum" ? !r.tingkat : st === "selesai" ? r.selesai : !!r.tingkat)));
 }
 
 function gambarDaftar() {
@@ -1001,7 +1005,7 @@ function gambarDaftar() {
   const keluar7 = D.reduce((a, r) => a + (r.keluar_pt || 0), 0);
   $("dl-ubin").innerHTML = ubinHtml([
     [D.length, MODE_MD ? "siswa di daftar" : "siswa", "siswa"], [n((r) => r.online), "sedang berlatih sekarang", "aktif", "baik"],
-    [n((r) => !r.tingkat), "belum pernah masuk", "diam", "emas"], [kunci, "terkunci (keluar halaman)", "kunci", kunci ? "buruk" : "redup-ubin"],
+    [n((r) => !r.tingkat), "belum pernah masuk", "diam", "emas"], [n((r) => r.selesai), "sudah selesai", "level", n((r) => r.selesai) ? "baik" : "redup-ubin"], [kunci, "terkunci (keluar halaman)", "kunci", kunci ? "buruk" : "redup-ubin"],
     [keluar7, "keluar halaman, pertemuan terakhir", "keluar", keluar7 ? "emas" : "redup-ubin"],
   ]);
   const R = saringDaftar();
@@ -1595,7 +1599,7 @@ $("dl-unduh").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
   if (!R.length) throw new Error("Tidak ada siswa di daftar.");
   const grup = MODE_MD ? "Kelompok" : "Kelas", pilih = labelPilihan("dl-kelompok");
   const saring = [$("dl-status").value && labelPilihan("dl-status"), $("dl-cari").value.trim() && `cari "${$("dl-cari").value.trim()}"`].filter(Boolean).join(", ");
-  const st = (r) => r.terkunci ? "Terkunci" : r.online ? "Sedang berlatih" : !r.tingkat ? "Belum pernah masuk" : r.selesai ? "Tamat" : "Pernah masuk";
+  const st = (r) => r.terkunci ? "Terkunci" : r.online ? "Sedang berlatih" : !r.tingkat ? "Belum pernah masuk" : r.selesai ? selesaiTeks(r) : "Pernah masuk";
   const kolom = [{ t: "No", w: 5, rata: "center" }, { t: "Nama", w: 32, tebal: true }, { t: "NISN", w: 13, rata: "center" }, { t: "NIS", w: 9, rata: "center" },
     { t: "Rombel", w: 9, rata: "center" }, { t: "Kelompok MD", w: 12, rata: "center" }, { t: "Status", w: 18 }, { t: "Tingkat sekarang", w: 26 },
     { t: "Level", w: 7, rata: "center" }, { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }, { t: "Keluar halaman (pertemuan terakhir)", w: 13, rata: "center" }];
