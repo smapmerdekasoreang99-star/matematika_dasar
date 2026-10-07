@@ -2173,6 +2173,10 @@ function bukaSub(v) {
   // grafik sebaran digambar selebar wadahnya: gambar ulang setelah tab kelompok tampil
   if (v === "kelompok") { if (REKAP.length) gambarKelas(); muatPerKelompok(); }
 }
+// Sel posisi terendah/tertinggi kelompok (7 Oktober 2026): r = siswa di posisi itu, n = banyak siswa yang sama posisinya.
+const selPosisi = (r, n, L) => !r ? '<td class="posisi"><span class="redup">–</span></td>'
+  : `<td class="posisi" title="${esc(L.map((x) => x.nama).join(", "))}"><span class="pos-nm">${esc(r.selesai ? selesaiTeks(r) : r.nama_tingkat)}</span>`
+    + `<span class="pos-lv">${r.selesai ? "" : `Level ${r.level} · `}${n} siswa</span></td>`;
 async function muatPerKelompok() {
   $("t-perkelompok").innerHTML = '<tr><td class="kosong-data">Memuat…</td></tr>';
   let R;
@@ -2185,17 +2189,19 @@ async function muatPerKelompok() {
     const macet = L.filter((r) => status(r).some((x) => x.t === "Macet")).length, diam = L.filter((r) => r.tingkat && !aktifPertemuan(r)).length;
     const rata = mulai.length ? mulai.reduce((t, r) => t + r.lewat, 0) / mulai.length : 0, aktif7 = L.filter(aktifPertemuan).length;
     const ptk = (L.find((r) => r.pertemuan) || {}).pertemuan;
+    const urut = [...mulai].sort((a, b) => a.lewat - b.lewat), rendah = urut[0], tinggi = urut[urut.length - 1];
+    const sama = (x) => urut.filter((r) => r.lewat === x.lewat && !!r.selesai === !!x.selesai);
     const sesi = BUKA && BUKA.kelompok.find((x) => x.kelompok === k), buka = sesi && sesi.buka && sisaSesi(sesi) > 0;
     return `<tr class="klik" data-kel="${esc(k)}"><td><b>${esc(k)}</b></td><td class="angka">${L.length}</td><td class="angka">${mulai.length}</td><td class="angka">${aktif7}</td>
       <td class="kecil">${ptk ? esc(tglTeks(ptk)) : '<span class="redup" title="Jadwal pertemuan kelompok ini belum ada. Tarik guru dari Data Induk (admin); bila tetap kosong, isi jadwal KBM kelompok ini di Data Induk. Sementara dihitung 7 hari terakhir.">Belum ada jadwal</span>'}</td>
-      <td class="angka">${rata.toLocaleString("id-ID", { maximumFractionDigits: 1 })}</td><td class="angka">${nJ ? Math.round(100 * nB / nJ) + "%" : "–"}</td>
+      <td class="angka">${rata.toLocaleString("id-ID", { maximumFractionDigits: 1 })}</td>${selPosisi(rendah, rendah ? sama(rendah).length : 0, rendah ? sama(rendah) : [])}${selPosisi(tinggi, tinggi ? sama(tinggi).length : 0, tinggi ? sama(tinggi) : [])}<td class="angka">${nJ ? Math.round(100 * nB / nJ) + "%" : "–"}</td>
       <td class="angka">${macet ? `<span class="lencana buruk">${macet}</span>` : '<span class="redup">0</span>'}</td>
       <td class="angka">${diam ? `<span class="lencana emas">${diam}</span>` : '<span class="redup">0</span>'}</td>
       <td>${buka ? `<span class="lencana baik"><span class="titik-on"></span>Dibuka · ${sisaSesi(sesi)} mnt</span>` : '<span class="redup kecil">Ditutup</span>'}</td></tr>`;
   });
   $("t-perkelompok").innerHTML = `<thead><tr><th>Kelompok</th><th class="angka">Siswa</th><th class="angka">Sudah mulai</th><th class="angka">Berlatih pertemuan terakhir</th><th>Pertemuan terakhir</th>
-    <th class="angka">Rata-rata level tuntas</th><th class="angka">Akurasi</th><th class="angka">Macet</th><th class="angka">Tidak aktif</th><th>Sesi latihan</th></tr></thead>
-    <tbody>${baris.join("") || '<tr><td colspan="10" class="kosong-data">Tidak ada siswa.</td></tr>'}</tbody>`;
+    <th class="angka">Rata-rata level tuntas</th><th title="Siswa yang paling belakang (sudah mulai). Arahkan penunjuk ke sel untuk melihat namanya.">Posisi terendah</th><th title="Siswa yang paling depan. Arahkan penunjuk ke sel untuk melihat namanya.">Posisi tertinggi</th><th class="angka">Akurasi</th><th class="angka">Macet</th><th class="angka">Tidak aktif</th><th>Sesi latihan</th></tr></thead>
+    <tbody>${baris.join("") || '<tr><td colspan="12" class="kosong-data">Tidak ada siswa.</td></tr>'}</tbody>`;
   $("t-perkelompok").querySelectorAll("[data-kel]").forEach((tr) => tr.onclick = () => {
     if ([...$("pil-kelas").options].some((o) => o.value === tr.dataset.kel)) $("pil-kelas").value = tr.dataset.kel;
     muatKelas();
