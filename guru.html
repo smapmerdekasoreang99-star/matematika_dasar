@@ -1430,9 +1430,11 @@ const namaPapan = (n) => {
   return k.length <= 2 ? k.join(" ") : `${k[0]} ${k[1]} ${k[2][0]}.`;
 };
 const inisialPapan = (n) => String(n || "").trim().split(/\s+/).slice(0, 2).map((w) => w[0] || "").join("").toUpperCase();
-async function tampilTeratas(nama) {
+async function tampilTeratas(nama, sim = false) {
   tutupTeratas();
-  TR = { kel: nama, sisa: TR_JEDA, lalu: new Map() };
+  const jeda = sim ? SIM_JEDA : TR_JEDA;
+  TR = { kel: nama, sisa: jeda, jeda, lalu: new Map(), sim };
+  if (sim) mulaiSimulasi();
   $("tr-kel").textContent = nama; $("tr-galat").textContent = "";
   $("tr-info").innerHTML = ""; $("tr-angka").innerHTML = "";
   $("tr-isi").innerHTML = '<p class="tr-muat">Memuat peringkat…</p>';
@@ -1445,12 +1447,13 @@ async function tampilTeratas(nama) {
   TR.waktu = setInterval(() => {
     if (!TR) return;
     TR.sisa -= 1;
-    if (TR.sisa <= 0) { TR.sisa = TR_JEDA; muatTeratas(); }
+    if (TR.sisa <= 0) { TR.sisa = TR.jeda; muatTeratas(); }
     gambarDetak();
   }, 1000);
 }
 async function muatTeratas() {
   if (!TR) return;
+  if (TR.sim) { gambarTeratas(langkahSimulasi()); return; }
   const kel = TR.kel;
   try {
     const d = await rpc("mtd_teratas", { p_pin: PIN, p_kelompok: kel });
@@ -1463,13 +1466,14 @@ async function muatTeratas() {
 function gambarDetak() {
   if (!TR) return;
   $("tr-detak-teks").textContent = `Diperbarui dalam ${TR.sisa} detik`;
-  $("tr-detak").style.width = `${((TR_JEDA - TR.sisa) / TR_JEDA) * 100}%`;
+  $("tr-detak").style.width = `${((TR.jeda - TR.sisa) / TR.jeda) * 100}%`;
 }
 function gambarTeratas(d) {
   const sisa = d.sampai ? Math.max(0, Math.ceil((new Date(d.sampai).getTime() - (Date.now() - d.selisih)) / 60000)) : 0;
   $("tr-info").innerHTML = (d.buka
       ? `<span class="tr-pil langsung"><span class="tr-titik"></span>Langsung · sisa ${sisa} menit</span>`
       : '<span class="tr-pil tutup">Sesi ditutup · hasil sesi terakhir</span>') +
+    (d.simulasi ? '<span class="tr-pil tutup">Simulasi · data contoh, tidak tersimpan</span>' : "") +
     (d.kode ? `<span class="tr-pil">Kode masuk <b>${esc(d.kode)}</b></span>` : "") +
     `<span class="tr-pil">Sejak pukul ${jamTeks(d.dari)}</span>`;
   const tepat = d.total_jawab ? Math.round((100 * d.total_benar) / d.total_jawab) : 0;
@@ -1517,6 +1521,58 @@ function tutupTeratas() {
   if (document.fullscreenElement === $("teratas-layar")) document.exitFullscreen().catch(() => {});
 }
 $("tr-tutup").onclick = tutupTeratas;
+
+/* ---- Simulasi papan teratas (8 Oktober 2026) ----
+   guru.html?simulasi=teratas membuka papan dengan siswa contoh yang saling
+   berlomba, untuk melihat dan memperkenalkan tampilannya tanpa sesi
+   sungguhan. Sepenuhnya di peramban: tidak memanggil server, tidak menyimpan
+   apa pun, tidak perlu PIN. Siswa masuk bergiliran; tiap langkah sebagian
+   menjawab 1–3 soal dengan peluang benar sesuai kemampuannya, dan 5 jawaban
+   benar di satu level menuntaskannya. Urutannya sama dengan mtd_teratas. */
+const SIM_JEDA = 3;
+const SIM_TINGKAT = ["Penjumlahan Dasar", "Pengurangan Dasar", "Perkalian Dasar", "Pembagian Dasar", "Pecahan Sederhana"];
+let SIM = null;
+function mulaiSimulasi() {
+  const nama = ["Aditya Pratama", "Bunga Lestari", "Citra Maharani", "Dimas Saputra", "Eka Rahmawati", "Fajar Nugraha",
+    "Gita Permata", "Hana Salsabila", "Ilham Ramadhan", "Jihan Aulia", "Kevin Pradana", "Laila Nurhasanah", "Muhammad Rizky",
+    "Nadia Putri", "Oki Firmansyah", "Putri Ayu", "Rangga Wijaya", "Salsa Nabila", "Taufik Hidayat", "Ulfa Maulida",
+    "Vina Oktaviani", "Wahyu Setiawan", "Yogi Prasetyo", "Zahra Amelia", "Annisa Fitri", "Bagas Kurniawan", "Dewi Sartika",
+    "Farhan Maulana", "Intan Permatasari", "Rizal Fauzi", "Siti Nurjanah", "Raka Aditya", "Nayla Zahira", "Galih Saputra",
+    "Melati Sukma", "Arya Dwipangga"];
+  SIM = { mulai: Date.now(), langkah: 0, siswa: nama.map((n, i) => ({
+    nisn: "SIM" + i, nama: n, mampu: 0.55 + Math.random() * 0.4, cepat: 1 + Math.floor(Math.random() * 3),
+    masuk: Math.floor(Math.random() * 5), benar: 0, jawab: 0, tuntas: 0, tingkat: 2, level: 1, benarLevel: 0 })) };
+}
+function langkahSimulasi() {
+  SIM.langkah += 1;
+  for (const s of SIM.siswa) {
+    if (SIM.langkah < s.masuk || Math.random() < 0.25) continue;      // belum masuk, atau sedang berpikir
+    const n = 1 + Math.floor(Math.random() * s.cepat);
+    for (let i = 0; i < n; i++) {
+      s.jawab += 1;
+      if (Math.random() < s.mampu) {
+        s.benar += 1; s.benarLevel += 1;
+        if (s.benarLevel >= 5) {                                        // level tuntas → level berikutnya
+          s.tuntas += 1; s.benarLevel = 0; s.level += 1;
+          if (s.level > 6) { s.level = 1; s.tingkat = Math.min(SIM_TINGKAT.length - 1, s.tingkat + 1); }
+        }
+      }
+    }
+  }
+  const aktif = SIM.siswa.filter((s) => s.jawab > 0).map((s) => ({ ...s, akurasi: Math.round((100 * s.benar) / s.jawab) }));
+  aktif.sort((a, b) => b.tuntas - a.tuntas || b.benar - a.benar || b.akurasi - a.akurasi || a.nama.localeCompare(b.nama, "id"));
+  const sekarang = new Date();
+  return {
+    simulasi: true, kelompok: "Simulasi", buka: true, kode: null, sekarang: sekarang.toISOString(), selisih: 0,
+    dari: new Date(SIM.mulai).toISOString(), sampai: new Date(SIM.mulai + 30 * 60000).toISOString(),
+    n_siswa: SIM.siswa.length, n_berlatih: aktif.length, n_online: aktif.length,
+    total_benar: aktif.reduce((t, s) => t + s.benar, 0), total_jawab: aktif.reduce((t, s) => t + s.jawab, 0),
+    total_tuntas: aktif.reduce((t, s) => t + s.tuntas, 0),
+    teratas: aktif.slice(0, 10).map((s, i) => ({ peringkat: i + 1, nisn: s.nisn, nama: s.nama, benar: s.benar, jawab: s.jawab,
+      akurasi: s.akurasi, tuntas: s.tuntas, tingkat_nama: SIM_TINGKAT[s.tingkat], level: s.level, selesai: false, online: true })),
+  };
+}
+if (new URLSearchParams(location.search).get("simulasi") === "teratas") tampilTeratas("Simulasi", true);
 // Hitung mundur diperbarui tiap 20 detik; data diambil ulang tiap menit selama tab Kemajuan terbuka.
 setInterval(() => { if (BUKA && !document.hidden && !$("p-daftar").classList.contains("hidden")) gambarSesi(); }, 20000);
 
