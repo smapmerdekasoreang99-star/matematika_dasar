@@ -206,6 +206,12 @@ dalam 24 kelompok:
 - Rekap (Kemajuan dan Daftar siswa, diperbarui tiap 30 detik oleh setiap guru/pengawas)
   membaca ringkasan per siswa `mtd_ringkas`, yang diperbarui trigger di `mtd_jawaban`
   (termasuk saat data latihan dihapus), jadi tidak melambat seiring riwayat bertambah.
+- **Tampilkan teratas** (tombol di samping *QR & kode masuk* pada sesi yang dibuka, 8 Okt 2026):
+  papan 10 siswa terbaik kelompok itu dalam layar penuh untuk diproyeksikan — podium juara
+  1–3, peringkat 4–10 dengan batang jawaban benar, ringkasan kelompok, dan sorotan bagi yang
+  naik peringkat. Dimuat ulang tiap 8 detik lewat `mtd_teratas`; hanya dihitung **sejak sesi
+  dibuka**, diurutkan level tuntas → jawaban benar → ketepatan. Guru hanya bisa menampilkan
+  kelompok yang ia ajar. Esc atau *Tutup tampilan* untuk keluar.
 - Hambatan yang lebih mungkin: **Wi-Fi sekolah**. Satu access point praktis melayani
   30–50 perangkat. Siswa yang memakai kuota HP sendiri tidak terpengaruh.
 - **Membuka per tingkat dengan jeda 3–5 menit** tidak diperlukan oleh server, tetapi

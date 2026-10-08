@@ -137,7 +137,7 @@
 .ik-lipat summary { cursor: pointer; padding: var(--j3) var(--j5); font-weight: 700; font-size: var(--h-m); }
 @media (max-width: 860px) { .ik-baris { grid-template-columns: 1fr; padding: var(--j3) var(--j4); } }
 /* Sesi latihan per kelompok (Sesi Kegiatan) */
-.sesi-baris { display: grid; grid-template-columns: 150px minmax(0, 1fr) 130px 370px; gap: var(--j3) var(--j4); align-items: center;
+.sesi-baris { display: grid; grid-template-columns: 150px minmax(0, 1fr) 130px 400px; gap: var(--j3) var(--j4); align-items: center;
   padding: var(--j3) var(--j5); border-bottom: 1px solid var(--garis); }
 .sesi-baris:last-child { border-bottom: 0; }
 .sesi-baris.buka { background: var(--hadir-muda); background: color-mix(in srgb, var(--hadir-muda) 55%, transparent); }
@@ -147,13 +147,18 @@
 .sesi-aksi { display: grid; grid-template-columns: 1fr 1fr; gap: var(--j2); }
 .sesi-aksi button, .sesi-aksi select { width: 100%; min-height: 38px; }
 .sesi-aksi select { padding: var(--j2) var(--j3); font-size: var(--h-s); }
-.sesi-tambah { grid-column: 1 / -1; display: flex; align-items: stretch; min-height: 38px; overflow: hidden;
+/* Tombol tampilan (QR, teratas) sejajar di baris atas; Tambah dan Tutup di baris bawah — kisi 2×2 sama lebar */
+.sesi-aksi .sesi-layar { display: inline-flex; align-items: center; justify-content: center; gap: var(--j2); }
+.sesi-aksi .ikon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
+.sesi-aksi .ikon path:first-child { fill: none; }
+.sesi-tambah { grid-column: auto; display: flex; align-items: stretch; min-height: 38px; overflow: hidden;
   border: 1.5px solid var(--garis-2); border-radius: var(--r2); background: #fff; }
 .sesi-tambah:focus-within { border-color: var(--emas-tua); box-shadow: 0 0 0 4px rgba(194,148,51,.14); }
 .sesi-aksi .sesi-tambah button { flex: 1; width: auto; min-height: 0; border: 0; border-right: 1.5px solid var(--garis-2); border-radius: 0; }
-.sesi-tambah input[type=number] { width: 64px; flex: none; padding: 0 var(--j1); border: 0; border-radius: 0; font-size: var(--h-m); font-weight: 700; text-align: center; box-shadow: none; }
+.sesi-aksi .sesi-tambah button { white-space: nowrap; padding: 0 var(--j3); }
+.sesi-tambah input[type=number] { width: 52px; flex: none; padding: 0 var(--j1); border: 0; border-radius: 0; font-size: var(--h-m); font-weight: 700; text-align: center; box-shadow: none; }
 .sesi-tambah input[type=number]:focus { box-shadow: none; }
-.sesi-tambah .satuan { display: flex; align-items: center; padding: 0 var(--j3); border-left: 1px solid var(--garis); background: var(--kertas-3); font-size: var(--h-s); color: var(--tinta-2); }
+.sesi-tambah .satuan { display: flex; align-items: center; padding: 0 var(--j2); border-left: 1px solid var(--garis); background: var(--kertas-3); font-size: var(--h-s); color: var(--tinta-2); }
 .sesi-ringkas { margin: 0; padding: var(--j3) var(--j5); background: var(--kertas-3); border-bottom: 1px solid var(--garis); font-size: var(--h-s); line-height: 1.5; }
 .sesi-peringatan { margin: 0; padding: var(--j3) var(--j5); background: var(--emas-kabut); border-bottom: 1px solid var(--garis); font-size: var(--h-s); }
 @media (max-width: 720px) { .sesi-baris { grid-template-columns: 1fr auto; padding: var(--j3) var(--j4); } .sesi-status { grid-column: 1 / -1; grid-row: 2; } .sesi-aksi { grid-column: 1 / -1; justify-content: flex-start; } }
@@ -174,6 +179,93 @@
 .kl-petunjuk { font-size: clamp(12px, 1.3vw, 15px); color: #8d97a4; }
 #kl-qr.hidden + .kl-kode-kol #kl-kode { font-size: clamp(96px, 22vw, 260px); }
 .kl-url { font-size: clamp(12px, 1.4vw, 16px); color: #aab3bf; word-break: break-all; }
+/* ---- Papan 10 teratas (layar penuh, diproyeksikan ke kelas) ----
+   Biru tua lambang sekolah dengan aksen emas; podium juara 1–3 di kiri,
+   peringkat 4–10 dengan batang jawaban benar di kanan. Semua ukuran memakai
+   clamp() supaya terbaca dari belakang kelas di TV maupun proyektor. */
+.tr-layar { position: fixed; inset: 0; z-index: 1000; overflow: auto; color: #fff;
+  background: radial-gradient(1200px 620px at 50% -12%, #2c4160 0%, #172538 52%, #0e1724 100%);
+  display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; gap: clamp(12px, 2.2vh, 26px);
+  padding: clamp(16px, 3.2vh, 40px) clamp(16px, 4vw, 64px); font-variant-numeric: tabular-nums; }
+.tr-kepala { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--j4); flex-wrap: wrap; }
+.tr-judul-kol { display: grid; gap: 4px; }
+.tr-label { color: var(--emas); font-size: clamp(12px, 1.25vw, 16px); font-weight: 800; letter-spacing: .22em; text-transform: uppercase; }
+.tr-judul { margin: 0; font-size: clamp(28px, 4.2vw, 58px); font-weight: 800; line-height: 1.05; color: #fff; }
+.tr-judul #tr-kel { color: var(--emas); }
+.tr-info { display: flex; gap: var(--j2); flex-wrap: wrap; justify-content: flex-end; }
+.tr-pil { display: inline-flex; align-items: center; gap: var(--j2); padding: 7px 16px; border-radius: 999px; font-weight: 700;
+  font-size: clamp(13px, 1.25vw, 17px); background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.16); color: #e6ebf1; }
+.tr-pil b { color: #fff; letter-spacing: .08em; }
+.tr-pil.langsung { color: #bff0cf; border-color: rgba(120,220,160,.35); background: rgba(70,170,110,.14); }
+.tr-pil.tutup { color: #f3d7cf; border-color: rgba(230,140,120,.35); background: rgba(200,90,70,.14); }
+.tr-titik { width: 9px; height: 9px; border-radius: 50%; background: #5fe08f; box-shadow: 0 0 0 0 rgba(95,224,143,.6); animation: tr-denyut 1.6s infinite; }
+@keyframes tr-denyut { 70% { box-shadow: 0 0 0 9px rgba(95,224,143,0); } 100% { box-shadow: 0 0 0 0 rgba(95,224,143,0); } }
+
+.tr-angka { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(8px, 1.2vw, 16px); }
+.tr-kartu { display: grid; gap: 2px; padding: clamp(10px, 1.6vh, 18px) clamp(12px, 1.4vw, 20px); border-radius: 14px;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.12); }
+.tr-kartu b { font-size: clamp(24px, 3vw, 44px); font-weight: 800; line-height: 1.1; color: #fff; }
+.tr-kartu b small { font-size: .5em; color: #9fb0c4; font-weight: 700; }
+.tr-kartu span { font-size: clamp(12px, 1.1vw, 15px); color: #a9b7c8; font-weight: 600; }
+
+.tr-isi { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: clamp(16px, 2.6vw, 40px); align-items: stretch; min-height: 0; }
+.tr-podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: end; gap: clamp(8px, 1.2vw, 18px);
+  padding: clamp(12px, 2vh, 24px) clamp(10px, 1.4vw, 20px) 0; border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.01)); border: 1px solid rgba(255,255,255,.1); }
+.tr-tiang { display: grid; justify-items: center; gap: clamp(4px, .8vh, 8px); text-align: center; min-width: 0; }
+.tr-ava { --m: #c9d1db; width: clamp(56px, 6.4vw, 96px); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center;
+  font-weight: 800; font-size: clamp(18px, 2.2vw, 32px); color: #172538; background: var(--m);
+  box-shadow: 0 0 0 4px rgba(255,255,255,.08), 0 10px 26px rgba(0,0,0,.35); }
+.tr-tiang.j1 .tr-ava { --m: #f0c24b; width: clamp(68px, 7.8vw, 118px); box-shadow: 0 0 0 5px rgba(240,194,75,.25), 0 0 40px rgba(240,194,75,.35); }
+.tr-tiang.j3 .tr-ava { --m: #d99459; }
+.tr-mahkota { color: #f0c24b; font-size: clamp(16px, 1.8vw, 26px); line-height: 1; height: 1em; }
+.tr-nama-p { font-weight: 800; font-size: clamp(14px, 1.45vw, 21px); line-height: 1.2; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tr-meta-p { font-size: clamp(11px, 1.05vw, 15px); color: #b3c0cf; }
+.tr-meta-p b { color: #fff; }
+.tr-alas { width: 100%; display: grid; place-items: start center; padding-top: clamp(8px, 1.4vh, 16px); border-radius: 12px 12px 0 0;
+  font-size: clamp(30px, 4vw, 64px); font-weight: 800; color: rgba(23,37,56,.85);
+  background: linear-gradient(180deg, #d5dce5, #9eabbb); height: clamp(90px, 17vh, 190px); }
+.tr-tiang.j1 .tr-alas { background: linear-gradient(180deg, #f6d36f, #c99a2e); height: clamp(120px, 23vh, 250px); }
+.tr-tiang.j3 .tr-alas { background: linear-gradient(180deg, #e7ab78, #b46d36); height: clamp(70px, 13vh, 150px); }
+.tr-tiang.kosong .tr-ava, .tr-tiang.kosong .tr-alas { opacity: .25; }
+
+.tr-daftar { display: grid; grid-auto-rows: minmax(0, 1fr); gap: clamp(6px, 1vh, 10px); min-height: 0; }
+.tr-baris { display: grid; grid-template-columns: clamp(34px, 3.2vw, 48px) minmax(0, 1.25fr) minmax(0, 1fr) auto; align-items: center;
+  gap: clamp(8px, 1vw, 16px); padding: clamp(6px, 1vh, 12px) clamp(10px, 1.2vw, 18px); border-radius: 12px;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.09); }
+.tr-no { width: 100%; aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center; font-weight: 800;
+  font-size: clamp(14px, 1.4vw, 20px); background: rgba(255,255,255,.1); color: #fff; }
+.tr-siswa { display: grid; min-width: 0; }
+.tr-siswa b { font-size: clamp(14px, 1.4vw, 20px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tr-siswa small { font-size: clamp(11px, 1vw, 14px); color: #a9b7c8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tr-batang { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: var(--j2); }
+.tr-jalur { height: clamp(10px, 1.4vh, 16px); border-radius: 999px; background: rgba(255,255,255,.1); overflow: hidden; }
+.tr-jalur i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #c99a2e, #f0c24b); transition: width .8s ease; }
+.tr-batang b { font-size: clamp(13px, 1.25vw, 18px); min-width: 3.2em; text-align: right; }
+.tr-batang b small { color: #a9b7c8; font-weight: 600; }
+.tr-lvl { padding: 4px 12px; border-radius: 999px; font-weight: 800; font-size: clamp(12px, 1.1vw, 16px); white-space: nowrap;
+  color: #172538; background: #9fd8b4; }
+.tr-naik { color: #6fe39a; font-size: .8em; margin-left: 6px; }
+.tr-baris.naik, .tr-tiang.naik .tr-ava { animation: tr-sorot 1.8s ease-out; }
+@keyframes tr-sorot { from { box-shadow: 0 0 0 3px rgba(111,227,154,.7); } to { box-shadow: 0 0 0 0 rgba(111,227,154,0); } }
+.tr-kosong-daftar { display: grid; place-items: center; text-align: center; color: #a9b7c8; font-size: clamp(14px, 1.4vw, 20px);
+  border: 1px dashed rgba(255,255,255,.18); border-radius: 18px; padding: var(--j6); }
+.tr-kosong-daftar b { display: block; color: #fff; font-size: clamp(22px, 2.6vw, 38px); margin-bottom: var(--j2); }
+.tr-muat { color: #a9b7c8; text-align: center; align-self: center; grid-column: 1 / -1; }
+
+.tr-kaki { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--j4);
+  font-size: clamp(12px, 1.05vw, 14px); color: #8fa0b4; }
+.tr-detak { display: grid; justify-items: center; gap: 6px; }
+.tr-detak-jalur { width: clamp(140px, 16vw, 240px); height: 4px; border-radius: 999px; background: rgba(255,255,255,.12); overflow: hidden; }
+.tr-detak-jalur span { display: block; height: 100%; background: var(--emas); transition: width 1s linear; }
+.tr-kanan { display: flex; justify-content: flex-end; align-items: center; gap: var(--j3); }
+.tr-galat { color: #f3b4a6; }
+.tr-kaki button { background: transparent; color: #fff; border-color: rgba(255,255,255,.4); }
+.tr-kaki button:hover { background: rgba(255,255,255,.1); color: #fff; border-color: #fff; }
+@media (max-width: 900px) {
+  .tr-isi { grid-template-columns: 1fr; } .tr-angka { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tr-kaki { grid-template-columns: 1fr; justify-items: center; text-align: center; } .tr-kanan { justify-content: center; }
+}
 .kl-isi button { margin-top: var(--j4); background: transparent; color: #fff; border-color: rgba(255,255,255,.4); }
 /* Asal aturan: siswa (emas), kelompok (biru), umum (abu) */
 span.ab-asal { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: var(--r-bulat); white-space: nowrap; }
@@ -749,6 +841,21 @@ body.lihat .ubah { display: none !important; }
     <span class="kl-url" id="kl-url"></span><span class="kl-petunjuk" id="kl-petunjuk"></span>
     <button class="garis" id="kl-tutup">Tutup tampilan</button></div>
 </div>
+<!-- Papan 10 teratas sesi berjalan, untuk diproyeksikan; diperbarui tiap beberapa detik -->
+<div class="tr-layar hidden" id="teratas-layar" role="dialog" aria-modal="true" aria-labelledby="tr-judul">
+  <header class="tr-kepala">
+    <div class="tr-judul-kol"><span class="tr-label">Papan Peringkat Latihan</span>
+      <h2 class="tr-judul" id="tr-judul">10 Teratas · <span id="tr-kel"></span></h2></div>
+    <div class="tr-info" id="tr-info"></div>
+  </header>
+  <section class="tr-angka" id="tr-angka" aria-label="Ringkasan kelompok"></section>
+  <main class="tr-isi" id="tr-isi"></main>
+  <footer class="tr-kaki">
+    <span class="tr-cara">Urutan: level tuntas → jawaban benar → ketepatan · dihitung sejak sesi dibuka</span>
+    <span class="tr-detak"><span class="tr-detak-teks" id="tr-detak-teks"></span><span class="tr-detak-jalur"><span id="tr-detak"></span></span></span>
+    <span class="tr-kanan"><span class="tr-galat" id="tr-galat"></span><button class="garis" id="tr-tutup">Tutup tampilan</button></span>
+  </footer>
+</div>
 <!-- Contoh soal satu layar penuh (Tahapan Level → Contoh → Mode Layar Penuh) -->
 <div class="ct-layar hidden" id="ct-layar" role="dialog" aria-modal="true" aria-labelledby="ctl-judul">
   <div class="ctl-kepala">
@@ -1227,7 +1334,7 @@ function gambarSesi() {
           : '<span class="lencana">Ditutup</span><small>siswa tidak bisa masuk</small>'}</div>
         <div class="sesi-kode">${buka ? `<small>Kode akses</small><b>${esc(k.kode)}</b>` : ""}</div>
         <div class="sesi-aksi">${!boleh ? "" : buka
-          ? `<span class="sesi-tambah"><button class="garis kecil" data-tambah="${esc(k.kelompok)}" title="Memperpanjang sesi yang sedang berjalan; kode akses tetap">Tambah lagi sesi +</button><input type="number" data-tambah-menit="${esc(k.kelompok)}" min="1" max="300" step="1" inputmode="numeric" value="${MENIT_TAMBAH[k.kelompok] || 15}" aria-label="Menit tambahan ${esc(k.kelompok)}"><span class="satuan">menit</span></span><button class="garis kecil" data-layar="${esc(k.kelompok)}">QR &amp; kode masuk</button><button class="kecil bahaya" data-tutup="${esc(k.kelompok)}">Tutup sekarang</button>`
+          ? `<button class="garis kecil sesi-layar" data-layar="${esc(k.kelompok)}">${IKON_QR}QR &amp; kode masuk</button><button class="garis kecil sesi-layar" data-teratas="${esc(k.kelompok)}">${IKON_TERATAS}Tampilkan teratas</button><span class="sesi-tambah"><button class="garis kecil" data-tambah="${esc(k.kelompok)}" title="Memperpanjang sesi yang sedang berjalan; kode akses tetap">+ Tambah</button><input type="number" data-tambah-menit="${esc(k.kelompok)}" min="1" max="300" step="1" inputmode="numeric" value="${MENIT_TAMBAH[k.kelompok] || 15}" aria-label="Menit tambahan ${esc(k.kelompok)}"><span class="satuan">menit</span></span><button class="kecil bahaya" data-tutup="${esc(k.kelompok)}">Tutup sekarang</button>`
           : `${pilihMenit(k.kelompok)}<button class="kecil" data-buka="${esc(k.kelompok)}">Buka sesi</button>`}</div></div>`;
     }).join("");
     const cari = (k) => BUKA.kelompok.find((x) => x.kelompok === k);
@@ -1261,7 +1368,11 @@ function gambarSesi() {
     catch (e) { toast(e.message); }
   });
   $("sesi-isi").querySelectorAll("[data-layar]").forEach((b) => b.onclick = () => tampilKode(b.dataset.layar));
+  $("sesi-isi").querySelectorAll("[data-teratas]").forEach((b) => b.onclick = () => tampilTeratas(b.dataset.teratas));
 }
+// Ikon kecil tombol tampilan layar (garis tipis, mengikuti warna teks tombol)
+const IKON_QR = '<svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>';
+const IKON_TERATAS = '<svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 21V9h6v12M3 21v-7h6M15 21v-9h6v9M2 21h20"/></svg>';
 /* Kode dalam ukuran besar untuk diproyeksikan, beserta QR (6 Oktober 2026): QR membuka halaman
    latihan dengan kode akses sudah terisi (index.html#kode=…), siswa tinggal mengetik NISN.
    Kode tetap ditampilkan untuk HP yang tidak bisa memindai. Pustaka QR (sama dengan Asesmen
@@ -1298,9 +1409,114 @@ async function tampilKode(nama) {
 const tutupKode = () => { $("kode-layar").classList.add("hidden"); if (document.fullscreenElement === $("kode-layar")) document.exitFullscreen().catch(() => {}); };
 $("kl-tutup").onclick = tutupKode;
 $("kl-qr").onclick = () => $("kode-layar").classList.toggle("qr-saja");
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") tutupKode(); });
-// Keluar layar penuh (Esc / F11 / gestur) sekaligus menutup tampilan kode, supaya tidak tersisa setengah
-document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && !$("kode-layar").classList.contains("hidden")) $("kode-layar").classList.add("hidden"); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") { tutupKode(); tutupTeratas(); } });
+// Keluar layar penuh (Esc / F11 / gestur) sekaligus menutup tampilan kode/teratas, supaya tidak tersisa setengah
+document.addEventListener("fullscreenchange", () => {
+  if (document.fullscreenElement) return;
+  if (!$("kode-layar").classList.contains("hidden")) $("kode-layar").classList.add("hidden");
+  if (TR) tutupTeratas();
+});
+
+/* ---- Papan 10 teratas (8 Oktober 2026) ----
+   Diproyeksikan selama sesi berjalan untuk memotivasi siswa. Data dari
+   mtd_teratas: hanya hitungan SEJAK SESI DIBUKA, diurutkan level tuntas →
+   jawaban benar → ketepatan. Dimuat ulang tiap TR_JEDA detik selama layar
+   terbuka; siswa yang naik peringkat disorot sekejap. Esc atau tombol menutupnya. */
+const TR_JEDA = 8;
+let TR = null;
+// "MUHAMAD MALIK LAKSANA" → "Muhamad Malik L." (cukup untuk dikenali, muat di layar)
+const namaPapan = (n) => {
+  const k = String(n || "").toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase()).trim().split(/\s+/);
+  return k.length <= 2 ? k.join(" ") : `${k[0]} ${k[1]} ${k[2][0]}.`;
+};
+const inisialPapan = (n) => String(n || "").trim().split(/\s+/).slice(0, 2).map((w) => w[0] || "").join("").toUpperCase();
+async function tampilTeratas(nama) {
+  tutupTeratas();
+  TR = { kel: nama, sisa: TR_JEDA, lalu: new Map() };
+  $("tr-kel").textContent = nama; $("tr-galat").textContent = "";
+  $("tr-info").innerHTML = ""; $("tr-angka").innerHTML = "";
+  $("tr-isi").innerHTML = '<p class="tr-muat">Memuat peringkat…</p>';
+  $("teratas-layar").classList.remove("hidden"); $("tr-tutup").focus();
+  // Layar penuh harus diminta langsung dari tekanan tombol, sebelum menunggu apa pun.
+  if (document.documentElement.requestFullscreen && !document.fullscreenElement) $("teratas-layar").requestFullscreen().catch(() => {});
+  gambarDetak();
+  await muatTeratas();
+  if (!TR) return;
+  TR.waktu = setInterval(() => {
+    if (!TR) return;
+    TR.sisa -= 1;
+    if (TR.sisa <= 0) { TR.sisa = TR_JEDA; muatTeratas(); }
+    gambarDetak();
+  }, 1000);
+}
+async function muatTeratas() {
+  if (!TR) return;
+  const kel = TR.kel;
+  try {
+    const d = await rpc("mtd_teratas", { p_pin: PIN, p_kelompok: kel });
+    if (!TR || TR.kel !== kel) return;
+    d.selisih = Date.now() - new Date(d.sekarang).getTime();
+    $("tr-galat").textContent = "";
+    gambarTeratas(d);
+  } catch (e) { if (TR) $("tr-galat").textContent = "Gagal memuat: " + e.message; }
+}
+function gambarDetak() {
+  if (!TR) return;
+  $("tr-detak-teks").textContent = `Diperbarui dalam ${TR.sisa} detik`;
+  $("tr-detak").style.width = `${((TR_JEDA - TR.sisa) / TR_JEDA) * 100}%`;
+}
+function gambarTeratas(d) {
+  const sisa = d.sampai ? Math.max(0, Math.ceil((new Date(d.sampai).getTime() - (Date.now() - d.selisih)) / 60000)) : 0;
+  $("tr-info").innerHTML = (d.buka
+      ? `<span class="tr-pil langsung"><span class="tr-titik"></span>Langsung · sisa ${sisa} menit</span>`
+      : '<span class="tr-pil tutup">Sesi ditutup · hasil sesi terakhir</span>') +
+    (d.kode ? `<span class="tr-pil">Kode masuk <b>${esc(d.kode)}</b></span>` : "") +
+    `<span class="tr-pil">Sejak pukul ${jamTeks(d.dari)}</span>`;
+  const tepat = d.total_jawab ? Math.round((100 * d.total_benar) / d.total_jawab) : 0;
+  $("tr-angka").innerHTML = [
+    [`${d.n_berlatih}<small> / ${d.n_siswa}</small>`, "siswa sudah berlatih"],
+    [d.total_benar, "jawaban benar"],
+    [d.total_tuntas, "level dituntaskan"],
+    [`${tepat}<small>%</small>`, "ketepatan kelompok"],
+  ].map(([b, s]) => `<div class="tr-kartu"><b>${b}</b><span>${s}</span></div>`).join("");
+
+  const T = d.teratas || [];
+  // Naik peringkat dibanding pembaruan sebelumnya (atau baru masuk 10 besar)
+  const naik = (r) => TR.lalu.size && (!TR.lalu.has(r.nisn) || TR.lalu.get(r.nisn) > r.peringkat);
+  const selisihNaik = (r) => TR.lalu.has(r.nisn) ? TR.lalu.get(r.nisn) - r.peringkat : 0;
+  if (!T.length) {
+    $("tr-isi").innerHTML = `<div class="tr-kosong-daftar" style="grid-column:1/-1"><div><b>Siapa yang pertama?</b>
+      Belum ada jawaban dalam sesi ini. Peringkat muncul begitu siswa mulai menjawab.</div></div>`;
+  } else {
+    const posisi = (r) => r.selesai ? "Semua level tuntas" : r.tingkat_nama ? `${r.tingkat_nama} · Level ${r.level}` : "";
+    const tiang = (r, j) => r
+      ? `<div class="tr-tiang j${j}${naik(r) ? " naik" : ""}"><span class="tr-mahkota">${j === 1 ? "★" : ""}</span>
+          <span class="tr-ava">${esc(inisialPapan(r.nama))}</span>
+          <span class="tr-nama-p" title="${esc(r.nama)}">${esc(namaPapan(r.nama))}</span>
+          <span class="tr-meta-p"><b>${r.tuntas}</b> level · <b>${r.benar}</b> benar · ${r.akurasi ?? 0}%</span>
+          <div class="tr-alas">${j}</div></div>`
+      : `<div class="tr-tiang j${j} kosong"><span class="tr-mahkota"></span><span class="tr-ava">–</span>
+          <span class="tr-nama-p">&nbsp;</span><span class="tr-meta-p">&nbsp;</span><div class="tr-alas">${j}</div></div>`;
+    const maks = Math.max(1, ...T.map((r) => r.benar));
+    const sisaBaris = T.slice(3);
+    $("tr-isi").innerHTML = `<div class="tr-podium">${tiang(T[1], 2)}${tiang(T[0], 1)}${tiang(T[2], 3)}</div>
+      <div class="tr-daftar" style="grid-template-rows: repeat(7, minmax(0, 1fr))">${sisaBaris.map((r) => `
+        <div class="tr-baris${naik(r) ? " naik" : ""}">
+          <span class="tr-no">${r.peringkat}</span>
+          <span class="tr-siswa"><b title="${esc(r.nama)}">${esc(namaPapan(r.nama))}${selisihNaik(r) > 0 ? `<span class="tr-naik">▲${selisihNaik(r)}</span>` : ""}</b><small>${esc(posisi(r))}</small></span>
+          <span class="tr-batang"><span class="tr-jalur"><i style="width:${(100 * r.benar) / maks}%"></i></span><b>${r.benar}<small> benar</small></b></span>
+          <span class="tr-lvl">${r.tuntas} level</span>
+        </div>`).join("") || '<div class="tr-kosong-daftar"><div>Peringkat 4–10 menunggu penantang berikutnya.</div></div>'}</div>`;
+  }
+  TR.lalu = new Map(T.map((r) => [r.nisn, r.peringkat]));
+}
+function tutupTeratas() {
+  if (!TR) return;
+  clearInterval(TR.waktu); TR = null;
+  $("teratas-layar").classList.add("hidden");
+  if (document.fullscreenElement === $("teratas-layar")) document.exitFullscreen().catch(() => {});
+}
+$("tr-tutup").onclick = tutupTeratas;
 // Hitung mundur diperbarui tiap 20 detik; data diambil ulang tiap menit selama tab Kemajuan terbuka.
 setInterval(() => { if (BUKA && !document.hidden && !$("p-daftar").classList.contains("hidden")) gambarSesi(); }, 20000);
 
