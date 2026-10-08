@@ -256,6 +256,11 @@
 .tr-kaki { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--j4);
   font-size: clamp(12px, 1.05vw, 14px); color: #8fa0b4; }
 .tr-detak { display: grid; justify-items: center; gap: 6px; }
+.tr-jeda { color: #8fa0b4; }
+.tr-detak-teks { white-space: nowrap; }
+.tr-jeda select { width: auto; display: inline-block; min-height: 0; margin-left: 4px; padding: 2px 6px; font: inherit; font-weight: 700; color: #fff; background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.25); border-radius: 6px; }
+.tr-jeda select option { color: #172538; }
 .tr-detak-jalur { width: clamp(140px, 16vw, 240px); height: 4px; border-radius: 999px; background: rgba(255,255,255,.12); overflow: hidden; }
 .tr-detak-jalur span { display: block; height: 100%; background: var(--emas); transition: width 1s linear; }
 .tr-kanan { display: flex; justify-content: flex-end; align-items: center; gap: var(--j3); }
@@ -852,7 +857,10 @@ body.lihat .ubah { display: none !important; }
   <main class="tr-isi" id="tr-isi"></main>
   <footer class="tr-kaki">
     <span class="tr-cara">Urutan: level tuntas → jawaban benar → ketepatan · dihitung sejak sesi dibuka</span>
-    <span class="tr-detak"><span class="tr-detak-teks" id="tr-detak-teks"></span><span class="tr-detak-jalur"><span id="tr-detak"></span></span></span>
+    <span class="tr-detak"><span class="tr-detak-teks"><span id="tr-detak-teks"></span>
+        <label class="tr-jeda">· perbarui tiap <select id="tr-jeda" aria-label="Jeda pembaruan papan">
+          <option value="8">8 detik</option><option value="15">15 detik</option><option value="30">30 detik</option><option value="60">60 detik</option></select></label></span>
+      <span class="tr-detak-jalur"><span id="tr-detak"></span></span></span>
     <span class="tr-kanan"><span class="tr-galat" id="tr-galat"></span><button class="garis" id="tr-tutup">Tutup tampilan</button></span>
   </footer>
 </div>
@@ -1422,7 +1430,11 @@ document.addEventListener("fullscreenchange", () => {
    mtd_teratas: hanya hitungan SEJAK SESI DIBUKA, diurutkan level tuntas →
    jawaban benar → ketepatan. Dimuat ulang tiap TR_JEDA detik selama layar
    terbuka; siswa yang naik peringkat disorot sekejap. Esc atau tombol menutupnya. */
-const TR_JEDA = 8;
+// Jeda pembaruan bawaan 8 detik (±0,1 detik kerja server per pembaruan, 8 Okt 2026). Bisa
+// diperbesar di papannya bila jaringan sekolah terasa lambat; pilihan diingat per perangkat.
+const TR_JEDA_PILIH = [8, 15, 30, 60];
+const trJedaSimpan = () => { try { const v = +localStorage.getItem("mtd_teratas_jeda"); return TR_JEDA_PILIH.includes(v) ? v : 8; } catch (e) { return 8; } };
+let TR_JEDA = trJedaSimpan();
 let TR = null;
 // "MUHAMAD MALIK LAKSANA" → "Muhamad Malik L." (cukup untuk dikenali, muat di layar)
 const namaPapan = (n) => {
@@ -1435,6 +1447,8 @@ async function tampilTeratas(nama, sim = false) {
   const jeda = sim ? SIM_JEDA : TR_JEDA;
   TR = { kel: nama, sisa: jeda, jeda, lalu: new Map(), sim };
   if (sim) mulaiSimulasi();
+  $("tr-jeda").closest("label").hidden = sim;   // simulasi selalu 3 detik
+  $("tr-jeda").value = String(TR_JEDA);
   $("tr-kel").textContent = nama; $("tr-galat").textContent = "";
   $("tr-info").innerHTML = ""; $("tr-angka").innerHTML = "";
   $("tr-isi").innerHTML = '<p class="tr-muat">Memuat peringkat…</p>';
@@ -1521,6 +1535,12 @@ function tutupTeratas() {
   if (document.fullscreenElement === $("teratas-layar")) document.exitFullscreen().catch(() => {});
 }
 $("tr-tutup").onclick = tutupTeratas;
+$("tr-jeda").value = String(TR_JEDA);
+$("tr-jeda").onchange = () => {
+  TR_JEDA = +$("tr-jeda").value;
+  try { localStorage.setItem("mtd_teratas_jeda", String(TR_JEDA)); } catch (e) { /* tanpa penyimpanan: berlaku untuk tampilan ini saja */ }
+  if (TR && !TR.sim) { TR.jeda = TR_JEDA; TR.sisa = Math.min(TR.sisa, TR_JEDA); gambarDetak(); }
+};
 
 /* ---- Simulasi papan teratas (8 Oktober 2026) ----
    guru.html?simulasi=teratas membuka papan dengan siswa contoh yang saling

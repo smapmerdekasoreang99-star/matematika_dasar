@@ -212,6 +212,11 @@ dalam 24 kelompok:
   naik peringkat. Dimuat ulang tiap 8 detik lewat `mtd_teratas`; hanya dihitung **sejak sesi
   dibuka**, diurutkan level tuntas → jawaban benar → ketepatan. Guru hanya bisa menampilkan
   kelompok yang ia ajar. Esc atau *Tutup tampilan* untuk keluar.
+  Satu pembaruan ±0,1 detik kerja server (diukur 8 Okt 2026 pada seluruh riwayat MD10-1),
+  jadi tidak membebani sesi. Bila jaringan sekolah terasa lambat, jeda bisa diperbesar di
+  papannya (8 / 15 / 30 / 60 detik, diingat per perangkat).
+  `guru.html?simulasi=teratas` membuka papan dengan 36 siswa contoh yang berlomba (diperbarui
+  tiap 3 detik) — tanpa PIN, tanpa server, tidak menyimpan apa pun; untuk melihat tampilannya.
 - Hambatan yang lebih mungkin: **Wi-Fi sekolah**. Satu access point praktis melayani
   30–50 perangkat. Siswa yang memakai kuota HP sendiri tidak terpengaruh.
 - **Membuka per tingkat dengan jeda 3–5 menit** tidak diperlukan oleh server, tetapi
