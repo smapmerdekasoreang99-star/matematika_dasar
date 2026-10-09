@@ -1430,10 +1430,10 @@ document.addEventListener("fullscreenchange", () => {
    mtd_teratas: hanya hitungan SEJAK SESI DIBUKA, diurutkan level tuntas →
    jawaban benar → ketepatan. Dimuat ulang tiap TR_JEDA detik selama layar
    terbuka; siswa yang naik peringkat disorot sekejap. Esc atau tombol menutupnya. */
-// Jeda pembaruan bawaan 8 detik (±0,1 detik kerja server per pembaruan, 8 Okt 2026). Bisa
-// diperbesar di papannya bila jaringan sekolah terasa lambat; pilihan diingat per perangkat.
+// Jeda pembaruan bawaan 30 detik (9 Okt 2026; sebelumnya 8). Satu pembaruan ±0,1 detik kerja
+// server. Guru bisa mengubahnya di papan (8–60 detik); pilihan diingat per perangkat.
 const TR_JEDA_PILIH = [8, 15, 30, 60];
-const trJedaSimpan = () => { try { const v = +localStorage.getItem("mtd_teratas_jeda"); return TR_JEDA_PILIH.includes(v) ? v : 8; } catch (e) { return 8; } };
+const trJedaSimpan = () => { try { const v = +localStorage.getItem("mtd_teratas_jeda"); return TR_JEDA_PILIH.includes(v) ? v : 30; } catch (e) { return 30; } };
 let TR_JEDA = trJedaSimpan();
 let TR = null;
 // "MUHAMAD MALIK LAKSANA" → "Muhamad Malik L." (cukup untuk dikenali, muat di layar)

@@ -209,12 +209,12 @@ dalam 24 kelompok:
 - **Tampilkan teratas** (tombol di samping *QR & kode masuk* pada sesi yang dibuka, 8 Okt 2026):
   papan 10 siswa terbaik kelompok itu dalam layar penuh untuk diproyeksikan — podium juara
   1–3, peringkat 4–10 dengan batang jawaban benar, ringkasan kelompok, dan sorotan bagi yang
-  naik peringkat. Dimuat ulang tiap 8 detik lewat `mtd_teratas`; hanya dihitung **sejak sesi
+  naik peringkat. Dimuat ulang tiap 30 detik (bawaan sejak 9 Okt 2026; sebelumnya 8) lewat `mtd_teratas`; hanya dihitung **sejak sesi
   dibuka**, diurutkan level tuntas → jawaban benar → ketepatan. Guru hanya bisa menampilkan
   kelompok yang ia ajar. Esc atau *Tutup tampilan* untuk keluar.
   Satu pembaruan ±0,1 detik kerja server (diukur 8 Okt 2026 pada seluruh riwayat MD10-1),
-  jadi tidak membebani sesi. Bila jaringan sekolah terasa lambat, jeda bisa diperbesar di
-  papannya (8 / 15 / 30 / 60 detik, diingat per perangkat).
+  jadi tidak membebani sesi. Guru bisa mengubah jedanya di papan (8 / 15 / 30 / 60 detik);
+  pilihan diingat per perangkat, perangkat yang belum pernah memilih memakai 30 detik.
   `guru.html?simulasi=teratas` membuka papan dengan 36 siswa contoh yang berlomba (diperbarui
   tiap 3 detik) — tanpa PIN, tanpa server, tidak menyimpan apa pun; untuk melihat tampilannya.
 - Hambatan yang lebih mungkin: **Wi-Fi sekolah**. Satu access point praktis melayani
