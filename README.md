@@ -33,6 +33,14 @@ perubahan lewat [`../database_tryout/`](../database_tryout/README.md)
    Pengaturan Umum, dan tidak dikeluarkan saat guru menutup sesi kelompok. Admin bisa mematikannya di
    Pengaturan Umum → Halaman Latihan → **Latihan mandiri di luar sesi kelompok** (bawaan: boleh). Server
    membedakan keduanya lewat `mtd_sesi.mode` (`kelas` / `mandiri`).
+   **Kemajuan terpisah:** posisi dan nilai resmi hanya bertambah dari sesi kelompok yang diawasi, supaya latihan
+   tanpa pengawasan (bisa dibantu orang lain atau AI) tidak menaikkan posisi resmi. Latihan mandiri punya posisi
+   sendiri (kunci `M:` + NISN di `mtd_posisi`, `mtd_jawaban`, `mtd_tuntas`, `mtd_ringkas`), dimulai dari posisi
+   resmi siswa saat pertama kali. Rekap, analisis, dan papan teratas memakai kemajuan resmi. Guru tetap melihat
+   latihan mandiri untuk menilai ketekunan: kolom **Latihan mandiri (7 hari)** di Perkembangan Siswa dan rekap
+   Excel, kartu **Latihan mandiri (di luar sesi)** di Analisis Siswa, serta label **Rajin mandiri**,
+   **Tanpa latihan mandiri**, dan **Mandiri jauh di atas sesi** (akurasi mandiri ≥ 25 poin di atas akurasi resmi).
+   Di halaman siswa, latihan mandiri ditandai pita "Latihan mandiri · kemajuan di sini terpisah".
 2. Soal muncul satu per satu. Jawaban diketik lewat papan angka di layar.
    Untuk soal pecahan ada kotak bilangan bulat, pembilang, dan penyebut.
    Untuk pembagian bersisa ada kotak **hasil bagi** dan **sisa** (47 ÷ 5 = 9 sisa 2).

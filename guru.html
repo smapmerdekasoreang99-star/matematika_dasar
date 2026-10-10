@@ -983,7 +983,22 @@ function status(r) {
   if (!r.selesai && (r.percobaan >= 3 || r.salah_sini >= 8)) s.push({ t: "Macet", c: "buruk", bobot: 4 });
   if (!aktifPertemuan(r)) s.push({ t: "Tidak aktif", c: "emas", bobot: 3 });
   if (r.n_jawab >= 20 && r.n_benar / r.n_jawab < 0.7) s.push({ t: "Akurasi rendah", c: "emas", bobot: 1 });
-  return s;
+  if (mandiriJauh(r)) s.push({ t: "Mandiri jauh di atas sesi", c: "buruk", bobot: 2 });
+  if (r.mandiri) s.push(r.mandiri.hari7 ? (r.mandiri.hari7 >= 3 ? { t: "Rajin mandiri", c: "baik", bobot: 0 } : null) : { t: "Tanpa latihan mandiri", c: "", bobot: 1 });
+  return s.filter(Boolean);
+}
+/* Latihan mandiri (di luar sesi kelompok) punya kemajuan sendiri dan tidak menaikkan posisi resmi (10 Okt 2026).
+   Guru tetap melihatnya untuk menilai ketekunan. "Mandiri jauh di atas sesi" = akurasi mandiri 7 hari ≥ 25 poin di atas
+   akurasi resmi (paling sedikit 20 jawaban di masing-masing) — kemungkinan dibantu orang lain atau AI. */
+const mandiriJauh = (r) => { const m = r.mandiri; return !!m && m.jawab7 >= 20 && r.n_jawab >= 20 && 100 * m.benar7 / m.jawab7 - 100 * r.n_benar / r.n_jawab >= 25; };
+const mandiriHtml = (r) => { const m = r.mandiri;
+  if (!m) return '<span class="redup">–</span>';
+  return m.hari7 ? `<span class="pos-nm">${m.hari7} hari · ${m.jawab7} soal</span><span class="pos-lv">${m.posisi ? `${esc(m.posisi.nama_tingkat)} Lv ${m.posisi.level}` : ""}${m.jawab7 ? ` · ${Math.round(100 * m.benar7 / m.jawab7)}% benar` : ""}</span>`
+    : `<span class="redup">tidak berlatih</span>${m.terakhir ? `<span class="pos-lv">terakhir ${esc(sejakTeks(m.terakhir))}</span>` : ""}`; };
+async function muatMandiri(L) {
+  if (!L.length) return;
+  try { const M = await rpc("mtd_rekap_mandiri", { p_pin: PIN, p_nisn: L.map((r) => r.nisn) }); L.forEach((r) => { r.mandiri = M[r.nisn] || null; }); }
+  catch (e) { /* kolom latihan mandiri kosong bila gagal */ }
 }
 const bobot = (r) => status(r).reduce((a, x) => a + x.bobot, 0);
 
@@ -991,7 +1006,7 @@ async function muatKelas() {
   const k = $("pil-kelas").value;
   ssSet("mtd_kelas", k);
   $("t-kelas").innerHTML = '<tr><td class="kosong-data">Memuat…</td></tr>';
-  try { REKAP = await rpc("mtd_rekap", { p_pin: PIN, p_kelas: k || null }); }
+  try { REKAP = await rpc("mtd_rekap", { p_pin: PIN, p_kelas: k || null }); await muatMandiri(REKAP); }
   catch (e) { $("t-kelas").innerHTML = `<tr><td class="kosong-data">${esc(e.message)}</td></tr>`; return; }
   $("pil-siswa").innerHTML = '<option value="">— pilih siswa —</option>' +
     REKAP.map((r) => `<option value="${esc(r.nisn)}">${esc(r.nama)} (${esc(MODE_MD ? r.kelompok || "tanpa kelompok" : r.kelas)})</option>`).join("");
@@ -1031,15 +1046,15 @@ function gambarKelas() {
     : bobot(b) - bobot(a) || a.lewat - b.lewat || a.nama.localeCompare(b.nama));
   const semua = !$("pil-kelas").value;
   $("t-kelas").innerHTML = `<thead><tr><th>No</th><th>Nama</th>${semua ? `<th>${MODE_MD ? "Kelompok" : "Kelas"}</th>` : ""}<th>Posisi sekarang</th><th>Kemajuan</th>
-    <th class="angka" title="Level tuntas sejak pertemuan terakhir kelompoknya">Tuntas pertemuan terakhir</th><th class="angka">Akurasi</th><th class="angka">Waktu latihan</th><th>Terakhir</th><th>Catatan</th></tr></thead><tbody>` +
+    <th class="angka" title="Level tuntas sejak pertemuan terakhir kelompoknya">Tuntas pertemuan terakhir</th><th class="angka">Akurasi</th><th class="angka">Waktu latihan</th><th>Terakhir</th><th title="Latihan di luar sesi kelompok, 7 hari terakhir; tidak menaikkan posisi resmi">Latihan mandiri (7 hari)</th><th>Catatan</th></tr></thead><tbody>` +
     (R.length ? R.map((r, i) => {
       const ak = r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) + "%" : "–";
       return `<tr class="klik" data-n="${esc(r.nisn)}"><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>${semua ? `<td>${esc(MODE_MD ? r.kelompok || "–" : r.kelas)}</td>` : ""}
         <td class="posisi">${r.tingkat ? `<span class="pos-nm">${esc(r.nama_tingkat)}</span><span class="pos-lv">Level ${r.level}</span>` : '<span class="redup">–</span>'}</td>
         <td><div class="maju"><div class="batang"><i style="width:${100 * r.lewat / Math.max(1, jumlah)}%"></i></div><span>${r.lewat}/${jumlah}</span></div></td>
         <td class="angka">${r.tuntas_pt}</td><td class="angka">${ak}</td><td class="angka">${r.detik ? lamaTeks(r.detik) : "–"}</td>
-        <td>${sejakTeks(r.terakhir)}</td><td><span class="lencana-daftar">${status(r).map((s) => `<span class="lencana ringkas ${s.c}" title="${esc(s.t)}">${esc(s.t)}</span>`).join("")}</span></td></tr>`;
-    }).join("") : '<tr><td colspan="10" class="kosong-data">Tidak ada siswa.</td></tr>') + "</tbody>";
+        <td>${sejakTeks(r.terakhir)}</td><td class="posisi">${mandiriHtml(r)}</td><td><span class="lencana-daftar">${status(r).map((s) => `<span class="lencana ringkas ${s.c}" title="${esc(s.t)}">${esc(s.t)}</span>`).join("")}</span></td></tr>`;
+    }).join("") : '<tr><td colspan="11" class="kosong-data">Tidak ada siswa.</td></tr>') + "</tbody>";
   $("t-kelas").querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = () => bukaSiswa(tr.dataset.n));
 }
 
@@ -1070,12 +1085,16 @@ $("btn-unduh-rekap").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () 
         { t: "Level", w: 7, rata: "center" }, { t: `Level tuntas /${jumlah}`, w: 11, rata: "center" }, { t: "Kemajuan", w: 10, rata: "center", fmt: '0"%"' },
         { t: "Soal dijawab", w: 9, rata: "center" }, { t: "Benar", w: 8, rata: "center" }, { t: "Akurasi", w: 9, rata: "center", fmt: '0"%"', cf: CF_PERSEN },
         { t: "Menit latihan", w: 9, rata: "center" }, { t: "Pertemuan diikuti", w: 10, rata: "center" }, { t: "Tuntas pertemuan terakhir", w: 10, rata: "center" },
-        { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }, { t: "Catatan", w: 24, bungkus: true, size: 9 }],
+        { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 },
+        { t: "Mandiri: hari (7 hari)", w: 10, rata: "center" }, { t: "Mandiri: soal (7 hari)", w: 10, rata: "center" }, { t: "Mandiri: akurasi", w: 10, rata: "center", fmt: '0"%"' },
+        { t: "Mandiri: posisi", w: 24 }, { t: "Catatan", w: 24, bungkus: true, size: 9 }],
       baris: R.map((r, i) => [i + 1, r.nama, r.nisn, r.kelompok, r.kelas, r.tingkat ? (r.selesai ? selesaiTeks(r) : r.nama_tingkat) : "Belum mulai",
         r.tingkat && !r.selesai ? r.level : "", r.lewat, Math.round(100 * r.lewat / Math.max(1, jumlah)), r.n_jawab, r.n_benar,
         r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", Math.round(r.detik / 60), r.pt_total ? `${r.pt_hadir}/${r.pt_total}` : `${r.hari} kali`, r.tuntas_pt, waktuXL(r.terakhir),
+        r.mandiri ? r.mandiri.hari7 : "", r.mandiri ? r.mandiri.jawab7 : "", r.mandiri && r.mandiri.jawab7 ? Math.round(100 * r.mandiri.benar7 / r.mandiri.jawab7) : "",
+        r.mandiri && r.mandiri.posisi ? `${r.mandiri.posisi.nama_tingkat} · Level ${r.mandiri.posisi.level}` : "",
         status(r).map((s) => s.t).join(", ")]),
-      warnaSel: (b, j) => j === 16 && /Macet|Terkunci/.test(b[16]) ? { warna: XL.merah, tebal: true } : j === 16 && /Tidak aktif|Akurasi/.test(b[16]) ? { warna: XL.emasTeks } : null,
+      warnaSel: (b, j) => j === 20 && /Macet|Terkunci|jauh di atas/.test(b[20]) ? { warna: XL.merah, tebal: true } : j === 20 && /Tidak aktif|Akurasi|Tanpa latihan/.test(b[20]) ? { warna: XL.emasTeks } : null,
       catatan: ["Macet: 3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih sejak pertemuan terakhir kelompoknya (hari pertemuan dari jadwal KBM Data Induk; kelompok tanpa jadwal: 7 hari terakhir). Pertemuan diikuti: pertemuan yang ada latihannya (sampai sebelum pertemuan berikutnya), sejak kelompoknya mulai. Akurasi: hijau ≥ 80%, kuning 60–79%, merah < 60%."] },
     { nama: "Sebaran Tingkat", judul: "Sebaran Posisi Siswa per Tingkat", sub: `${grup}: ${pilih}`, beku: 0, melintang: false,
       kolom: [{ t: "Urutan", w: 8, rata: "center" }, { t: "Tingkat", w: 34, tebal: true }, { t: "Jumlah level", w: 12, rata: "center" }, { t: "Siswa di tingkat ini", w: 16, rata: "center" }],
@@ -2013,7 +2032,8 @@ async function bukaSiswa(nisn) {
   if (![...$("pil-siswa").options].some((o) => o.value === nisn)) $("pil-siswa").insertAdjacentHTML("beforeend", `<option value="${esc(nisn)}">${esc(nisn)}</option>`);
   $("pil-siswa").value = nisn;
   $("d-isi").innerHTML = '<div class="kartu kosong-data">Memuat…</div>';
-  try { [DETAIL, ATURAN_SISWA] = await Promise.all([rpc("mtd_detail", { p_pin: PIN, p_nisn: nisn }), rpc("mtd_aturan_siswa", { p_pin: PIN, p_nisn: nisn }).catch(() => null)]); }
+  try { [DETAIL, ATURAN_SISWA, MANDIRI] = await Promise.all([rpc("mtd_detail", { p_pin: PIN, p_nisn: nisn }), rpc("mtd_aturan_siswa", { p_pin: PIN, p_nisn: nisn }).catch(() => null),
+    rpc("mtd_detail_mandiri", { p_pin: PIN, p_nisn: nisn }).catch(() => null)]); }
   catch (e) { $("d-isi").innerHTML = `<div class="kartu kosong-data">${esc(e.message)}</div>`; return; }
   gambarSiswa();
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2058,6 +2078,34 @@ function hadirPertemuan(D, hari, n) {
   return { hadir, total: dalam.length };
 }
 
+let MANDIRI = null;
+/* Latihan mandiri satu siswa: ketekunan di luar sesi kelompok (kemajuan terpisah dari posisi resmi). */
+function catatanMandiri(D, M) {
+  if (!M) return [];
+  const h = M.harian || [], h7 = h.filter((x) => (Date.now() - new Date(x.tanggal)) / 864e5 <= 7).length, h30 = h.filter((x) => (Date.now() - new Date(x.tanggal)) / 864e5 <= 30).length;
+  const c = [!h.length ? "<b>Belum pernah latihan mandiri</b> di luar sesi kelompok."
+    : `Latihan mandiri: <b>${h7} hari</b> dalam seminggu terakhir dan ${h30} hari dalam sebulan${M.posisi ? `; jalur mandiri di ${esc(M.posisi.nama_tingkat)} level ${M.posisi.level}` : ""}.`];
+  const nJ = D.per_tingkat.reduce((a, x) => a + x.n_jawab, 0), nB = D.per_tingkat.reduce((a, x) => a + x.n_benar, 0), r = M.ringkas;
+  if (r && r.n_jawab >= 20 && nJ >= 20 && 100 * r.n_benar / r.n_jawab - 100 * nB / nJ >= 25)
+    c.push(`<b>Perlu dicek:</b> akurasi latihan mandiri ${Math.round(100 * r.n_benar / r.n_jawab)}% jauh di atas akurasi dalam sesi ${Math.round(100 * nB / nJ)}%. Kemungkinan dibantu orang lain atau AI saat berlatih sendiri.`);
+  return c;
+}
+function kartuMandiri(M) {
+  if (!M) return "";
+  const r = M.ringkas || {}, h = M.harian || [], d = (x) => (Date.now() - new Date(x.tanggal)) / 864e5;
+  return `<div class="kartu"><h2>Latihan mandiri (di luar sesi)</h2>
+    <p class="redup kecil" style="margin-top:0">Latihan tanpa pengawasan guru. Posisinya terpisah dan <b>tidak menaikkan posisi resmi</b>; dipakai untuk menilai ketekunan siswa.</p>
+    <div class="ubin">${ubinHtml([
+      [h.filter((x) => d(x) <= 7).length, "hari berlatih, 7 hari terakhir", "aktif", h.some((x) => d(x) <= 7) ? "baik" : "emas"],
+      [h.filter((x) => d(x) <= 30).length, "hari berlatih, 30 hari terakhir", "waktu"],
+      [h.filter((x) => d(x) <= 7).reduce((a, x) => a + x.n_jawab, 0), "soal dijawab, 7 hari terakhir", "mulai"],
+      [r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) + "%" : "–", `akurasi mandiri (${r.n_jawab || 0} soal)`, "akurasi"],
+      [M.posisi ? `Lv ${M.posisi.level}` : "–", M.posisi ? `posisi mandiri: ${esc(M.posisi.nama_tingkat)}` : "belum ada posisi mandiri", "level"],
+    ])}</div>
+    ${(M.tuntas || []).length ? `<div class="gulir"><table class="tabel"><thead><tr><th>Tanggal</th><th>Tingkat</th><th>Level</th><th class="angka">Percobaan</th><th class="angka">Salah</th></tr></thead><tbody>${M.tuntas.slice(0, 10).map((x) =>
+      `<tr><td class="kecil">${tglTeks(x.tuntas, true)}</td><td>${esc(x.nama_tingkat)}</td><td>Lv ${x.level}</td><td class="angka">${x.percobaan}</td><td class="angka">${x.n_salah}</td></tr>`).join("")}</tbody></table></div>`
+      : '<p class="redup">Belum ada level yang dituntaskan saat latihan mandiri.</p>'}</div>`;
+}
 function gambarSiswa() {
   const D = DETAIL, p = D.posisi;
   const nJ = D.per_tingkat.reduce((a, x) => a + x.n_jawab, 0), nB = D.per_tingkat.reduce((a, x) => a + x.n_benar, 0);
@@ -2089,7 +2137,8 @@ function gambarSiswa() {
       return `<details class="kartu atur-siswa" ${khusus ? "open" : ""}><summary><h2 style="display:inline">Aturan dan tahapan yang berlaku</h2>
         <span class="lencana ${khusus ? "emas" : ""}">${khusus ? khusus + " aturan khusus" : "Pengaturan Umum"}</span></summary>
         ${aturanBerlakuHtml(ATURAN_SISWA)}</details>`; })() : ""}
-    <div class="kartu"><h2>Catatan otomatis</h2><ul class="catatan">${catatanOtomatis(D).map((x) => `<li>${x}</li>`).join("")}</ul></div>
+    <div class="kartu"><h2>Catatan otomatis</h2><ul class="catatan">${catatanOtomatis(D).concat(catatanMandiri(D, MANDIRI)).map((x) => `<li>${x}</li>`).join("")}</ul></div>
+    ${kartuMandiri(MANDIRI)}
     <div class="kartu"><h2>Kemajuan level tuntas</h2><p class="redup kecil" style="margin-top:0">Jumlah level tuntas (kumulatif) pada tiap tanggal berlatih, 2 bulan terakhir.</p><div class="grafik" id="g-maju"></div></div>
     <div class="dua">
       <div class="kartu"><h2>Jenis kesalahan</h2>

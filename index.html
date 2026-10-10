@@ -838,7 +838,10 @@ $("btn-naik").onclick = () => {
 function mulai(r) {
   S = r;
   ssSet(KUNCI_SESI, r.token);
-  $("uji-pita").classList.toggle("hidden", !r.uji);
+  // Uji coba guru, atau latihan mandiri (kemajuan terpisah dari kemajuan resmi sesi kelompok)
+  $("uji-pita").innerHTML = r.uji ? "<b>Uji coba guru</b> · jawaban tidak masuk rekap siswa. Tutup tab ini bila selesai."
+    : "<b>Latihan mandiri</b> · kemajuan di sini terpisah dari kemajuan resmi. Kemajuan resmi hanya bertambah saat sesi kelompok bersama guru.";
+  $("uji-pita").classList.toggle("hidden", !r.uji && r.mode !== "mandiri");
   akhirSesi = Date.now() + r.sisa_detik * 1000;
   $("jam").classList.remove("hidden"); $("btn-keluar").classList.remove("hidden");
   if (r.selesai) return selesai();
