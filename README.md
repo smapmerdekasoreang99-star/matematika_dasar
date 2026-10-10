@@ -248,6 +248,14 @@ rekap semua siswa (683) ±140 ms. Optimasi hari itu:
   pilihan diingat per perangkat, perangkat yang belum pernah memilih memakai 30 detik.
   `guru.html?simulasi=teratas` membuka papan dengan 36 siswa contoh yang berlomba (diperbarui
   tiap 3 detik) — tanpa PIN, tanpa server, tidak menyimpan apa pun; untuk melihat tampilannya.
+- **Uji beban sungguhan 10 Okt 2026** (malam, paket gratis): 800 siswa tiruan tersambung bersamaan lewat API,
+  Matdas menjawab tiap 6–10 detik + English Reading menyimpan tiap ±1 menit + 7 halaman guru memuat rekap.
+  Naik bertahap 5 menit, lalu ±110 panggilan/detik: **8 menit lancar** (waktu tunggu dari Indonesia p50
+  ±130 ms, p95 ±170–230 ms, 0 gagal; server rata-rata 7 ms, sibuk ±0,5 inti). Pada menit ke-8,5 database
+  **macet sesaat** (tulisan disk/WAL: satu jawaban sempat 2,6 dtk di server); antrean koneksi API ikut penuh
+  sehingga ±30 detik banyak permintaan menunggu sampai 15 detik (1.300 dari 37.000 panggilan gagal waktu).
+  Kesimpulan: kapasitas hitung cukup; batasnya **kemampuan tulis disk paket gratis** pada beban puncak
+  terus-menerus. Data aman (jawaban dikirim ulang dengan `p_soal`, tidak dinilai dua kali).
 - Hambatan yang lebih mungkin: **Wi-Fi sekolah**. Satu access point praktis melayani
   30–50 perangkat. Siswa yang memakai kuota HP sendiri tidak terpengaruh.
 - **Membuka per tingkat dengan jeda 3–5 menit** tidak diperlukan oleh server, tetapi
