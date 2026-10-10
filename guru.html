@@ -702,7 +702,7 @@ body.lihat .ubah { display: none !important; }
       <!-- Sesi latihan per kelompok: buka dengan batas waktu dan kode akses -->
       <section class="kartu seksi hidden" id="sesi-kartu">
         <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 7.5-2"/></svg></span>
-          <div><h2>Sesi latihan</h2><p>Siswa hanya bisa masuk saat sesi kelompoknya dibuka, dengan kode dari guru. Halaman tertutup sendiri saat waktunya habis.</p></div></div>
+          <div><h2>Sesi latihan</h2><p>Saat sesi kelompok dibuka, siswa masuk dengan NISN dan kode dari guru, dan keluar halaman diawasi; halaman tertutup sendiri saat waktunya habis. Di luar sesi siswa boleh latihan mandiri dengan NISN saja (Pengaturan Umum → Latihan mandiri).</p></div></div>
         <div id="sesi-isi"></div>
       </section>
       <!-- Aturan & tahapan yang berlaku untuk kelompok terpilih, termasuk siswa yang diatur sendiri -->
@@ -1339,7 +1339,7 @@ function gambarSesi() {
       return `<div class="sesi-baris ${buka ? "buka" : ""}">
         <div class="sesi-nama"><b>${esc(k.kelompok)}</b><small>${k.n_siswa} siswa</small></div>
         <div class="sesi-status">${buka ? `<span class="lencana baik"><span class="titik-on"></span>Dibuka · sisa ${sisaSesi(k)} menit</span><small>dibuka ${esc(k.oleh || "guru")} · sampai pukul ${jamTeks(k.sampai)} · ${k.n_online} sedang berlatih</small>`
-          : '<span class="lencana">Ditutup</span><small>siswa tidak bisa masuk</small>'}</div>
+          : `<span class="lencana">Ditutup</span><small>${G.atur && G.atur.mandiri === false ? "siswa tidak bisa masuk" : "siswa hanya bisa latihan mandiri"}</small>`}</div>
         <div class="sesi-kode">${buka ? `<small>Kode akses</small><b>${esc(k.kode)}</b>` : ""}</div>
         <div class="sesi-aksi">${!boleh ? "" : buka
           ? `<button class="garis kecil sesi-layar" data-layar="${esc(k.kelompok)}">${IKON_QR}QR &amp; kode masuk</button><button class="garis kecil sesi-layar" data-teratas="${esc(k.kelompok)}">${IKON_TERATAS}Tampilkan teratas</button><span class="sesi-tambah"><button class="garis kecil" data-tambah="${esc(k.kelompok)}" title="Memperpanjang sesi yang sedang berjalan; kode akses tetap">+ Tambah</button><input type="number" data-tambah-menit="${esc(k.kelompok)}" min="1" max="300" step="1" inputmode="numeric" value="${MENIT_TAMBAH[k.kelompok] || 15}" aria-label="Menit tambahan ${esc(k.kelompok)}"><span class="satuan">menit</span></span><button class="kecil bahaya" data-tutup="${esc(k.kelompok)}">Tutup sekarang</button>`
@@ -2310,6 +2310,7 @@ const IKON = {
 };
 const SEKSI = [
   { ikon: "layar", judul: "Halaman Latihan", ket: "Siapa yang boleh masuk dan apa yang dilihat siswa.", baris: [
+    { k: "mandiri", umum: true, jenis: "ya", l: "Latihan mandiri di luar sesi kelompok", s: "Bila dimatikan, siswa hanya bisa masuk saat guru membuka sesi kelompoknya (dengan kode akses). Latihan mandiri tidak memakai kode akses dan tidak diawasi keluar halamannya.", on: "Boleh", off: "Hanya saat sesi" },
     { k: "peserta", umum: true, jenis: "pilih", l: "Yang boleh masuk", s: "Kelompok MD diambil dari Data Induk lewat admin Aplikasi Tryout Guru.",
       pilih: [["md", "Anggota kelompok MD saja", "MD10-1, MD11-2, … di Data Induk → Kelompok Belajar"], ["semua", "Semua siswa aktif", "Siapa pun yang terdaftar di Tryout boleh berlatih"]] },
     { k: "tampil_kunci", jenis: "ya", l: "Tampilkan jawaban benar saat siswa salah", s: "Bila dimatikan, siswa hanya diberi tahu jawabannya belum tepat (beserta saran bila kesalahannya dikenali).", on: "Ditampilkan", off: "Disembunyikan" },
@@ -2338,7 +2339,7 @@ const SEMUA_ATUR = SEKSI.flatMap((s) => s.baris);
 function ringkasAtur(a) {
   const c = (kls, l, v) => `<span class="chip ${kls}"><i></i>${l}: <b>${esc(v)}</b></span>`;
   $("atur-ringkas").innerHTML = [
-    ...(ATUR_KEL ? [] : [c("info", "Peserta", a.peserta === "semua" ? "Semua siswa" : "Kelompok MD")]),
+    ...(ATUR_KEL ? [] : [c("info", "Peserta", a.peserta === "semua" ? "Semua siswa" : "Kelompok MD"), c(a.mandiri === false ? "off" : "on", "Latihan mandiri", a.mandiri === false ? "hanya saat sesi" : "boleh")]),
     c(a.maks_keluar > 0 ? "on" : "", "Batas keluar", a.maks_keluar > 0 ? `${a.maks_keluar}×` : "tanpa batas"),
     c("info", "Soal per level", `${a.n_benar} soal`),
     c("info", "Bila salah", a.bila_salah === "lanjut" ? "lanjut" : "ulangi sampai benar"),

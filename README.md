@@ -27,6 +27,12 @@ perubahan lewat [`../database_tryout/`](../database_tryout/README.md)
    Kelompok ikut terbawa saat operator menekan **Tarik dari data induk** di
    admin Tryout (tab Data siswa). Sebelum kelompok pernah ditarik, semua siswa
    aktif tetap boleh masuk.
+   **Sesi kelompok vs latihan mandiri (10 Okt 2026, seperti English Reading):** saat guru membuka sesi
+   kelompoknya, siswa wajib mengisi **kode akses** dan keluar halaman diawasi. Di luar sesi, siswa boleh
+   **latihan mandiri** dengan NISN saja: tanpa kode akses, tanpa pengawasan keluar halaman, lama sesi sesuai
+   Pengaturan Umum, dan tidak dikeluarkan saat guru menutup sesi kelompok. Admin bisa mematikannya di
+   Pengaturan Umum → Halaman Latihan → **Latihan mandiri di luar sesi kelompok** (bawaan: boleh). Server
+   membedakan keduanya lewat `mtd_sesi.mode` (`kelas` / `mandiri`).
 2. Soal muncul satu per satu. Jawaban diketik lewat papan angka di layar.
    Untuk soal pecahan ada kotak bilangan bulat, pembilang, dan penyebut.
    Untuk pembagian bersisa ada kotak **hasil bagi** dan **sisa** (47 ÷ 5 = 9 sisa 2).

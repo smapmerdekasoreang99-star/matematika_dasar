@@ -251,12 +251,12 @@ details.peta[open] summary::before { transform: rotate(90deg); }
     <div class="kartu form">
       <div id="f-siswa">
       <h2>Masuk untuk berlatih</h2>
-      <p class="redup kecil" style="margin-top:0">Ketik NISN-mu dan kode akses yang ditulis guru di kelas.</p>
+      <p class="redup kecil" style="margin-top:0">Ketik NISN-mu. Saat guru membuka sesi kelompokmu, isi juga kode akses yang ditulis guru; di luar sesi kamu boleh berlatih mandiri dengan NISN saja.</p>
       <label class="isian" for="nisn">NISN</label>
       <input type="text" id="nisn" inputmode="numeric" autocomplete="off">
       <!-- Kode sesi latihan: ditulis guru di papan saat sesi kelompok dibuka -->
       <div id="akses-isian">
-        <label class="isian" for="akses">Kode akses</label>
+        <label class="isian" for="akses">Kode akses <span class="redup" style="font-weight:400">(saat sesi kelompok)</span></label>
         <input type="text" id="akses" inputmode="numeric" autocomplete="off" style="text-transform:uppercase">
         <div class="hidden" id="akses-qr" style="color:var(--hadir-tua);margin-top:4px;font-size:var(--h-xs);font-weight:600">✓ Kode akses dari QR sudah terisi. Tinggal ketik NISN-mu.</div>
       </div>
@@ -397,7 +397,7 @@ function isiPosisi() {
     ks.className = "kesempatan";
     ks.innerHTML = S.salah ? `<span>Salah di level ini: <b>${S.salah}</b></span>` : "";
   }
-  $("hd-sub").textContent = [S.nama, S.kelompok || S.kelas].filter(Boolean).join(" · ");
+  $("hd-sub").textContent = [S.nama, S.kelompok || S.kelas, S.uji ? "" : S.mode === "mandiri" ? "Latihan mandiri" : "Sesi kelompok"].filter(Boolean).join(" · ");
   // peta
   $("peta-ringkas").textContent = `· ${S.ringkas.lewat} dari ${S.ringkas.total} level tuntas`;
   $("peta-batang").style.width = (100 * S.ringkas.lewat / Math.max(1, S.ringkas.total)) + "%";
@@ -968,7 +968,8 @@ function bunyiAlarm() {
 function hentiAlarm() { if (ALARM_NODE) { try { ALARM_NODE.stop(); } catch (e) { /* sudah berhenti */ } ALARM_NODE = null; } }
 
 let pergiPada = 0, diamPantau = false;
-const latihanJalan = () => !!(S && !S.uji && akhirSesi && !$("v-latih").classList.contains("hidden"));
+// Latihan mandiri (di luar sesi kelompok) tidak diawasi keluar halamannya, seperti English Reading.
+const latihanJalan = () => !!(S && !S.uji && S.mode !== "mandiri" && akhirSesi && !$("v-latih").classList.contains("hidden"));
 function pergi() { if (diamPantau || pergiPada || !latihanJalan()) return; pergiPada = Date.now(); bunyiAlarm(); }
 async function kembali() {
   if (!pergiPada) return;
