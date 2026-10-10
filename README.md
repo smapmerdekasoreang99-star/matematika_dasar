@@ -222,6 +222,15 @@ dalam 24 kelompok:
 | Lapor keluar halaman | ±0,3 ms |
 | Rekap 1 kelompok (riwayat ±1.500 jawaban/siswa) | ±45 ms |
 
+Diukur ulang 10 Okt 2026 (dengan aturan/saran latihan mandiri): masuk ±4 ms, menjawab ±2,1 ms,
+rekap semua siswa (683) ±140 ms. Optimasi hari itu:
+- **Balasan menjawab ±4 KB → ±1 KB.** Peta tingkat (±3 KB) hanya dikirim saat naik level; halaman
+  siswa menyimpan peta terakhir (`mtd_paket_isi(token, peta)`; `mtd_paket` tetap lengkap). Penting
+  untuk kuota *egress* paket gratis (±5 GB/bulan): 800 siswa × 100 jawaban ≈ 80 MB per sesi, bukan ±320 MB.
+- Rekap: jumlah level terlewati diambil dari urutan yang sudah di-join (keluaran diuji sama persis).
+- Indeks `mtd_jawaban` dibangun ulang (`reindex table concurrently`): 21 MB → 0,7 MB (sisa uji beban
+  4 Okt). Satu jawaban ±225 byte termasuk indeks; batas database paket gratis 500 MB ≈ 2 juta jawaban.
+
 - 800 siswa yang menjawab rata-rata tiap 8 detik ≈ 100 jawaban/detik, kira-kira seperempat
   satu inti CPU. Kunci data hanya per siswa, jadi siswa tidak saling menunggu. Siswa tidak
   melakukan polling; server dipanggil hanya saat masuk, menjawab, dan kembali ke halaman.

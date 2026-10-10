@@ -745,6 +745,7 @@ async function kirim(waktuHabis) {
     const r = await kirimJawaban({ p_token: S.token, p_jawaban: j || "", p_soal: S.soal ? S.soal.id : undefined });
     if (r.habis) return habis();
     const nomorTadi = S.nomor;
+    if (!r.peta) r.peta = S.peta;   // server hanya mengirim peta tingkat saat naik level (hemat ±3 KB per jawaban)
     S = r;
     const hh = r.hasil;
     if (!hh || hh.naik || hh.ulang || S.nomor === 1) salahNo = new Set();
