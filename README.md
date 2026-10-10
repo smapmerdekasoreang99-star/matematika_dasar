@@ -41,6 +41,14 @@ perubahan lewat [`../database_tryout/`](../database_tryout/README.md)
    Excel, kartu **Latihan mandiri (di luar sesi)** di Analisis Siswa, serta label **Rajin mandiri**,
    **Tanpa latihan mandiri**, dan **Mandiri jauh di atas sesi** (akurasi mandiri ≥ 25 poin di atas akurasi resmi).
    Di halaman siswa, latihan mandiri ditandai pita "Latihan mandiri · kemajuan di sini terpisah".
+   **Latihan mandiri tidak harus sama dengan sesi:** siswa bebas memilih tingkat dan level di kartu
+   **🏠 Latihan mandiri** (`mtd_materi_mandiri`, `mtd_pilih_mandiri`; hanya posisi mandiri yang pindah), serta jumlah
+   soal per level (5/10/15/20) dan tampil jawaban benar (`mtd_pilihan_mandiri`, disimpan di `mtd_sesi.pilihan`).
+   Guru bisa memasang **aturan latihan mandiri** (profil aturan tersendiri) dan **saran latihan mandiri**
+   (tingkat · level + catatan) per kelompok di tabel Pengaturan & Tahapan atau per siswa lewat bilah massal
+   (`mtd_mandiri_kelompok`, `mtd_mandiri_siswa`). Saran hanya anjuran: siswa melihatnya dengan tombol
+   "Mulai dari saran" dan tetap boleh memilih materi lain. Kartu Analisis menampilkan saran, aturan mandiri, dan
+   pilihan siswa (mis. "biasanya 5 soal").
 2. Soal muncul satu per satu. Jawaban diketik lewat papan angka di layar.
    Untuk soal pecahan ada kotak bilangan bulat, pembilang, dan penyebut.
    Untuk pembagian bersisa ada kotak **hasil bagi** dan **sisa** (47 ÷ 5 = 9 sisa 2).

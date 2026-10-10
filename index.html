@@ -128,6 +128,17 @@
 .isi-lbl small { font-size: var(--h-xs); font-weight: 600; color: var(--tinta-2); letter-spacing: .02em; }
 .kata-sisa { font-size: 22px; color: var(--emas-teks); align-self: flex-start; margin-top: .35em; }
 
+/* ---- Latihan mandiri ---- */
+.mandiri-kartu { border-left: 4px solid var(--sakit); padding: var(--j3) var(--j4); }
+.mandiri-kartu summary { cursor: pointer; display: flex; align-items: center; gap: var(--j2); flex-wrap: wrap; list-style: none; }
+.mandiri-kartu summary::-webkit-details-marker { display: none; }
+.mk-judul { font-weight: 800; color: var(--gelap); }
+.mk-isi { display: grid; gap: var(--j3); margin-top: var(--j3); }
+.mk-baris { display: flex; flex-wrap: wrap; align-items: center; gap: var(--j2); }
+.mk-baris select { width: auto; min-width: 0; flex: 1 1 140px; padding: var(--j2); font-size: var(--h-m); }
+.mk-label { font-size: var(--h-xs); font-weight: 700; color: var(--tinta-2); text-transform: uppercase; letter-spacing: .05em; }
+.mk-saran { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--j2); padding: var(--j2) var(--j3); border-radius: var(--r1); background: var(--emas-muda); font-size: var(--h-s); }
+
 /* ---- Tirai keluar halaman / kunci ---- */
 .tirai { position: fixed; inset: 0; z-index: var(--lapis-tirai); background: rgba(29,42,58,.72); display: flex; align-items: center; justify-content: center; padding: var(--j4); }
 .tirai .kotak-tirai { background: var(--kertas-2); border-radius: var(--r3); box-shadow: var(--bayang-2); max-width: 420px; width: 100%; padding: var(--j5); border-top: 5px solid var(--emas); }
@@ -283,6 +294,17 @@ details.peta[open] summary::before { transform: rotate(90deg); }
   <section id="v-latih" class="hidden">
     <!-- Uji coba guru (dibuka dari tab Tahapan Level di halaman guru) -->
     <div class="uji-pita hidden" id="uji-pita" role="note"><b>Uji coba guru</b> · jawaban tidak masuk rekap siswa. Tutup tab ini bila selesai.</div>
+    <!-- Latihan mandiri: siswa memilih materi, jumlah soal, dan tampil jawaban; saran guru bila ada -->
+    <details class="kartu mandiri-kartu hidden" id="mandiri-kartu">
+      <summary><span class="mk-judul">🏠 Latihan mandiri</span><span class="redup kecil" id="mk-ringkas"></span></summary>
+      <div class="mk-isi">
+        <div class="mk-saran hidden" id="mk-saran"></div>
+        <div class="mk-baris"><span class="mk-label">Materi</span><select id="mk-tingkat" aria-label="Pilih tingkat"></select><select id="mk-level" aria-label="Pilih level"></select><button class="kecil" id="mk-pindah">Latih ini</button></div>
+        <div class="mk-baris"><span class="mk-label">Soal per level</span><select id="mk-soal" aria-label="Jumlah soal per level"></select>
+          <span class="mk-label">Jawaban benar saat salah</span><select id="mk-kunci" aria-label="Tampilkan jawaban benar"><option value="">ikut guru</option><option value="true">ditampilkan</option><option value="false">tidak ditampilkan</option></select></div>
+        <p class="redup kecil" style="margin:0">Kemajuan latihan mandiri terpisah dari kemajuan resmi di sesi kelompok. Pilih sendiri materi yang ingin dilatih.</p>
+      </div>
+    </details>
     <div class="kartu posisi-kartu">
       <div class="posisi-atas">
         <div class="baris-atas"><span class="modul" id="p-modul">MD10</span><span id="p-urut">Tingkat 1 dari 14</span></div>
@@ -835,8 +857,50 @@ $("btn-naik").onclick = () => {
 };
 
 /* ----------------------------------------------------------- sesi */
+/* ----------------------------------------------------------- latihan mandiri (10 Okt 2026)
+   Hanya di luar sesi kelompok. Siswa memilih tingkat/level (posisi mandiri saja), jumlah soal per level, dan tampil
+   jawaban; saran guru (tingkat/level + catatan) ditampilkan dan bisa dipakai dengan satu ketukan. */
+let MATERI = null;
+async function gambarMandiri() {
+  const ada = !!(S && S.mode === "mandiri" && !S.uji);
+  $("mandiri-kartu").classList.toggle("hidden", !ada);
+  if (!ada) return;
+  const a = S.atur || {}, p = S.pilihan || {};
+  $("mk-ringkas").textContent = `· ${S.posisi ? `${S.posisi.nama} level ${S.posisi.level}` : ""} · ${a.n_benar} soal per level`;
+  $("mk-soal").innerHTML = '<option value="">ikut guru</option>' + [5, 10, 15, 20].map((n) => `<option value="${n}">${n} soal</option>`).join("");
+  $("mk-soal").value = p.n_benar ? String(p.n_benar) : "";
+  $("mk-kunci").value = typeof p.tampil_kunci === "boolean" ? String(p.tampil_kunci) : "";
+  const sr = S.saran;
+  $("mk-saran").classList.toggle("hidden", !sr);
+  if (sr) {
+    $("mk-saran").innerHTML = `<span>Saran guru: <b>${esc(sr.nama_tingkat)} level ${sr.level}</b>${sr.catatan ? ` — ${esc(sr.catatan)}` : ""}</span><button class="kecil" id="mk-saran-pakai">Mulai dari saran</button>`;
+    $("mk-saran-pakai").onclick = () => pindahMandiri(sr.tingkat, sr.level);
+  }
+  if (!MATERI) { try { MATERI = await rpc("mtd_materi_mandiri", { p_token: S.token }); } catch (e) { MATERI = []; } }
+  const isiLevel = () => { const t = MATERI.find((x) => x.kode === $("mk-tingkat").value);
+    $("mk-level").innerHTML = (t ? t.level : []).map((l) => `<option value="${l.level}">Level ${l.level}${l.ket ? ": " + esc(l.ket) : ""}</option>`).join(""); };
+  $("mk-tingkat").innerHTML = MATERI.map((t) => `<option value="${t.kode}">MD${t.modul} · ${esc(t.nama)}</option>`).join("");
+  if (S.posisi && MATERI.some((t) => t.kode === S.posisi.tingkat)) $("mk-tingkat").value = S.posisi.tingkat;
+  isiLevel();
+  if (S.posisi) $("mk-level").value = String(S.posisi.level);
+  $("mk-tingkat").onchange = isiLevel;
+}
+async function pindahMandiri(t, l) {
+  if (!confirm("Pindah ke materi ini? Nomor soal di level ini dimulai lagi dari 1. Kemajuan resmimu tidak berubah.")) return;
+  try { mulai(await rpc("mtd_pilih_mandiri", { p_token: S.token, p_tingkat: t, p_level: +l })); toast("Materi latihan diganti"); } catch (e) { toast(e.message); }
+}
+$("mk-pindah").onclick = () => pindahMandiri($("mk-tingkat").value, $("mk-level").value);
+const simpanPilihanMandiri = async () => {
+  const pil = {};
+  if ($("mk-soal").value) pil.n_benar = +$("mk-soal").value;
+  if ($("mk-kunci").value) pil.tampil_kunci = $("mk-kunci").value === "true";
+  try { mulai(await rpc("mtd_pilihan_mandiri", { p_token: S.token, p_pilihan: pil })); toast("Pilihan latihan disimpan"); } catch (e) { toast(e.message); }
+};
+$("mk-soal").onchange = simpanPilihanMandiri; $("mk-kunci").onchange = simpanPilihanMandiri;
+
 function mulai(r) {
   S = r;
+  gambarMandiri();
   ssSet(KUNCI_SESI, r.token);
   // Uji coba guru, atau latihan mandiri (kemajuan terpisah dari kemajuan resmi sesi kelompok)
   $("uji-pita").innerHTML = r.uji ? "<b>Uji coba guru</b> · jawaban tidak masuk rekap siswa. Tutup tab ini bila selesai."
