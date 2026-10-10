@@ -315,8 +315,8 @@ span.ab-asal.a-umum { background: var(--kertas-3); color: var(--tinta-2); box-sh
 .ck-kepala > div { display: grid; }
 .kel-tabel select { min-width: 190px; padding: var(--j2); font-size: var(--h-m); }
 /* Lencana ringkas di tabel: satu baris, nama panjang dipotong (lengkap di judul) */
-.lencana.ringkas { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
-.lencana-daftar { display: flex; flex-wrap: wrap; gap: 4px; max-width: 230px; }
+.lencana.ringkas { display: inline-block; margin: 0; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+.lencana-daftar { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px; min-width: 210px; max-width: 260px; }   /* cukup lebar: 2–3 lencana sebaris, baris tabel tetap pendek */
 /* Bilah Daftar siswa: kepala, baris Aturan, baris Tahapan (tombol Terapkan sejajar di kanan) */
 #dl-massal.on { display: grid; gap: var(--j2); align-items: stretch; }
 .massal .m-panel { display: grid; gap: var(--j2); padding-top: var(--j2); border-top: 1px solid var(--gelap-2); }
