@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buka Arsip — SMA Plus Merdeka Soreang</title>
+<meta name="description" content="Membuka berkas arsip semester (SQLite) Matematika Dasar dan aplikasi lain untuk mencari rincian latihan siswa. Berkas dibaca di perangkat ini saja.">
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="assets/dasar.css?v=1">
+<link rel="stylesheet" href="assets/matdas.css?v=8">
+<style>
+.pilih-berkas { display: grid; gap: var(--j3); justify-items: start; }
+.pilih-berkas input[type=file] { font-size: var(--h-m); }
+.info-arsip { display: flex; flex-wrap: wrap; gap: var(--j2) var(--j5); font-size: var(--h-s); color: var(--tinta-2); }
+.info-arsip b { color: var(--gelap); }
+.saring { display: flex; flex-wrap: wrap; gap: var(--j2); align-items: center; margin: var(--j3) 0; }
+.saring input[type=search] { flex: 1 1 240px; padding: var(--j2) var(--j3); font-size: var(--h-m); }
+.saring select { padding: var(--j2); font-size: var(--h-m); width: auto; }
+.saring .tumbuh { flex: 1; }
+.dua-rekap { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--j3); }
+.rekap-kotak { border: 1px solid var(--garis); border-radius: var(--r2); padding: var(--j3); background: var(--kertas); }
+.rekap-kotak h3 { margin: 0 0 var(--j2); font-size: var(--h-m); }
+.rekap-kotak dl { display: grid; grid-template-columns: auto 1fr; gap: 2px var(--j3); margin: 0; font-size: var(--h-s); }
+.rekap-kotak dt { color: var(--tinta-2); } .rekap-kotak dd { margin: 0; font-weight: 600; }
+.benar { color: var(--hadir-tua); font-weight: 700; } .salah { color: var(--absen-tua); font-weight: 700; }
+.catatan-privasi { font-size: var(--h-s); color: var(--tinta-2); }
+td.soal-sel { white-space: nowrap; }
+.tbl-kecil td, .tbl-kecil th { font-size: var(--h-s); }
+</style>
+</head>
+<body>
+<header class="atas">
+  <img src="assets/logo.png" alt="Logo SMA Plus Merdeka Soreang">
+  <div class="isi"><div class="judul">Buka Arsip</div><div class="sub" id="hd-sub">Rincian latihan semester yang sudah diarsipkan</div></div>
+</header>
+
+<main class="bungkus lebar">
+  <section class="kartu pilih-berkas">
+    <h1 style="margin:0">Buka berkas arsip</h1>
+    <p style="margin:0">Pilih berkas arsip semester (<code>.sqlite</code>) yang diunduh admin, mis. <code>arsip_matdas_2026-2027-1.sqlite</code>.</p>
+    <input type="file" id="berkas" accept=".sqlite,.db,application/vnd.sqlite3,application/x-sqlite3" aria-label="Pilih berkas arsip">
+    <p class="catatan-privasi">Berkas dibaca di perangkat ini saja dan tidak dikirim ke mana pun. Halaman ini bisa dipakai tanpa internet bila sudah pernah dibuka (atau disimpan bersama folder <code>assets</code>).</p>
+    <p id="pesan" class="pesan hidden"></p>
+  </section>
+  <div id="isi"></div>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="config.js"></script>
+<script src="assets/umum.js?v=9"></script>
+<script src="assets/simpan.js?v=3"></script>
+<script src="assets/kepala-excel.js?v=1"></script>
+<script src="assets/excel.js?v=5"></script>
+<script src="assets/arsip.js?v=1"></script>
+<script>
+"use strict";
+let DB = null, INFO = {}, PILIH = null, HAL = 0;
+const angka = (n) => Number(n || 0).toLocaleString("id-ID");
+const persen = (b, n) => n ? Math.round(100 * b / n) + "%" : "–";
+const satu = (sql, p) => { const r = DB.exec(sql, p); return r.length ? r[0].values[0][0] : null; };
+const baris = (sql, p) => { const st = DB.prepare(sql); const o = []; try { st.bind(p || []); while (st.step()) o.push(st.getAsObject()); } finally { st.free(); } return o; };
+const json = (t) => { try { return t ? JSON.parse(t) : null; } catch (e) { return null; } };
+const pesan = (t, buruk) => { const p = $("pesan"); p.textContent = t || ""; p.classList.toggle("hidden", !t); p.classList.toggle("buruk", !!buruk); };
+let TINGKAT = {};
+
+$("berkas").onchange = async (ev) => {
+  const f = ev.target.files[0]; if (!f) return;
+  pesan("Membuka " + f.name + "…");
+  try {
+    const SQL = await muatSqlJs();
+    if (DB) DB.close();
+    DB = new SQL.Database(new Uint8Array(await f.arrayBuffer()));
+    const tabel = baris("select name from sqlite_master where type = 'table'").map((x) => x.name);
+    INFO = tabel.includes("info") ? Object.fromEntries(baris("select kunci, nilai from info").map((x) => [x.kunci, x.nilai])) : {};
+    INFO.berkas_dibuka = f.name;
+    pesan("");
+    if (INFO.aplikasi === "matdas") bukaMatdas(); else bukaUmum(tabel);
+  } catch (e) { pesan("Berkas tidak bisa dibuka sebagai arsip SQLite: " + e.message, true); $("isi").innerHTML = ""; }
+};
+
+function kepalaInfo() {
+  const nm = { matdas: "Matematika Dasar", english_reading: "English Reading", tryout: "Asesmen Merdeka (Tryout)" }[INFO.aplikasi] || INFO.aplikasi || "tidak diketahui";
+  $("hd-sub").textContent = `${nm} · ${INFO.nama || ""}`;
+  return `<section class="kartu"><h2 style="margin-top:0">${esc(nm)} — ${esc(INFO.nama || INFO.periode || "")}</h2>
+    <div class="info-arsip"><span>Berkas: <b>${esc(INFO.berkas_dibuka)}</b></span>
+      ${INFO.dari ? `<span>Rentang: <b>${esc(tglTeks(INFO.dari))} – ${esc(tglTeks(new Date(new Date(INFO.sampai) - 1).toISOString()))}</b></span>` : ""}
+      ${INFO.n_jawaban ? `<span>Rincian: <b>${angka(INFO.n_jawaban)} jawaban, ${angka(INFO.n_sesi)} sesi</b></span>` : ""}
+      ${INFO.dibuat ? `<span>Diarsipkan: <b>${esc(tglTeks(INFO.dibuat, true))}</b>${INFO.oleh ? " oleh <b>" + esc(INFO.oleh) + "</b>" : ""}</span>` : ""}</div></section>`;
+}
+
+/* ------------------------------------------------------------- Matematika Dasar */
+function bukaMatdas() {
+  TINGKAT = {};
+  baris("select kode, modul, nama from tingkat group by kode").forEach((t) => { TINGKAT[t.kode] = t; });
+  const kel = baris("select distinct kelompok from siswa where kelompok is not null order by 1").map((x) => x.kelompok);
+  const kls = baris("select distinct kelas from siswa where kelas is not null order by 1").map((x) => x.kelas);
+  $("isi").innerHTML = kepalaInfo() + `
+    <section class="kartu">
+      <h2 style="margin-top:0">Siswa</h2>
+      <div class="saring"><input type="search" id="cari" placeholder="Cari nama atau NISN…" aria-label="Cari nama atau NISN">
+        <select id="s-kel" aria-label="Kelompok"><option value="">Semua kelompok</option>${kel.map((k) => `<option>${esc(k)}</option>`).join("")}</select>
+        <select id="s-kls" aria-label="Kelas"><option value="">Semua kelas</option>${kls.map((k) => `<option>${esc(k)}</option>`).join("")}</select>
+        <span class="tumbuh"></span><button class="garis kecil" id="unduh-daftar">Unduh Excel</button></div>
+      <div class="gulir"><table class="tabel" id="t-siswa"></table></div>
+      <p class="kecil redup">Rekap dibuat saat arsip: sesi kelompok (kemajuan resmi) dan latihan mandiri dihitung terpisah. Klik nama untuk rincian per soal.</p>
+    </section>
+    <div id="rinci"></div>`;
+  ["cari", "s-kel", "s-kls"].forEach((id) => $(id).addEventListener("input", gambarDaftar));
+  $("unduh-daftar").onclick = unduhDaftar;
+  gambarDaftar();
+}
+function dataDaftar() {
+  const q = $("cari").value.trim().toLowerCase(), kel = $("s-kel").value, kls = $("s-kls").value;
+  return baris(`select r.nisn, coalesce(s.nama, r.nisn) nama, s.nis, s.kelas, s.kelompok,
+      sum(case when r.mode = 'kelas' then r.n_jawab else 0 end) kj, sum(case when r.mode = 'kelas' then r.n_benar else 0 end) kb,
+      sum(case when r.mode = 'kelas' then r.hari else 0 end) kh, sum(case when r.mode = 'kelas' then r.n_sesi else 0 end) ks,
+      sum(case when r.mode = 'kelas' then r.n_tuntas else 0 end) kt,
+      sum(case when r.mode = 'mandiri' then r.n_jawab else 0 end) mj, sum(case when r.mode = 'mandiri' then r.n_benar else 0 end) mb,
+      sum(case when r.mode = 'mandiri' then r.hari else 0 end) mh, sum(case when r.mode = 'mandiri' then r.n_tuntas else 0 end) mt,
+      sum(r.detik) detik
+    from rekap r left join siswa s on s.nisn = r.nisn
+    where (? = '' or lower(coalesce(s.nama, '')) like ? or r.nisn like ? or coalesce(s.nis, '') like ?)
+      and (? = '' or s.kelompok = ?) and (? = '' or s.kelas = ?)
+    group by r.nisn order by s.kelompok, s.kelas, nama`, [q, `%${q}%`, `%${q}%`, `%${q}%`, kel, kel, kls, kls]);
+}
+function gambarDaftar() {
+  const L = dataDaftar();
+  $("t-siswa").innerHTML = `<thead><tr><th>Nama</th><th>NISN</th><th>Kelompok</th><th>Kelas</th>
+      <th class="angka">Sesi: soal</th><th class="angka">Akurasi</th><th class="angka">Hari</th><th class="angka">Level tuntas</th>
+      <th class="angka">Mandiri: soal</th><th class="angka">Akurasi</th><th class="angka">Hari</th><th class="angka">Waktu</th></tr></thead>
+    <tbody>${L.length ? L.map((x) => `<tr class="klik" data-n="${esc(x.nisn)}"><td><b>${esc(x.nama)}</b></td><td class="kecil">${esc(x.nisn)}</td><td>${esc(x.kelompok || "–")}</td><td>${esc(x.kelas || "–")}</td>
+      <td class="angka">${angka(x.kj)}</td><td class="angka">${persen(x.kb, x.kj)}</td><td class="angka">${x.kh}</td><td class="angka">${x.kt}</td>
+      <td class="angka">${angka(x.mj)}</td><td class="angka">${persen(x.mb, x.mj)}</td><td class="angka">${x.mh}</td><td class="angka">${lamaTeks(x.detik)}</td></tr>`).join("")
+      : '<tr><td colspan="12" class="redup">Tidak ada siswa yang cocok.</td></tr>'}</tbody>`;
+  $("t-siswa").querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = () => bukaSiswa(tr.dataset.n));
+}
+const namaT = (k) => (TINGKAT[k] || {}).nama || k;
+function kotakRekap(r, judul) {
+  if (!r) return `<div class="rekap-kotak"><h3>${judul}</h3><p class="redup kecil" style="margin:0">Tidak berlatih.</p></div>`;
+  const salah = json(r.salah) || {}, akhir = json(r.akhir);
+  return `<div class="rekap-kotak"><h3>${judul}</h3><dl>
+    <dt>Soal dijawab</dt><dd>${angka(r.n_jawab)} (benar ${angka(r.n_benar)}, ${persen(r.n_benar, r.n_jawab)})</dd>
+    <dt>Waktu latihan</dt><dd>${lamaTeks(r.detik)}</dd><dt>Hari berlatih</dt><dd>${r.hari} hari · ${r.n_sesi} sesi</dd>
+    <dt>Level tuntas</dt><dd>${r.n_tuntas}</dd>${r.mode === "kelas" ? `<dt>Keluar halaman</dt><dd>${r.keluar}×</dd>` : ""}
+    <dt>Posisi akhir</dt><dd>${akhir ? esc(namaT(akhir.tingkat)) + " · Level " + akhir.level : "–"}</dd>
+    <dt>Kesalahan</dt><dd>${Object.keys(salah).length ? Object.entries(salah).sort((a, b) => b[1] - a[1]).map(([j, n]) => `${esc(jenisLabel(j))} ${n}`).join(", ") : "–"}</dd>
+    <dt>Rentang</dt><dd>${esc(tglTeks(r.pertama))} – ${esc(tglTeks(r.terakhir))}</dd></dl></div>`;
+}
+function bukaSiswa(nisn) {
+  PILIH = nisn; HAL = 0;
+  const s = baris("select * from siswa where nisn = ?", [nisn])[0] || { nisn, nama: nisn };
+  const R = baris("select * from rekap where nisn = ?", [nisn]), rk = R.find((r) => r.mode === "kelas"), rm = R.find((r) => r.mode === "mandiri");
+  const per = {}; R.forEach((r) => Object.entries(json(r.tingkat) || {}).forEach(([t, v]) => { const x = (per[t] = per[t] || { n: 0, benar: 0 }); x.n += v.n; x.benar += v.benar; }));
+  const ses = baris("select * from sesi where nisn = ? order by dibuat", [nisn]);
+  const tk = baris("select distinct tingkat from jawaban where nisn in (?, ?) order by tingkat", [nisn, "M:" + nisn]).map((x) => x.tingkat);
+  $("rinci").innerHTML = `<section class="kartu" id="kartu-siswa">
+    <div class="aksi" style="justify-content:space-between"><div><h2 style="margin:0">${esc(s.nama)}</h2>
+      <span class="kecil redup">NISN ${esc(s.nisn)}${s.nis ? " · NIS " + esc(s.nis) : ""} · ${esc(s.kelas || "–")} · ${esc(s.kelompok || "–")} · ${esc(INFO.nama || "")}</span></div>
+      <button class="garis kecil" id="unduh-siswa">Unduh Excel</button></div>
+    <div class="dua-rekap" style="margin-top:var(--j3)">${kotakRekap(rk, "Sesi kelompok (kemajuan resmi)")}${kotakRekap(rm, "Latihan mandiri")}</div>
+    ${Object.keys(per).length ? `<h3>Per tingkat</h3><div class="gulir"><table class="tabel tbl-kecil"><thead><tr><th>Tingkat</th><th class="angka">Soal</th><th class="angka">Benar</th><th class="angka">Akurasi</th></tr></thead><tbody>
+      ${Object.entries(per).map(([t, v]) => `<tr><td>${esc(namaT(t))}</td><td class="angka">${v.n}</td><td class="angka">${v.benar}</td><td class="angka">${persen(v.benar, v.n)}</td></tr>`).join("")}</tbody></table></div>` : ""}
+    <h3>Sesi (${ses.length})</h3>
+    <div class="gulir"><table class="tabel tbl-kecil"><thead><tr><th>Mulai</th><th>Jenis</th><th class="angka">Keluar halaman</th><th>Terkunci</th></tr></thead><tbody>
+      ${ses.map((x) => `<tr><td>${esc(tglTeks(x.dibuat, true))}</td><td>${x.mode === "mandiri" ? "Latihan mandiri" : "Sesi kelompok"}</td><td class="angka">${x.keluar || 0}</td><td>${x.terkunci ? "ya" : ""}</td></tr>`).join("") || '<tr><td colspan="4" class="redup">–</td></tr>'}</tbody></table></div>
+    <h3>Jawaban per soal</h3>
+    <div class="saring"><select id="j-mode" aria-label="Jenis"><option value="">Sesi kelompok &amp; mandiri</option><option value="kelas">Sesi kelompok</option><option value="mandiri">Latihan mandiri</option></select>
+      <select id="j-tk" aria-label="Tingkat"><option value="">Semua tingkat</option>${tk.map((t) => `<option value="${esc(t)}">${esc(namaT(t))}</option>`).join("")}</select>
+      <label class="cek"><input type="checkbox" id="j-salah"> hanya yang salah</label></div>
+    <div class="gulir"><table class="tabel tbl-kecil" id="t-jawab"></table></div>
+    <div class="aksi"><button class="garis kecil hidden" id="j-lagi">Muat 200 lagi</button><span class="kecil redup" id="j-info"></span></div>
+  </section>`;
+  ["j-mode", "j-tk", "j-salah"].forEach((id) => $(id).addEventListener("input", () => { HAL = 0; gambarJawab(); }));
+  $("j-lagi").onclick = () => { HAL++; gambarJawab(true); };
+  $("unduh-siswa").onclick = () => unduhSiswa(s);
+  gambarJawab();
+  $("kartu-siswa").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function saringJawab() {
+  const m = $("j-mode").value, t = $("j-tk").value, sl = $("j-salah").checked;
+  const kunci = m === "kelas" ? [PILIH] : m === "mandiri" ? ["M:" + PILIH] : [PILIH, "M:" + PILIH];
+  return { sql: `from jawaban where nisn in (${kunci.map(() => "?").join(",")}) and (? = '' or tingkat = ?) and (? = 0 or benar = 0)`, p: [...kunci, t, t, sl ? 1 : 0] };
+}
+function gambarJawab(tambah) {
+  const f = saringJawab(), total = satu(`select count(*) ${f.sql}`, f.p);
+  const L = baris(`select * ${f.sql} order by waktu, id limit 200 offset ?`, [...f.p, HAL * 200]);
+  const isi = L.map((x) => `<tr><td class="kecil">${esc(tglTeks(x.waktu, true))}</td><td class="kecil">${x.nisn.startsWith("M:") ? "mandiri" : "sesi"}</td>
+    <td class="kecil">${esc(namaT(x.tingkat))} Lv ${x.level} · no ${x.nomor}</td><td class="soal-sel">${soalHtml(x.soal)}</td>
+    <td>${esc(x.jawaban)}</td><td>${esc(x.kunci)}</td><td class="${x.benar ? "benar" : "salah"}">${x.benar ? "benar" : esc(jenisLabel(x.jenis_salah))}</td>
+    <td class="angka kecil">${x.detik} dtk</td></tr>`).join("");
+  if (tambah) $("t-jawab").querySelector("tbody").insertAdjacentHTML("beforeend", isi);
+  else $("t-jawab").innerHTML = `<thead><tr><th>Waktu</th><th>Jenis</th><th>Tingkat</th><th>Soal</th><th>Jawaban</th><th>Kunci</th><th>Hasil</th><th class="angka">Lama</th></tr></thead><tbody>${isi || '<tr><td colspan="8" class="redup">Tidak ada jawaban.</td></tr>'}</tbody>`;
+  const tampil = Math.min(total, (HAL + 1) * 200);
+  $("j-info").textContent = `${angka(tampil)} dari ${angka(total)} jawaban`;
+  $("j-lagi").classList.toggle("hidden", tampil >= total);
+}
+
+/* ------------------------------------------------------------- Unduh (Excel bila bisa, CSV bila tanpa internet) */
+async function unduhTabel({ nama, judul, sub, kolom, data }) {
+  try {
+    await unduhBukuXLSX({ namaBerkas: nama + ".xlsx", judulBuku: judul, lembar: [{ nama: judul.slice(0, 30), judul, sub, kolom: kolom.map(([t, w]) => ({ t, w })), baris: data }] });
+    toast("Diunduh: " + nama + ".xlsx");
+  } catch (e) {
+    const sel = (v) => { const t = v == null ? "" : String(v); return /[;"\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+    const csv = "﻿" + [kolom.map((k) => k[0]), ...data].map((r) => r.map(sel).join(";")).join("\r\n");
+    await simpanBerkas(csv, nama + ".csv", "text/csv;charset=utf-8");
+    toast("Tanpa internet: diunduh sebagai CSV (bisa dibuka di Excel)");
+  }
+}
+function unduhDaftar() {
+  const L = dataDaftar();
+  unduhTabel({ nama: `Arsip_Matdas_${INFO.periode}_rekap`, judul: "Rekap Semester (Arsip)", sub: INFO.nama,
+    kolom: [["Nama", 28], ["NISN", 13], ["Kelompok", 12], ["Kelas", 9], ["Sesi: soal", 10], ["Sesi: benar", 10], ["Sesi: akurasi %", 10], ["Sesi: hari", 9],
+      ["Level tuntas (sesi)", 12], ["Mandiri: soal", 10], ["Mandiri: benar", 10], ["Mandiri: hari", 9], ["Level tuntas (mandiri)", 12], ["Waktu (menit)", 10]],
+    data: L.map((x) => [x.nama, x.nisn, x.kelompok, x.kelas, x.kj, x.kb, x.kj ? Math.round(100 * x.kb / x.kj) : "", x.kh, x.kt, x.mj, x.mb, x.mh, x.mt, Math.round(x.detik / 60)]) });
+}
+function unduhSiswa(s) {
+  const L = baris("select * from jawaban where nisn in (?, ?) order by waktu, id", [s.nisn, "M:" + s.nisn]);
+  unduhTabel({ nama: `Arsip_Matdas_${INFO.periode}_${s.nisn}`, judul: "Rincian Jawaban (Arsip)", sub: `${s.nama} · ${INFO.nama}`,
+    kolom: [["Waktu", 18], ["Jenis", 10], ["Tingkat", 26], ["Level", 7], ["No", 6], ["Soal", 26], ["Jawaban", 12], ["Kunci", 12], ["Hasil", 16], ["Lama (dtk)", 9]],
+    data: L.map((x) => [tglTeks(x.waktu, true), x.nisn.startsWith("M:") ? "mandiri" : "sesi", namaT(x.tingkat), x.level, x.nomor, soalPolos(x.soal), x.jawaban, x.kunci,
+      x.benar ? "benar" : jenisLabel(x.jenis_salah), x.detik]) });
+}
+
+/* ------------------------------------------------------------- Berkas aplikasi lain: tampilan umum */
+function bukaUmum(tabel) {
+  const daftar = tabel.filter((t) => !t.startsWith("sqlite_")).map((t) => ({ t, n: satu(`select count(*) from "${t}"`) }));
+  $("isi").innerHTML = kepalaInfo() + `<section class="kartu"><h2 style="margin-top:0">Isi berkas</h2>
+    <p class="kecil redup">Tampilan khusus untuk berkas ini belum ada; isi tabel bisa dicari menurut NISN.</p>
+    <div class="saring"><select id="u-tabel">${daftar.map((x) => `<option value="${esc(x.t)}">${esc(x.t)} (${angka(x.n)} baris)</option>`).join("")}</select>
+      <input type="search" id="u-cari" placeholder="Saring NISN (bila tabel punya kolom nisn)…"></div>
+    <div class="gulir"><table class="tabel tbl-kecil" id="u-isi"></table></div><p class="kecil redup">Paling banyak 500 baris ditampilkan.</p></section>`;
+  const gambar = () => {
+    const t = $("u-tabel").value, q = $("u-cari").value.trim();
+    const kol = baris(`pragma table_info("${t}")`).map((x) => x.name);
+    const L = kol.includes("nisn") && q ? baris(`select * from "${t}" where nisn like ? limit 500`, [`%${q}%`]) : baris(`select * from "${t}" limit 500`);
+    $("u-isi").innerHTML = `<thead><tr>${kol.map((k) => `<th>${esc(k)}</th>`).join("")}</tr></thead><tbody>${L.map((r) => `<tr>${kol.map((k) => `<td>${esc(r[k])}</td>`).join("")}</tr>`).join("")}</tbody>`;
+  };
+  $("u-tabel").oninput = gambar; $("u-cari").oninput = gambar; gambar();
+}
+</script>
+</body>
+</html>

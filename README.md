@@ -268,6 +268,26 @@ rekap semua siswa (683) ±140 ms. Optimasi hari itu:
   Pada 4 Okt 2026 uji seperti itu membuat project tidak merespons ±12 menit. Pakai data
   kecil dan `set local statement_timeout = '60s'`.
 
+## Arsip semester (11 Okt 2026)
+
+Supaya database tetap muat di paket gratis Supabase (500 MB), rincian jawaban dan sesi satu semester
+yang sudah berakhir diarsipkan (rencana lengkap: `RENCANA_MASA_SIMPAN.md` di folder utama).
+
+- **Admin → Ukuran database & arsip semester**: ukuran database (peringatan pada 350 MB) dan daftar
+  semester. Semester ganjil 1 Jul–31 Des, genap 1 Jan–30 Jun (WIB); semester berjalan tidak bisa diarsip.
+- **Arsipkan…** → 1) *Rangkum & unduh berkas*: rekap per siswa dibuat (`mtd_rekap_semester`, sesi
+  kelompok dan latihan mandiri terpisah), lalu seluruh rincian diunduh ke satu berkas SQLite
+  `arsip_matdas_<periode>.sqlite`; jumlah baris berkas dicocokkan dengan server (`mtd_arsip_tandai`).
+  2) Centang "berkas sudah disimpan", ketik `ARSIPKAN 2026/2027 GANJIL`, PIN admin → rincian dihapus
+  bertahap (`mtd_arsip_hapus`, 10.000 per panggilan). Terputus? Tekan lagi — dilanjutkan.
+- Yang **tetap**: posisi, level tuntas, total di Perkembangan Siswa (ringkasan seumur `mtd_ringkas`
+  tidak dikurangi saat arsip). Analisis Siswa menampilkan kartu **Riwayat semester (arsip)**.
+- **Buka Arsip** (`arsip.html`): buka berkas arsip di browser — tanpa server, berkas tidak dikirim ke
+  mana pun; cari siswa, lihat rekap, sesi, dan setiap jawaban (saring jenis/tingkat/yang salah), unduh
+  Excel (CSV bila tanpa internet). Pustaka sql.js (MIT) di `assets/vendor/`.
+- Pemulihan ke database (jarang): `./db.sh pulihkan <berkas>` di folder `database_tryout`.
+- Diukur: rangkum ≤40 ms per 40 siswa, ambil ≤50 ms per 5.000 baris, hapus ≤55 ms per 10.000 baris.
+
 ## Memasang
 
 Halaman statis, tanpa proses build. Unggah seluruh isi folder ke repository
