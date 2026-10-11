@@ -13,6 +13,9 @@ const SB = (() => {
 
 /* batas (ms, opsional): permintaan yang menggantung dibatalkan. Galat jaringan/gerbang (bukan penolakan
    dari fungsi) diberi tanda .jaringan supaya pemanggil yang aman diulang bisa mengirim ulang. */
+/* Header Authorization hanya untuk token JWT (sesi login / kunci lama "eyJ…"). Kunci Supabase baru
+   (sb_publishable_…) cukup lewat apikey; server PostgreSQL + PostgREST biasa menolak Bearer yang bukan JWT. */
+const authJwt = (k) => /^eyJ[\w-]*\.[\w-]+\.[\w-]*$/.test(k || "") ? { Authorization: "Bearer " + k } : {};
 async function rpc(fn, args, batas) {
   if (!SB) throw new Error("Server belum diatur (config.js belum ada).");
   const ac = batas ? new AbortController() : null, tm = ac && setTimeout(() => ac.abort(), batas);
@@ -20,7 +23,7 @@ async function rpc(fn, args, batas) {
   try {
     r = await fetch(`${SB.url}/rest/v1/rpc/${fn}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", apikey: SB.key, Authorization: "Bearer " + SB.key },
+      headers: { "Content-Type": "application/json", apikey: SB.key, ...authJwt(SB.key) },
       body: JSON.stringify(args || {}),
       signal: ac ? ac.signal : undefined,
     });
