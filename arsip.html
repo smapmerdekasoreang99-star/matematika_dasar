@@ -37,7 +37,7 @@ td.soal-sel { white-space: nowrap; }
 <main class="bungkus lebar">
   <section class="kartu pilih-berkas">
     <h1 style="margin:0">Buka berkas arsip</h1>
-    <p style="margin:0">Pilih berkas arsip semester (<code>.sqlite</code>) yang diunduh admin, mis. <code>arsip_matdas_2026-2027-1.sqlite</code> atau <code>arsip_english_reading_2026-2027-1.sqlite</code>.</p>
+    <p style="margin:0">Pilih berkas arsip semester (<code>.sqlite</code>) yang diunduh admin, mis. <code>arsip_matdas_2026-2027-1.sqlite</code> , <code>arsip_english_reading_…</code>, atau <code>arsip_tryout_…</code>.</p>
     <input type="file" id="berkas" accept=".sqlite,.db,application/vnd.sqlite3,application/x-sqlite3" aria-label="Pilih berkas arsip">
     <p class="catatan-privasi">Berkas dibaca di perangkat ini saja dan tidak dikirim ke mana pun. Halaman ini bisa dipakai tanpa internet bila sudah pernah dibuka (atau disimpan bersama folder <code>assets</code>).</p>
     <p id="pesan" class="pesan hidden"></p>
@@ -74,7 +74,7 @@ $("berkas").onchange = async (ev) => {
     INFO = tabel.includes("info") ? Object.fromEntries(baris("select kunci, nilai from info").map((x) => [x.kunci, x.nilai])) : {};
     INFO.berkas_dibuka = f.name;
     pesan("");
-    if (INFO.aplikasi === "matdas") bukaMatdas(); else if (INFO.aplikasi === "english_reading") bukaER(); else bukaUmum(tabel);
+    if (INFO.aplikasi === "matdas") bukaMatdas(); else if (INFO.aplikasi === "english_reading") bukaER(); else if (INFO.aplikasi === "tryout") bukaTryout(); else bukaUmum(tabel);
   } catch (e) { pesan("Berkas tidak bisa dibuka sebagai arsip SQLite: " + e.message, true); $("isi").innerHTML = ""; }
 };
 
@@ -84,7 +84,7 @@ function kepalaInfo() {
   return `<section class="kartu"><h2 style="margin-top:0">${esc(nm)} — ${esc(INFO.nama || INFO.periode || "")}</h2>
     <div class="info-arsip"><span>Berkas: <b>${esc(INFO.berkas_dibuka)}</b></span>
       ${INFO.dari ? `<span>Rentang: <b>${esc(tglTeks(INFO.dari))} – ${esc(tglTeks(new Date(new Date(INFO.sampai) - 1).toISOString()))}</b></span>` : ""}
-      ${INFO.n_jawaban || INFO.n_hasil ? `<span>Rincian: <b>${INFO.n_jawaban ? angka(INFO.n_jawaban) + " jawaban" : angka(INFO.n_hasil) + " hasil"}, ${angka(INFO.n_sesi)} sesi</b></span>` : ""}
+      ${INFO.n_jawaban || INFO.n_hasil ? `<span>Rincian: <b>${INFO.n_jawaban ? angka(INFO.n_jawaban) + " jawaban" : angka(INFO.n_hasil) + (INFO.aplikasi === "tryout" ? " hasil ujian" : " hasil")}, ${angka(INFO.n_sesi)} sesi</b></span>` : ""}
       ${INFO.dibuat ? `<span>Diarsipkan: <b>${esc(tglTeks(INFO.dibuat, true))}</b>${INFO.oleh ? " oleh <b>" + esc(INFO.oleh) + "</b>" : ""}</span>` : ""}</div></section>`;
 }
 
@@ -332,6 +332,97 @@ function unduhSiswaER(s) {
   unduhTabel({ nama: `Arsip_English_Reading_${INFO.periode}_${s.nisn}`, judul: "Rincian Hasil (Arsip)", sub: `${s.nama} · ${INFO.nama}`,
     kolom: [["Waktu", 18], ["Jenis", 10], ["Level", 28], ["Sub", 6], ["Kegiatan", 20], ["Nilai", 8]],
     data: L.map((x) => [tglTeks(x.waktu, true), x.mode === "mandiri" ? "mandiri" : "sesi", judulLevel(x.level), x.sub || "", JENIS_ER[x.jenis] || x.jenis, x.nilai]) });
+}
+
+/* ------------------------------------------------------------- Asesmen Merdeka (Tryout) */
+// Berkas berisi hasil ujian dengan isi jawaban per soal, naskah soal paket (tanpa kunci), dan sesi ujian.
+// Benar/salah per soal diambil dari items (deret 0/1 urut nomor soal).
+let PAKET = {};
+function bukaTryout() {
+  PAKET = {}; baris("select * from paket").forEach((p) => { PAKET[p.kode] = { ...p, publik: json(p.publik) || {} }; });
+  const kls = baris("select distinct kelas from hasil where kelas is not null order by 1").map((x) => x.kelas);
+  const uj = baris("select distinct ujian from hasil order by 1").map((x) => x.ujian);
+  $("isi").innerHTML = kepalaInfo() + `
+    <section class="kartu">
+      <h2 style="margin-top:0">Siswa</h2>
+      <div class="saring"><input type="search" id="cari" placeholder="Cari nama atau NISN…" aria-label="Cari nama atau NISN">
+        <select id="s-kls" aria-label="Kelas"><option value="">Semua kelas</option>${kls.map((k) => `<option>${esc(k)}</option>`).join("")}</select>
+        <select id="s-uj" aria-label="Ujian"><option value="">Semua ujian</option>${uj.map((k) => `<option value="${esc(k)}">${esc((PAKET[k] || {}).judul || k)}</option>`).join("")}</select>
+        <span class="tumbuh"></span><button class="garis kecil" id="unduh-daftar">Unduh Excel</button></div>
+      <div class="gulir"><table class="tabel" id="t-siswa"></table></div>
+      <p class="kecil redup">Nilai tetap tersimpan di Asesmen Merdeka; berkas ini menyimpan isi jawaban per soal. Klik nama untuk rincian.</p>
+    </section>
+    <div id="rinci"></div>`;
+  ["cari", "s-kls", "s-uj"].forEach((id) => $(id).addEventListener("input", gambarDaftarTka));
+  $("unduh-daftar").onclick = unduhDaftarTka;
+  gambarDaftarTka();
+}
+function dataDaftarTka() {
+  const q = $("cari").value.trim().toLowerCase(), kls = $("s-kls").value, uj = $("s-uj").value;
+  return baris(`select coalesce(nisn, nama) kunci, nisn, max(nama) nama, max(kelas) kelas, count(*) n, round(avg(nilai)) rata, max(nilai) maks, sum(coalesce(keluar, 0)) keluar
+    from hasil where (? = '' or lower(coalesce(nama, '')) like ? or coalesce(nisn, '') like ?) and (? = '' or kelas = ?) and (? = '' or ujian = ?)
+    group by coalesce(nisn, nama) order by kelas, nama`, [q, `%${q}%`, `%${q}%`, kls, kls, uj, uj]);
+}
+function gambarDaftarTka() {
+  const L = dataDaftarTka();
+  $("t-siswa").innerHTML = `<thead><tr><th>Nama</th><th>NISN</th><th>Kelas</th><th class="angka">Ujian</th><th class="angka">Rata-rata nilai</th><th class="angka">Tertinggi</th><th class="angka">Keluar halaman</th></tr></thead>
+    <tbody>${L.length ? L.map((x) => `<tr class="klik" data-n="${esc(x.kunci)}"><td><b>${esc(x.nama)}</b></td><td class="kecil">${esc(x.nisn || "tamu")}</td><td>${esc(x.kelas || "–")}</td>
+      <td class="angka">${x.n}</td><td class="angka">${x.rata ?? "–"}</td><td class="angka">${x.maks ?? "–"}</td><td class="angka">${x.keluar}</td></tr>`).join("")
+      : '<tr><td colspan="7" class="redup">Tidak ada siswa yang cocok.</td></tr>'}</tbody>`;
+  $("t-siswa").querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = () => bukaSiswaTka(tr.dataset.n));
+}
+const huruf = (i) => typeof i === "number" ? String.fromCharCode(65 + i) : i;
+function jawabTeks(a, soal, v) {
+  if (a == null || a === "") return "–";
+  const opsi = soal && soal.varian && (soal.varian[v] || Object.values(soal.varian)[0] || {}).opsi;
+  if (typeof a === "number") return huruf(a) + (opsi && opsi[a] != null ? ". " + String(opsi[a]).slice(0, 80) : "");
+  if (Array.isArray(a)) return a.map(huruf).join(", ");
+  if (typeof a === "object") return Object.entries(a).map(([k, x]) => `${+k + 1}: ${x === 1 || x === true ? "Benar" : x === 0 || x === false ? "Salah" : x}`).join(" · ");
+  return String(a);
+}
+function bukaSiswaTka(kunci) {
+  const H = baris("select * from hasil where coalesce(nisn, nama) = ? order by waktu", [kunci]);
+  if (!H.length) return;
+  const s = H[0];
+  $("rinci").innerHTML = `<section class="kartu" id="kartu-siswa">
+    <div class="aksi" style="justify-content:space-between"><div><h2 style="margin:0">${esc(s.nama)}</h2>
+      <span class="kecil redup">${s.nisn ? "NISN " + esc(s.nisn) + " · " : "Tamu · "}${esc(s.kelas || "–")} · ${esc(INFO.nama || "")}</span></div>
+      <button class="garis kecil" id="unduh-siswa">Unduh Excel</button></div>
+    <h3>Ujian (${H.length})</h3>
+    <div class="gulir"><table class="tabel tbl-kecil"><thead><tr><th>Waktu</th><th>Ujian</th><th class="angka">Nilai</th><th class="angka">Benar</th><th class="angka">Durasi</th><th class="angka">Keluar</th><th></th></tr></thead><tbody>
+      ${H.map((h, i) => `<tr><td>${esc(tglTeks(h.waktu, true))}</td><td>${esc((PAKET[h.ujian] || {}).judul || h.ujian)}</td><td class="angka"><b>${h.nilai ?? "–"}</b></td>
+        <td class="angka">${h.benar ?? "–"}</td><td class="angka">${h.durasi ? lamaTeks(h.durasi) : "–"}</td><td class="angka">${h.keluar || 0}</td>
+        <td class="kanan"><button class="garis kecil" data-u="${i}">Jawaban</button></td></tr>`).join("")}</tbody></table></div>
+    <div id="rinci-ujian"></div></section>`;
+  $("rinci").querySelectorAll("[data-u]").forEach((b) => b.onclick = () => bukaUjianTka(H[+b.dataset.u]));
+  $("unduh-siswa").onclick = () => unduhSiswaTka(s, H);
+  $("kartu-siswa").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function barisJawabTka(h) {
+  const J = json(h.jawaban) || {}, P = PAKET[h.ujian] || {}, soal = (P.publik && P.publik.soal) || [], it = String(h.items || "");
+  const nomor = [...new Set([...soal.map((x) => String(x.no)), ...Object.keys(J)])].sort((a, b) => a - b);
+  return nomor.map((no, i) => { const q = soal.find((x) => String(x.no) === no), j = J[no] || {}, b = it[i];
+    return { no, soal: q ? String(q.teks || "").replace(/<[^>]+>/g, " ").slice(0, 120) : "", jawab: jawabTeks(j.a, q, j.v || h.varian), hasil: b === "1" ? "benar" : b === "0" ? "salah" : "" }; });
+}
+function bukaUjianTka(h) {
+  const L = barisJawabTka(h), log = json(h.log_keluar);
+  $("rinci-ujian").innerHTML = `<h3>Jawaban — ${esc((PAKET[h.ujian] || {}).judul || h.ujian)} (${esc(tglTeks(h.waktu, true))})</h3>
+    <div class="gulir"><table class="tabel tbl-kecil"><thead><tr><th class="angka">No</th><th>Soal</th><th>Jawaban siswa</th><th>Hasil</th></tr></thead><tbody>
+      ${L.map((x) => `<tr><td class="angka">${esc(x.no)}</td><td class="kecil">${esc(x.soal)}</td><td>${esc(x.jawab)}</td><td class="${x.hasil === "benar" ? "benar" : x.hasil ? "salah" : ""}">${x.hasil || "–"}</td></tr>`).join("") || '<tr><td colspan="4" class="redup">Tidak ada isi jawaban.</td></tr>'}
+    </tbody></table></div>
+    ${Array.isArray(log) && log.length ? `<p class="kecil redup">Keluar halaman: ${log.length}× tercatat.</p>` : ""}`;
+  $("rinci-ujian").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+function unduhDaftarTka() {
+  const L = dataDaftarTka();
+  unduhTabel({ nama: `Arsip_Asesmen_${INFO.periode}_rekap`, judul: "Rekap Semester (Arsip)", sub: INFO.nama,
+    kolom: [["Nama", 28], ["NISN", 13], ["Kelas", 9], ["Ujian", 8], ["Rata-rata nilai", 12], ["Tertinggi", 10], ["Keluar halaman", 12]],
+    data: L.map((x) => [x.nama, x.nisn || "tamu", x.kelas, x.n, x.rata, x.maks, x.keluar]) });
+}
+function unduhSiswaTka(s, H) {
+  const data = []; H.forEach((h) => barisJawabTka(h).forEach((x) => data.push([tglTeks(h.waktu, true), (PAKET[h.ujian] || {}).judul || h.ujian, h.nilai, x.no, x.soal, x.jawab, x.hasil])));
+  unduhTabel({ nama: `Arsip_Asesmen_${INFO.periode}_${s.nisn || "tamu"}`, judul: "Rincian Jawaban (Arsip)", sub: `${s.nama} · ${INFO.nama}`,
+    kolom: [["Waktu", 18], ["Ujian", 30], ["Nilai", 7], ["No", 6], ["Soal", 40], ["Jawaban siswa", 30], ["Hasil", 9]], data });
 }
 
 /* ------------------------------------------------------------- Berkas aplikasi lain: tampilan umum */

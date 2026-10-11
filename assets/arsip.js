@@ -3,7 +3,7 @@
    (MIT, salinan di assets/vendor — tanpa internet pun bisa dibaca oleh arsip.html "Buka Arsip").
    Dipakai halaman guru (membuat) dan arsip.html (membaca). Format standar SQLite, bukan khusus Supabase:
    bisa dibuka juga dengan DB Browser for SQLite atau dipulihkan dengan ./db.sh pulihkan.
-   Berkas ini SAMA di Matematika_Dasar/assets dan English_Reading/assets — ubah keduanya bersamaan. */
+   Berkas ini SAMA di Matematika_Dasar/assets, English_Reading/assets, dan Tryout_Guru/assets — ubah ketiganya bersamaan. */
 "use strict";
 
 let _SQLJS = null;
@@ -82,6 +82,28 @@ create index sesi_nisn on sesi (nisn, dibuat);`,
         ubah: (b) => { b[9] = jsonTeks(b[9]); b[10] = bool01(b[10]); return b; } },
     ],
   },
+  tryout: {
+    rpc: "tka_arsip_ambil", awalan: "arsip_tryout",
+    skema: `
+create table info (kunci text primary key, nilai text);
+create table paket (kode text primary key, judul text, mapel text, kelas text, n_soal integer, publik text);
+create table hasil (id text primary key, waktu text, nisn text, nama text, kelas text, ujian text, nilai integer, benar integer,
+  durasi integer, mulai text, selesai text, varian text, items text, level text, jawaban text, keluar integer, log_keluar text,
+  tamu integer, sesi_id integer);
+create table sesi (token text primary key, ujian text, nisn text, nama text, kelas text, tamu integer, dibuat text, ujicoba integer,
+  sesi_id integer, aktif_pada text, selesai text, dilepas text);
+create index hasil_nisn on hasil (nisn, waktu);
+create index sesi_nisn on sesi (nisn, dibuat);`,
+    sekali: [
+      { jenis: "paket", sql: "insert or replace into paket values (?,?,?,?,?,?)", ubah: (b) => { b[5] = jsonTeks(b[5]); return b; } },
+    ],
+    bertahap: [
+      { jenis: "hasil", tabel: "hasil", total: "n_hasil", label: "hasil ujian", batas: 2000, sql: "insert or replace into hasil values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        ubah: (b) => { b[13] = jsonTeks(b[13]); b[14] = jsonTeks(b[14]); b[16] = jsonTeks(b[16]); b[17] = bool01(b[17]); return b; } },
+      { jenis: "sesi", tabel: "sesi", total: "n_sesi", label: "sesi ujian", batas: 2000, sql: "insert or replace into sesi values (?,?,?,?,?,?,?,?,?,?,?,?)",
+        ubah: (b) => { b[5] = bool01(b[5]); b[7] = bool01(b[7]); return b; } },
+    ],
+  },
 };
 
 /* Susun berkas arsip dari server, bertahap. lapor(teks, persen) untuk kemajuan.
@@ -102,7 +124,7 @@ async function buatBerkasArsip(aplikasi, { rpcFn, pin, arsip, sekolah, lapor }) 
     for (const x of A.bertahap) {
       let n = 0, setelah = 0;
       for (;;) {
-        const h = await ambil(x.jenis, setelah, 5000);
+        const h = await ambil(x.jenis, setelah, x.batas || 5000);
         if (!h.baris.length) break;
         isi(x.sql, h.baris.map(x.ubah));
         n += h.baris.length; sudah += h.baris.length; setelah = h.akhir;
