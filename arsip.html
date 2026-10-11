@@ -37,7 +37,7 @@ td.soal-sel { white-space: nowrap; }
 <main class="bungkus lebar">
   <section class="kartu pilih-berkas">
     <h1 style="margin:0">Buka berkas arsip</h1>
-    <p style="margin:0">Pilih berkas arsip semester (<code>.sqlite</code>) yang diunduh admin, mis. <code>arsip_matdas_2026-2027-1.sqlite</code>.</p>
+    <p style="margin:0">Pilih berkas arsip semester (<code>.sqlite</code>) yang diunduh admin, mis. <code>arsip_matdas_2026-2027-1.sqlite</code> atau <code>arsip_english_reading_2026-2027-1.sqlite</code>.</p>
     <input type="file" id="berkas" accept=".sqlite,.db,application/vnd.sqlite3,application/x-sqlite3" aria-label="Pilih berkas arsip">
     <p class="catatan-privasi">Berkas dibaca di perangkat ini saja dan tidak dikirim ke mana pun. Halaman ini bisa dipakai tanpa internet bila sudah pernah dibuka (atau disimpan bersama folder <code>assets</code>).</p>
     <p id="pesan" class="pesan hidden"></p>
@@ -51,7 +51,7 @@ td.soal-sel { white-space: nowrap; }
 <script src="assets/simpan.js?v=3"></script>
 <script src="assets/kepala-excel.js?v=1"></script>
 <script src="assets/excel.js?v=5"></script>
-<script src="assets/arsip.js?v=1"></script>
+<script src="assets/arsip.js?v=2"></script>
 <script>
 "use strict";
 let DB = null, INFO = {}, PILIH = null, HAL = 0;
@@ -74,7 +74,7 @@ $("berkas").onchange = async (ev) => {
     INFO = tabel.includes("info") ? Object.fromEntries(baris("select kunci, nilai from info").map((x) => [x.kunci, x.nilai])) : {};
     INFO.berkas_dibuka = f.name;
     pesan("");
-    if (INFO.aplikasi === "matdas") bukaMatdas(); else bukaUmum(tabel);
+    if (INFO.aplikasi === "matdas") bukaMatdas(); else if (INFO.aplikasi === "english_reading") bukaER(); else bukaUmum(tabel);
   } catch (e) { pesan("Berkas tidak bisa dibuka sebagai arsip SQLite: " + e.message, true); $("isi").innerHTML = ""; }
 };
 
@@ -84,7 +84,7 @@ function kepalaInfo() {
   return `<section class="kartu"><h2 style="margin-top:0">${esc(nm)} — ${esc(INFO.nama || INFO.periode || "")}</h2>
     <div class="info-arsip"><span>Berkas: <b>${esc(INFO.berkas_dibuka)}</b></span>
       ${INFO.dari ? `<span>Rentang: <b>${esc(tglTeks(INFO.dari))} – ${esc(tglTeks(new Date(new Date(INFO.sampai) - 1).toISOString()))}</b></span>` : ""}
-      ${INFO.n_jawaban ? `<span>Rincian: <b>${angka(INFO.n_jawaban)} jawaban, ${angka(INFO.n_sesi)} sesi</b></span>` : ""}
+      ${INFO.n_jawaban || INFO.n_hasil ? `<span>Rincian: <b>${INFO.n_jawaban ? angka(INFO.n_jawaban) + " jawaban" : angka(INFO.n_hasil) + " hasil"}, ${angka(INFO.n_sesi)} sesi</b></span>` : ""}
       ${INFO.dibuat ? `<span>Diarsipkan: <b>${esc(tglTeks(INFO.dibuat, true))}</b>${INFO.oleh ? " oleh <b>" + esc(INFO.oleh) + "</b>" : ""}</span>` : ""}</div></section>`;
 }
 
@@ -220,6 +220,118 @@ function unduhSiswa(s) {
     kolom: [["Waktu", 18], ["Jenis", 10], ["Tingkat", 26], ["Level", 7], ["No", 6], ["Soal", 26], ["Jawaban", 12], ["Kunci", 12], ["Hasil", 16], ["Lama (dtk)", 9]],
     data: L.map((x) => [tglTeks(x.waktu, true), x.nisn.startsWith("M:") ? "mandiri" : "sesi", namaT(x.tingkat), x.level, x.nomor, soalPolos(x.soal), x.jawaban, x.kunci,
       x.benar ? "benar" : jenisLabel(x.jenis_salah), x.detik]) });
+}
+
+/* ------------------------------------------------------------- English Reading */
+// Judul level dari bacaan.js bila halaman ini dibuka dari situs English Reading; selain itu kode level dirapikan.
+const judulLevel = (id) => { const b = (window.BACAAN || []).find((x) => x.id === id); return b ? b.judul : String(id || "").replace(/-/g, " ").replace(/^./, (c) => c.toUpperCase()); };
+const JENIS_ER = { sub: "Latihan sub level", baca: "Membaca (pengucapan)", paham: "Pemahaman", dengar: "Mendengarkan" };
+function bukaER() {
+  const kls = baris("select distinct kelas from siswa where kelas is not null order by 1").map((x) => x.kelas);
+  $("isi").innerHTML = kepalaInfo() + `
+    <section class="kartu">
+      <h2 style="margin-top:0">Siswa</h2>
+      <div class="saring"><input type="search" id="cari" placeholder="Cari nama atau NISN…" aria-label="Cari nama atau NISN">
+        <select id="s-kls" aria-label="Rombel"><option value="">Semua rombel</option>${kls.map((k) => `<option>${esc(k)}</option>`).join("")}</select>
+        <span class="tumbuh"></span><button class="garis kecil" id="unduh-daftar">Unduh Excel</button></div>
+      <div class="gulir"><table class="tabel" id="t-siswa"></table></div>
+      <p class="kecil redup">Sesi kelas (kemajuan resmi) dan latihan mandiri dihitung terpisah. Klik nama untuk rincian.</p>
+    </section>
+    <div id="rinci"></div>`;
+  ["cari", "s-kls"].forEach((id) => $(id).addEventListener("input", gambarDaftarER));
+  $("unduh-daftar").onclick = unduhDaftarER;
+  gambarDaftarER();
+}
+function dataDaftarER() {
+  const q = $("cari").value.trim().toLowerCase(), kls = $("s-kls").value;
+  return baris(`select r.nisn, coalesce(s.nama, r.nisn) nama, s.nis, s.kelas,
+      sum(case when r.mode = 'kelas' then r.n_hasil else 0 end) kh, sum(case when r.mode = 'kelas' then r.n_lulus else 0 end) kl,
+      sum(case when r.mode = 'kelas' then r.n_sub else 0 end) ks, sum(case when r.mode = 'kelas' then r.jumlah_sub else 0 end) kj,
+      sum(case when r.mode = 'kelas' then r.hari else 0 end) khari,
+      sum(case when r.mode = 'mandiri' then r.n_hasil else 0 end) mh, sum(case when r.mode = 'mandiri' then r.hari else 0 end) mhari,
+      sum(r.n_baca) nb, sum(r.jumlah_baca) jb, sum(r.detik) detik
+    from rekap r left join siswa s on s.nisn = r.nisn
+    where (? = '' or lower(coalesce(s.nama, '')) like ? or r.nisn like ?) and (? = '' or s.kelas = ?)
+    group by r.nisn order by s.kelas, nama`, [q, `%${q}%`, `%${q}%`, kls, kls]);
+}
+const rata = (j, n) => n ? Math.round(j / n) : "–";
+function gambarDaftarER() {
+  const L = dataDaftarER();
+  $("t-siswa").innerHTML = `<thead><tr><th>Nama</th><th>NISN</th><th>Rombel</th><th class="angka">Sesi: kegiatan</th><th class="angka">Sub lulus</th>
+      <th class="angka">Rata-rata sub</th><th class="angka">Hari</th><th class="angka">Mandiri: kegiatan</th><th class="angka">Hari</th>
+      <th class="angka">Pengucapan</th><th class="angka">Waktu</th></tr></thead>
+    <tbody>${L.length ? L.map((x) => `<tr class="klik" data-n="${esc(x.nisn)}"><td><b>${esc(x.nama)}</b></td><td class="kecil">${esc(x.nisn)}</td><td>${esc(x.kelas || "–")}</td>
+      <td class="angka">${angka(x.kh)}</td><td class="angka">${x.kl}/${x.ks}</td><td class="angka">${rata(x.kj, x.ks)}</td><td class="angka">${x.khari}</td>
+      <td class="angka">${angka(x.mh)}</td><td class="angka">${x.mhari}</td><td class="angka">${x.nb ? rata(x.jb, x.nb) + "%" : "–"}</td><td class="angka">${lamaTeks(x.detik)}</td></tr>`).join("")
+      : '<tr><td colspan="11" class="redup">Tidak ada siswa yang cocok.</td></tr>'}</tbody>`;
+  $("t-siswa").querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = () => bukaSiswaER(tr.dataset.n));
+}
+function kotakRekapER(r, judul) {
+  if (!r) return `<div class="rekap-kotak"><h3>${judul}</h3><p class="redup kecil" style="margin:0">Tidak berlatih.</p></div>`;
+  return `<div class="rekap-kotak"><h3>${judul}</h3><dl>
+    <dt>Kegiatan</dt><dd>${angka(r.n_hasil)}</dd><dt>Sub level</dt><dd>${r.n_lulus} lulus dari ${r.n_sub} (rata-rata ${rata(r.jumlah_sub, r.n_sub)})</dd>
+    <dt>Pengucapan</dt><dd>${r.n_baca ? `${r.n_baca}× · rata-rata ${rata(r.jumlah_baca, r.n_baca)}%` : "–"}</dd>
+    <dt>Pemahaman</dt><dd>${r.n_paham ? `${r.n_paham}× · rata-rata ${rata(r.jumlah_paham, r.n_paham)}` : "–"}</dd>
+    <dt>Hari berlatih</dt><dd>${r.hari} hari · ${r.n_sesi} sesi</dd><dt>Waktu</dt><dd>${lamaTeks(r.detik)}</dd>
+    ${r.mode === "kelas" ? `<dt>Keluar halaman</dt><dd>${r.keluar}×</dd>` : ""}
+    <dt>Rentang</dt><dd>${esc(tglTeks(r.pertama))} – ${esc(tglTeks(r.terakhir))}</dd></dl></div>`;
+}
+function bukaSiswaER(nisn) {
+  PILIH = nisn; HAL = 0;
+  const s = baris("select * from siswa where nisn = ?", [nisn])[0] || { nisn, nama: nisn };
+  const R = baris("select * from rekap where nisn = ?", [nisn]), rk = R.find((r) => r.mode === "kelas"), rm = R.find((r) => r.mode === "mandiri");
+  const per = {}; R.forEach((r) => Object.entries(json(r.per_level) || {}).forEach(([lv, v]) => { const x = (per[lv] = per[lv] || { n: 0, lulus: 0, terbaik: 0 }); x.n += v.n; x.lulus += v.lulus; x.terbaik = Math.max(x.terbaik, v.terbaik || 0); }));
+  const ses = baris("select * from sesi where nisn = ? order by dibuat", [nisn]);
+  const lv = baris("select distinct level from hasil where nisn = ? order by level", [nisn]).map((x) => x.level);
+  $("rinci").innerHTML = `<section class="kartu" id="kartu-siswa">
+    <div class="aksi" style="justify-content:space-between"><div><h2 style="margin:0">${esc(s.nama)}</h2>
+      <span class="kecil redup">NISN ${esc(s.nisn)}${s.nis ? " · NIS " + esc(s.nis) : ""} · ${esc(s.kelas || "–")} · ${esc(INFO.nama || "")}</span></div>
+      <button class="garis kecil" id="unduh-siswa">Unduh Excel</button></div>
+    <div class="dua-rekap" style="margin-top:var(--j3)">${kotakRekapER(rk, "Sesi kelas (kemajuan resmi)")}${kotakRekapER(rm, "Latihan mandiri")}</div>
+    ${Object.keys(per).length ? `<h3>Per level</h3><div class="gulir"><table class="tabel tbl-kecil"><thead><tr><th>Level</th><th class="angka">Kegiatan</th><th class="angka">Sub lulus</th><th class="angka">Nilai terbaik</th></tr></thead><tbody>
+      ${Object.entries(per).map(([k, v]) => `<tr><td>${esc(judulLevel(k))}</td><td class="angka">${v.n}</td><td class="angka">${v.lulus}</td><td class="angka">${v.terbaik}</td></tr>`).join("")}</tbody></table></div>` : ""}
+    <h3>Sesi (${ses.length})</h3>
+    <div class="gulir"><table class="tabel tbl-kecil"><thead><tr><th>Mulai</th><th>Jenis</th><th class="angka">Keluar halaman</th></tr></thead><tbody>
+      ${ses.map((x) => `<tr><td>${esc(tglTeks(x.dibuat, true))}</td><td>${x.mode === "mandiri" ? "Latihan mandiri" : "Sesi kelas"}</td><td class="angka">${x.keluar || 0}</td></tr>`).join("") || '<tr><td colspan="3" class="redup">–</td></tr>'}</tbody></table></div>
+    <h3>Hasil per kegiatan</h3>
+    <div class="saring"><select id="j-mode" aria-label="Jenis"><option value="">Sesi kelas &amp; mandiri</option><option value="kelas">Sesi kelas</option><option value="mandiri">Latihan mandiri</option></select>
+      <select id="j-tk" aria-label="Level"><option value="">Semua level</option>${lv.map((t) => `<option value="${esc(t)}">${esc(judulLevel(t))}</option>`).join("")}</select>
+      <label class="cek"><input type="checkbox" id="j-salah"> hanya di bawah 80</label></div>
+    <div class="gulir"><table class="tabel tbl-kecil" id="t-jawab"></table></div>
+    <div class="aksi"><button class="garis kecil hidden" id="j-lagi">Muat 200 lagi</button><span class="kecil redup" id="j-info"></span></div>
+  </section>`;
+  ["j-mode", "j-tk", "j-salah"].forEach((id) => $(id).addEventListener("input", () => { HAL = 0; gambarHasilER(); }));
+  $("j-lagi").onclick = () => { HAL++; gambarHasilER(true); };
+  $("unduh-siswa").onclick = () => unduhSiswaER(s);
+  gambarHasilER();
+  $("kartu-siswa").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function gambarHasilER(tambah) {
+  const m = $("j-mode").value, t = $("j-tk").value, sl = $("j-salah").checked ? 1 : 0;
+  const w = "from hasil where nisn = ? and (? = '' or mode = ?) and (? = '' or level = ?) and (? = 0 or coalesce(nilai, 0) < 80)", p = [PILIH, m, m, t, t, sl];
+  const total = satu(`select count(*) ${w}`, p);
+  const L = baris(`select * ${w} order by waktu, id limit 200 offset ?`, [...p, HAL * 200]);
+  const isi = L.map((x) => `<tr><td class="kecil">${esc(tglTeks(x.waktu, true))}</td><td class="kecil">${x.mode === "mandiri" ? "mandiri" : "sesi"}</td>
+    <td>${esc(judulLevel(x.level))}${x.sub ? " · sub " + x.sub : ""}</td><td>${esc(JENIS_ER[x.jenis] || x.jenis)}</td>
+    <td class="angka ${x.nilai >= 80 ? "benar" : "salah"}">${x.nilai ?? "–"}</td></tr>`).join("");
+  if (tambah) $("t-jawab").querySelector("tbody").insertAdjacentHTML("beforeend", isi);
+  else $("t-jawab").innerHTML = `<thead><tr><th>Waktu</th><th>Jenis</th><th>Level</th><th>Kegiatan</th><th class="angka">Nilai</th></tr></thead><tbody>${isi || '<tr><td colspan="5" class="redup">Tidak ada hasil.</td></tr>'}</tbody>`;
+  const tampil = Math.min(total, (HAL + 1) * 200);
+  $("j-info").textContent = `${angka(tampil)} dari ${angka(total)} hasil`;
+  $("j-lagi").classList.toggle("hidden", tampil >= total);
+}
+function unduhDaftarER() {
+  const L = dataDaftarER();
+  unduhTabel({ nama: `Arsip_English_Reading_${INFO.periode}_rekap`, judul: "Rekap Semester (Arsip)", sub: INFO.nama,
+    kolom: [["Nama", 28], ["NISN", 13], ["Rombel", 9], ["Sesi: kegiatan", 11], ["Sub lulus", 9], ["Sub dicoba", 9], ["Rata-rata sub", 10], ["Sesi: hari", 9],
+      ["Mandiri: kegiatan", 11], ["Mandiri: hari", 9], ["Pengucapan %", 10], ["Waktu (menit)", 10]],
+    data: L.map((x) => [x.nama, x.nisn, x.kelas, x.kh, x.kl, x.ks, x.ks ? Math.round(x.kj / x.ks) : "", x.khari, x.mh, x.mhari, x.nb ? Math.round(x.jb / x.nb) : "", Math.round(x.detik / 60)]) });
+}
+function unduhSiswaER(s) {
+  const L = baris("select * from hasil where nisn = ? order by waktu, id", [s.nisn]);
+  unduhTabel({ nama: `Arsip_English_Reading_${INFO.periode}_${s.nisn}`, judul: "Rincian Hasil (Arsip)", sub: `${s.nama} · ${INFO.nama}`,
+    kolom: [["Waktu", 18], ["Jenis", 10], ["Level", 28], ["Sub", 6], ["Kegiatan", 20], ["Nilai", 8]],
+    data: L.map((x) => [tglTeks(x.waktu, true), x.mode === "mandiri" ? "mandiri" : "sesi", judulLevel(x.level), x.sub || "", JENIS_ER[x.jenis] || x.jenis, x.nilai]) });
 }
 
 /* ------------------------------------------------------------- Berkas aplikasi lain: tampilan umum */
