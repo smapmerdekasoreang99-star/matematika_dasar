@@ -1159,7 +1159,7 @@ async function muatDaftar(diam) {
 $("dl-kelompok").onchange = () => { muatDaftar(); gambarSesi(); };
 $("dl-muat").onclick = () => muatDaftar();
 $("dl-status").onchange = () => gambarDaftar();
-$("dl-tingkat").onchange = () => gambarDaftar();
+$("dl-tingkat").onchange = () => { gambarDaftar(); gambarSesi(); };
 // Siswa yang dicentang untuk aksi massal (bertahan saat daftar diperbarui otomatis)
 const PILIH = new Set();
 $("dl-cari").oninput = () => gambarDaftar();
@@ -1176,6 +1176,8 @@ const statusDaftar = (r) => r.terkunci ? '<span class="lencana buruk">Terkunci</
 
 // Tingkat siswa: dari kelompok MD (MD11-2 → 11), bila tidak ada dari rombel (11-2 / XI-2 → 11)
 const ROMAWI = { X: "10", XI: "11", XII: "12" };
+// Tingkat dari nama kelompok/rombel: MD10-1, 10-1, X-1 → "10"
+const tingkatNama = (n) => { const m = String(n || "").toUpperCase().match(/^(?:MD)?(XII|XI|X|10|11|12)\b/); return m ? ROMAWI[m[1]] || m[1] : ""; };
 function tingkatSiswa(r) {
   const k = String(r.kelompok || "").match(/\d+/);
   if (k) return k[0];
@@ -1402,10 +1404,10 @@ const jamTeks = (iso) => new Date(iso).toLocaleTimeString("id-ID", { hour: "2-di
 function gambarSesi() {
   if (!BUKA) return;
   if (document.activeElement && document.activeElement.matches("#sesi-isi [data-tambah-menit]")) return;
-  const pilih = $("dl-kelompok").value, boleh = true;
+  const pilih = $("dl-kelompok").value, tk = $("dl-tingkat").value, boleh = true;
   const terbuka = (k) => k.buka && sisaSesi(k) > 0;
-  // Kelompok yang sedang dibuka diurutkan paling atas
-  const L = BUKA.kelompok.filter((k) => !pilih || k.kelompok === pilih).sort((a, b) => terbuka(b) - terbuka(a));
+  // Kelompok yang sedang dibuka diurutkan paling atas; saringan tingkat ikut berlaku (MD10-1 / 10-1 → 10)
+  const L = BUKA.kelompok.filter((k) => (!pilih || k.kelompok === pilih) && (!tk || tingkatNama(k.kelompok) === tk)).sort((a, b) => terbuka(b) - terbuka(a));
   $("sesi-kartu").classList.toggle("hidden", !L.length);
   if (L.some((k) => k.buka && sisaSesi(k) === 0)) { setTimeout(muatSesi, 1500); }
   const LB = L.filter(terbuka);
