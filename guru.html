@@ -2661,14 +2661,16 @@ const angkaId = (x, d = 1) => Number(x).toLocaleString("id-ID", { maximumFractio
 const akurasiPr = (r) => r.n_jawab ? r.n_benar / r.n_jawab : 0;
 const lajuPr = (r) => r.hari ? r.tuntas / r.hari : 0;
 const hariDiLevel = (r) => r.di_level_sejak ? Math.floor((Date.now() - new Date(r.di_level_sejak)) / 864e5) : 0;
+// Kapan siswa mencapai level sekarang (detik, dibulatkan agar yang benar-benar bersamaan tetap sama peringkatnya)
+const sampaiPr = (r) => r.di_level_sejak ? Math.floor(Date.parse(r.di_level_sejak) / 1000) : 9e12;
 const grupPr = (r) => MODE_MD ? r.kelompok || "Tanpa kelompok" : r.kelas;
 const posisiPr = (r) => !r.tingkat ? "Belum mulai" : r.selesai ? selesaiTeks(r) : `${r.nama_tingkat} · Level ${r.level}`;
 const periodePr = () => PR.periode.kode === "semua" ? "seluruh waktu" : PR.periode.nama.replace(/^Semester/, "semester");
 // ikut = siapa yang diperingkat; banding = urutan tanpa nama (0 = peringkat sama); kolom = kolom tabel yang disorot.
 const JENIS_PR = {
   tinggi: { nama: "Level tertinggi", kolom: "lewat", ikut: (r) => r.tingkat,
-    banding: (a, b) => b.lewat - a.lewat || a.hari_total - b.hari_total,
-    ket: () => "Level tuntas sekarang (posisi resmi). Bila sama, yang sampai dengan lebih sedikit hari berlatih di atas. Tidak bergantung periode." },
+    banding: (a, b) => b.lewat - a.lewat || a.hari_total - b.hari_total || sampaiPr(a) - sampaiPr(b),
+    ket: () => "Level tuntas sekarang (posisi resmi). Bila sama, yang sampai dengan lebih sedikit hari berlatih di atas, lalu yang lebih dulu mencapai level itu. Tidak bergantung periode." },
   cepat: { nama: "Paling cepat naik", kolom: "tuntas", ikut: (r) => r.tuntas > 0,
     banding: (a, b) => b.tuntas - a.tuntas || a.hari - b.hari || a.detik - b.detik,
     ket: (p) => `Banyak level yang dituntaskan selama ${p}. Bila sama, yang memakai lebih sedikit hari lalu lebih sedikit waktu di atas.` },
