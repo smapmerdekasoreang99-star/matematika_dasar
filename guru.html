@@ -106,6 +106,13 @@
 .subtab button { background: transparent; color: var(--tinta-2); border: 0; box-shadow: none; padding: 8px 18px; border-radius: var(--r-bulat); font-weight: 700; font-size: var(--h-m); }
 .subtab button.on { background: var(--gelap); color: #fff; }
 .subtab button:focus-visible { outline: 2px solid var(--emas); outline-offset: 2px; }
+/* Perkembangan Siswa: Peringkat (nomor 1–3 diberi warna, kolom yang diurutkan disorot) */
+.pr-no { display: inline-grid; place-items: center; min-width: 28px; height: 28px; padding: 0 6px; border-radius: var(--r-bulat); font-weight: 800; font-variant-numeric: tabular-nums; color: var(--tinta-2); }
+.pr-no.p1 { background: var(--emas); color: var(--utama-teks); }
+.pr-no.p2 { background: var(--netral-muda); color: var(--tinta); }
+.pr-no.p3 { background: var(--emas-muda); color: var(--emas-teks); box-shadow: inset 0 0 0 1px var(--emas-tua); }
+.tabel th.pr-utama, .tabel td.pr-utama { background: var(--emas-kabut); font-weight: 800; }
+.pr-sub { display: block; font-size: var(--h-xs); font-weight: 400; color: var(--tinta-3); }
 /* Pengaturan Umum: pilihan sasaran & asal tiap isian */
 .atur-sasaran { display: grid; gap: 4px; font-size: var(--h-xs); font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--tinta-2); }
 .atur-sasaran select { min-width: 260px; padding: var(--j2) var(--j3); font-size: var(--h-m); text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--tinta); }
@@ -653,7 +660,7 @@ body.lihat .ubah { display: none !important; }
     <div id="p-kelas">
       <div class="kepala-hal"><div><span class="eyebrow">Pemantauan</span><h1 id="judul-kelas">Perkembangan Siswa</h1>
         <p>Posisi, kemajuan, dan siswa yang perlu perhatian. Ketuk nama siswa untuk melihat analisisnya.</p></div></div>
-      <div class="baris">
+      <div class="baris" id="baris-kelas">
         <select id="pil-kelas" style="max-width:220px" aria-label="Pilih kelompok"></select>
         <select id="pil-urut" style="max-width:240px" aria-label="Urutkan">
           <option value="perhatian">Urut: perlu perhatian dulu</option>
@@ -668,6 +675,7 @@ body.lihat .ubah { display: none !important; }
       <div class="subtab" role="tablist" aria-label="Tampilan perkembangan">
         <button role="tab" data-sub="siswa" class="on" aria-selected="true">Per Siswa</button>
         <button role="tab" data-sub="kelompok" aria-selected="false">Per Kelompok</button>
+        <button role="tab" data-sub="peringkat" aria-selected="false">Peringkat</button>
       </div>
       <!-- Per Siswa: tabel siswa -->
       <div id="pk-siswa">
@@ -686,6 +694,27 @@ body.lihat .ubah { display: none !important; }
       </div>
       <div class="kartu"><h2>Perbandingan kelompok</h2><div class="gulir"><table class="tabel" id="t-perkelompok" data-beku="1"></table></div>
         <p class="redup kecil">Ketuk baris kelompok untuk menampilkan ringkasan dan sebarannya di atas. Macet: 3 kali atau lebih mengulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih sejak pertemuan terakhir kelompoknya (hari pertemuan dari jadwal KBM Data Induk; kelompok tanpa jadwal: 7 hari terakhir).</p></div>
+      </div>
+      <!-- Peringkat: sekolah / angkatan / kelompok, menurut periode -->
+      <div id="pk-peringkat" class="hidden">
+      <div class="baris">
+        <select id="pr-cakupan" style="max-width:220px" aria-label="Cakupan peringkat"></select>
+        <select id="pr-periode" style="max-width:220px" aria-label="Periode"></select>
+        <select id="pr-jenis" style="max-width:240px" aria-label="Jenis peringkat"></select>
+        <select id="pr-n" style="max-width:150px" aria-label="Banyak siswa ditampilkan">
+          <option value="10">10 teratas</option><option value="25">25 teratas</option><option value="50">50 teratas</option><option value="0">Semua</option>
+        </select>
+        <span class="tumbuh"></span>
+        <button class="garis kecil" id="pr-muat">Muat ulang</button>
+        <button class="btn-unduh utama" data-fmt="xlsx" id="pr-unduh" title="Peringkat lengkap dan perbandingan dalam satu buku kerja Excel">Unduh peringkat</button>
+      </div>
+      <div class="ubin" id="pr-ubin"></div>
+      <div class="kartu"><h2 id="pr-judul">Peringkat</h2><p class="redup kecil" id="pr-ket" style="margin-top:0"></p>
+        <div class="gulir"><table class="tabel" id="t-peringkat" data-beku="2"></table></div>
+        <p class="redup kecil">Hanya kemajuan resmi (sesi kelompok); latihan mandiri tidak ikut. Nilai yang sama mendapat peringkat yang sama. Ketuk nama untuk melihat analisisnya.</p></div>
+      <div class="kartu" id="pr-banding-kartu"><h2 id="pr-banding-judul">Perbandingan</h2>
+        <div class="gulir"><table class="tabel" id="t-pr-banding" data-beku="1"></table></div>
+        <p class="redup kecil">Ketuk baris untuk melihat peringkat di dalamnya. Rata-rata level tuntas dihitung dari siswa yang sudah mulai.</p></div>
       </div>
     </div>
 
@@ -960,6 +989,7 @@ function bukaTab(v) {
   if (v === "atur") muatAtur();
   if (v === "admin") muatAdmin();
   if (v === "kelas" && SUB === "kelompok") muatPerKelompok();
+  if (v === "kelas" && SUB === "peringkat" && !PR) muatPeringkat();
   if (v === "daftar") { muatDaftar(); muatSesi(); daftarT = setInterval(() => { if (!document.hidden) { muatDaftar(true); muatSesi(); } }, 30000); }
 }
 
@@ -2579,9 +2609,11 @@ function bukaSub(v) {
   SUB = v;
   document.querySelectorAll(".subtab [data-sub]").forEach((b) => { b.classList.toggle("on", b.dataset.sub === v); b.setAttribute("aria-selected", String(b.dataset.sub === v)); });
   $("pk-siswa").classList.toggle("hidden", v !== "siswa"); $("pk-kelompok").classList.toggle("hidden", v !== "kelompok");
+  $("pk-peringkat").classList.toggle("hidden", v !== "peringkat"); $("baris-kelas").classList.toggle("hidden", v === "peringkat");
   $("pil-urut").classList.toggle("hidden", v !== "siswa");
   // grafik sebaran digambar selebar wadahnya: gambar ulang setelah tab kelompok tampil
   if (v === "kelompok") { if (REKAP.length) gambarKelas(); muatPerKelompok(); }
+  if (v === "peringkat" && !PR) muatPeringkat();
 }
 // Sel posisi terendah/tertinggi kelompok (7 Oktober 2026): r = siswa di posisi itu, n = banyak siswa yang sama posisinya.
 const selPosisi = (r, n, L) => !r ? '<td class="posisi"><span class="redup">–</span></td>'
@@ -2618,6 +2650,190 @@ async function muatPerKelompok() {
     muatKelas();
   });
 }
+
+/* ----------------------------------------------------------- Perkembangan Siswa: Peringkat (12 Okt 2026) */
+/* Peringkat satu sekolah, satu angkatan, atau satu kelompok (mtd_peringkat). Server mengirim angka satu periode per siswa;
+   cakupan dan jenis peringkat dipilih di halaman tanpa memuat ulang. Guru hanya melihat kelompoknya sendiri, admin semua.
+   Hanya kemajuan resmi (sesi kelompok). Nilai yang sama = peringkat sama (1, 2, 2, 4). */
+let PR = null;   // { periode, pilihan, jumlah_level, siswa }
+const PR_MIN_HARI = 3, PR_MIN_JAWAB = 50;
+const angkaId = (x, d = 1) => Number(x).toLocaleString("id-ID", { maximumFractionDigits: d });
+const akurasiPr = (r) => r.n_jawab ? r.n_benar / r.n_jawab : 0;
+const lajuPr = (r) => r.hari ? r.tuntas / r.hari : 0;
+const hariDiLevel = (r) => r.di_level_sejak ? Math.floor((Date.now() - new Date(r.di_level_sejak)) / 864e5) : 0;
+const grupPr = (r) => MODE_MD ? r.kelompok || "Tanpa kelompok" : r.kelas;
+const posisiPr = (r) => !r.tingkat ? "Belum mulai" : r.selesai ? selesaiTeks(r) : `${r.nama_tingkat} · Level ${r.level}`;
+const periodePr = () => PR.periode.kode === "semua" ? "seluruh waktu" : PR.periode.nama.replace(/^Semester/, "semester");
+// ikut = siapa yang diperingkat; banding = urutan tanpa nama (0 = peringkat sama); kolom = kolom tabel yang disorot.
+const JENIS_PR = {
+  tinggi: { nama: "Level tertinggi", kolom: "lewat", ikut: (r) => r.tingkat,
+    banding: (a, b) => b.lewat - a.lewat || a.hari_total - b.hari_total,
+    ket: () => "Level tuntas sekarang (posisi resmi). Bila sama, yang sampai dengan lebih sedikit hari berlatih di atas. Tidak bergantung periode." },
+  cepat: { nama: "Paling cepat naik", kolom: "tuntas", ikut: (r) => r.tuntas > 0,
+    banding: (a, b) => b.tuntas - a.tuntas || a.hari - b.hari || a.detik - b.detik,
+    ket: (p) => `Banyak level yang dituntaskan selama ${p}. Bila sama, yang memakai lebih sedikit hari lalu lebih sedikit waktu di atas.` },
+  laju: { nama: "Laju per hari berlatih", kolom: "laju", ikut: (r) => r.tuntas > 0 && r.hari >= PR_MIN_HARI,
+    banding: (a, b) => Math.round(100 * lajuPr(b)) - Math.round(100 * lajuPr(a)) || b.tuntas - a.tuntas,
+    ket: (p) => `Level tuntas dibagi hari berlatih selama ${p}; paling sedikit ${PR_MIN_HARI} hari berlatih agar adil.` },
+  rajin: { nama: "Paling rajin", kolom: "hari", ikut: (r) => r.hari > 0,
+    banding: (a, b) => b.hari - a.hari || b.n_jawab - a.n_jawab,
+    ket: (p) => `Banyak hari berlatih selama ${p}. Bila sama, yang menjawab lebih banyak soal di atas.` },
+  teliti: { nama: "Paling teliti", kolom: "akurasi", ikut: (r) => r.n_jawab >= PR_MIN_JAWAB,
+    banding: (a, b) => Math.round(1000 * akurasiPr(b)) - Math.round(1000 * akurasiPr(a)) || b.n_jawab - a.n_jawab,
+    ket: (p) => `Persentase jawaban benar selama ${p}; paling sedikit ${PR_MIN_JAWAB} soal dijawab.` },
+  perhatian: { nama: "Perlu perhatian", kolom: "dilevel", ikut: (r) => r.tingkat && !r.selesai,
+    banding: (a, b) => b.percobaan - a.percobaan || hariDiLevel(b) - hariDiLevel(a),
+    ket: () => "Siswa yang paling sering memulai ulang level yang sama (3 kali atau lebih = macet), lalu yang paling lama tertahan di level itu. Keadaan sekarang, tidak bergantung periode." },
+};
+// [kunci, judul, isi sel, kelas sel]
+const KOLOM_PR = [
+  ["posisi", "Posisi sekarang", (r) => r.tingkat ? `<span class="pos-nm">${esc(r.selesai ? selesaiTeks(r) : r.nama_tingkat)}</span>${r.selesai ? "" : `<span class="pos-lv">Level ${r.level}</span>`}` : '<span class="redup">Belum mulai</span>', "posisi"],
+  ["lewat", "Level tuntas", (r) => `${r.lewat}<span class="redup">/${PR.jumlah_level}</span>`, "angka"],
+  ["tuntas", "Naik<br>(periode)", (r) => r.tuntas || '<span class="redup">0</span>', "angka"],
+  ["laju", "Level per<br>hari berlatih", (r) => r.hari ? angkaId(lajuPr(r), 2) : "–", "angka"],
+  ["hari", "Hari<br>berlatih", (r) => r.hari || '<span class="redup">0</span>', "angka"],
+  ["akurasi", "Akurasi", (r) => r.n_jawab ? `${Math.round(100 * akurasiPr(r))}%<span class="pr-sub">${r.n_jawab} soal</span>` : "–", "angka"],
+  ["waktu", "Waktu<br>latihan", (r) => r.detik ? lamaTeks(r.detik) : "–", "angka"],
+  ["dilevel", "Tertahan<br>di level ini", (r) => `<span class="pos-nm">${hariDiLevel(r)} hari</span><span class="pos-lv">${r.percobaan || 1}× dimulai</span>`, "posisi"],
+];
+const dalamCakupan = (c) => (r) => !c || (c.startsWith("a:") ? r.angkatan === c.slice(2) : grupPr(r) === c.slice(2));
+function urutPr(L, j) {
+  const A = L.filter(j.ikut).sort((a, b) => j.banding(a, b) || a.nama.localeCompare(b.nama)), H = [];
+  A.forEach((r, i) => H.push({ r, no: i && !j.banding(A[i - 1], r) ? H[i - 1].no : i + 1 }));
+  return H;
+}
+function isiPeriodePr() {
+  const el = $("pr-periode"), lama = el.value || ssGet("mtd_pr_periode", "30");
+  el.innerHTML = '<option value="7">7 hari terakhir</option><option value="30">30 hari terakhir</option>'
+    + (PR ? PR.pilihan : []).map((s, i) => `<option value="${esc(s.kode)}">Semester ${esc(s.nama)}${i === 0 ? " (berjalan)" : ""}</option>`).join("")
+    + '<option value="semua">Sejak awal</option>';
+  el.value = [...el.options].some((o) => o.value === lama) ? lama : "30";
+}
+function isiCakupanPr() {
+  const el = $("pr-cakupan"), lama = el.value || ssGet("mtd_pr_cakupan", "");
+  const ang = [...new Set(PR.siswa.map((r) => r.angkatan).filter(Boolean))].sort((a, b) => a - b);
+  const grup = [...new Set(PR.siswa.map(grupPr))].sort((a, b) => a.localeCompare(b, "id", { numeric: true }));
+  el.innerHTML = `<option value="">${PERAN === "admin" ? "Seluruh sekolah" : "Semua kelompok saya"}</option>`
+    + (ang.length > 1 ? `<optgroup label="Angkatan">${ang.map((a) => `<option value="a:${esc(a)}">Angkatan ${esc(a)}</option>`).join("")}</optgroup>` : "")
+    + `<optgroup label="${MODE_MD ? "Kelompok" : "Kelas"}">${grup.map((g) => `<option value="k:${esc(g)}">${esc(g)}</option>`).join("")}</optgroup>`;
+  el.value = [...el.options].some((o) => o.value === lama) ? lama : "";
+}
+async function muatPeringkat() {
+  if (!$("pr-jenis").options.length) {
+    $("pr-jenis").innerHTML = Object.entries(JENIS_PR).map(([k, j]) => `<option value="${k}">${j.nama}</option>`).join("");
+    const j = ssGet("mtd_pr_jenis", "tinggi"); $("pr-jenis").value = JENIS_PR[j] ? j : "tinggi";
+  }
+  if (!$("pr-periode").options.length) isiPeriodePr();
+  $("t-peringkat").innerHTML = '<tr><td class="kosong-data">Memuat…</td></tr>';
+  try { PR = await rpc("mtd_peringkat", { p_pin: PIN, p_periode: $("pr-periode").value }); }
+  catch (e) { $("t-peringkat").innerHTML = `<tr><td class="kosong-data">${esc(e.message)}</td></tr>`; return; }
+  isiPeriodePr(); isiCakupanPr(); gambarPeringkat();
+}
+$("pr-periode").onchange = () => { ssSet("mtd_pr_periode", $("pr-periode").value); muatPeringkat(); };
+$("pr-cakupan").onchange = () => { ssSet("mtd_pr_cakupan", $("pr-cakupan").value); gambarPeringkat(); };
+$("pr-jenis").onchange = () => { ssSet("mtd_pr_jenis", $("pr-jenis").value); gambarPeringkat(); };
+$("pr-n").onchange = () => gambarPeringkat();
+$("pr-muat").onclick = () => muatPeringkat();
+
+// Pembanding di bawah tabel: seluruh sekolah → per angkatan (bila lebih dari satu), angkatan → per kelompok, kelompok → tidak ada.
+function kunciBandingPr(c, L) {
+  if (!c && new Set(L.map((r) => r.angkatan)).size > 1) return { judul: "Perbandingan angkatan", kunci: (r) => "a:" + (r.angkatan || ""), label: (k) => k === "a:" ? "Tanpa angkatan" : "Angkatan " + k.slice(2) };
+  if (!c.startsWith("k:")) return { judul: `Perbandingan ${MODE_MD ? "kelompok" : "kelas"}`, kunci: (r) => "k:" + grupPr(r), label: (k) => k.slice(2) };
+  return null;
+}
+function bandingPr(c, L) {
+  const b = kunciBandingPr(c, L);
+  if (!b) return null;
+  const m = new Map();
+  L.forEach((r) => { const k = b.kunci(r); if (!m.has(k)) m.set(k, []); m.get(k).push(r); });
+  const juara = (G, j) => urutPr(G, j).filter((x) => x.no === 1).map((x) => x.r);
+  const baris = [...m].map(([k, G]) => {
+    const mulai = G.filter((r) => r.tingkat), nJ = G.reduce((t, r) => t + r.n_jawab, 0), nB = G.reduce((t, r) => t + r.n_benar, 0);
+    return { k, label: b.label(k), n: G.length, berlatih: G.filter((r) => r.hari > 0).length,
+      rataLevel: mulai.length ? mulai.reduce((t, r) => t + r.lewat, 0) / mulai.length : 0,
+      naik: G.reduce((t, r) => t + r.tuntas, 0) / G.length, akurasi: nJ ? Math.round(100 * nB / nJ) : null,
+      tinggi: juara(G, JENIS_PR.tinggi), cepat: juara(G, JENIS_PR.cepat) };
+  }).sort((x, y) => x.label.localeCompare(y.label, "id", { numeric: true }));
+  return { judul: b.judul, baris };
+}
+const juaraHtml = (L, isi) => L.length ? `<span class="pos-nm">${esc(L[0].nama)}${L.length > 1 ? ` <span class="redup">+${L.length - 1}</span>` : ""}</span><span class="pos-lv">${isi(L[0])}</span>` : '<span class="redup">–</span>';
+const juaraTeks = (L) => L.map((r) => r.nama).join(", ");
+
+function gambarPeringkat() {
+  if (!PR) return;
+  const c = $("pr-cakupan").value, j = JENIS_PR[$("pr-jenis").value] || JENIS_PR.tinggi, n = +$("pr-n").value;
+  const L = PR.siswa.filter(dalamCakupan(c)), mulai = L.filter((r) => r.tingkat);
+  const nJ = L.reduce((t, r) => t + r.n_jawab, 0), nB = L.reduce((t, r) => t + r.n_benar, 0);
+  $("pr-ubin").innerHTML = ubinHtml([
+    [L.length, "siswa", "siswa"], [L.filter((r) => r.hari > 0).length, `berlatih · ${PR.periode.nama.toLowerCase()}`, "aktif", "baik"],
+    [angkaId(mulai.length ? mulai.reduce((t, r) => t + r.lewat, 0) / mulai.length : 0), "rata-rata level tuntas", "level", "emas"],
+    [L.reduce((t, r) => t + r.tuntas, 0), "level dituntaskan dalam periode", "ulang"],
+    [nJ ? Math.round(100 * nB / nJ) + "%" : "–", "akurasi dalam periode", "akurasi"],
+  ]);
+  const H = urutPr(L, j), T = n ? H.filter((x) => x.no <= n) : H;
+  const K = KOLOM_PR.filter(([k]) => k !== "dilevel" || j.kolom === "dilevel"), semua = !c.startsWith("k:");
+  $("pr-judul").textContent = `${j.nama} · ${labelPilihan("pr-cakupan")}`;
+  // Siswa kelas 11/12 bisa mulai dari tingkat yang lebih tinggi, jadi level tertinggi lintas angkatan tidak setara.
+  const campur = j.kolom === "lewat" && new Set(L.map((r) => r.angkatan)).size > 1;
+  $("pr-ket").innerHTML = `${esc(j.ket(periodePr()))} ${H.length} dari ${L.length} siswa masuk peringkat ini.`
+    + (campur ? " Siswa kelas 11 dan 12 bisa mulai dari tingkat yang lebih tinggi; untuk level tertinggi yang adil, pilih satu angkatan. <b>Paling cepat naik</b> adil lintas angkatan." : "")
+    + (PR.periode.arsip ? " Rincian semester ini sudah diarsipkan; angkanya diambil dari rekap semester." : "")
+    + (PR.periode.kasar ? " <b>Sebagian periode ini sudah diarsipkan, jadi jumlah soal dan hari berlatih bisa kurang dari sebenarnya.</b>" : "");
+  $("t-peringkat").innerHTML = `<thead><tr><th>No</th><th>Nama</th>${semua ? `<th>${MODE_MD ? "Kelompok" : "Kelas"}</th>` : ""}`
+    + K.map(([k, t, , cls]) => `<th class="${cls === "angka" ? "angka" : ""}${k === j.kolom ? " pr-utama" : ""}">${t}</th>`).join("") + "</tr></thead><tbody>"
+    + (T.length ? T.map(({ r, no }) => `<tr class="klik" data-n="${esc(r.nisn)}"><td><span class="pr-no${no <= 3 ? " p" + no : ""}">${no}</span></td><td><b>${esc(r.nama)}</b></td>`
+        + (semua ? `<td class="posisi"><span class="pos-nm">${esc(grupPr(r))}</span>${MODE_MD && r.kelas ? `<span class="pos-lv">${esc(r.kelas)}</span>` : ""}</td>` : "")
+        + K.map(([k, , f, cls]) => `<td class="${cls}${k === j.kolom ? " pr-utama" : ""}">${f(r)}</td>`).join("") + "</tr>").join("")
+      : `<tr><td colspan="${K.length + 3}" class="kosong-data">Belum ada siswa yang memenuhi syarat peringkat ini pada cakupan dan periode yang dipilih.</td></tr>`) + "</tbody>";
+  $("t-peringkat").querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = () => bukaSiswa(tr.dataset.n));
+
+  const B = bandingPr(c, L);
+  $("pr-banding-kartu").classList.toggle("hidden", !B);
+  if (!B) return;
+  $("pr-banding-judul").textContent = B.judul;
+  $("t-pr-banding").innerHTML = `<thead><tr><th>${B.judul.replace("Perbandingan ", "").replace(/^./, (x) => x.toUpperCase())}</th><th class="angka">Siswa</th><th class="angka">Berlatih<br>(periode)</th>
+    <th class="angka">Rata-rata<br>level tuntas</th><th class="angka" title="Level dituntaskan dalam periode dibagi banyak siswa">Naik per siswa<br>(periode)</th><th class="angka">Akurasi<br>(periode)</th>
+    <th>Level tertinggi</th><th>Paling cepat naik</th></tr></thead><tbody>`
+    + B.baris.map((g) => `<tr class="klik" data-c="${esc(g.k)}"><td><b>${esc(g.label)}</b></td><td class="angka">${g.n}</td><td class="angka">${g.berlatih}</td>
+      <td class="angka">${angkaId(g.rataLevel)}</td><td class="angka">${angkaId(g.naik)}</td><td class="angka">${g.akurasi == null ? "–" : g.akurasi + "%"}</td>
+      <td class="posisi">${juaraHtml(g.tinggi, (r) => `${r.lewat} level tuntas`)}</td><td class="posisi">${juaraHtml(g.cepat, (r) => `naik ${r.tuntas} level`)}</td></tr>`).join("") + "</tbody>";
+  $("t-pr-banding").querySelectorAll("tr[data-c]").forEach((tr) => tr.onclick = () => {
+    if (![...$("pr-cakupan").options].some((o) => o.value === tr.dataset.c)) return;
+    $("pr-cakupan").value = tr.dataset.c; ssSet("mtd_pr_cakupan", tr.dataset.c); gambarPeringkat();
+    $("pk-peringkat").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
+// Unduh peringkat (.xlsx): peringkat lengkap (semua yang memenuhi syarat) + perbandingan.
+$("pr-unduh").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
+  if (!PR) throw new Error("Belum ada data. Muat ulang dulu.");
+  const c = $("pr-cakupan").value, j = JENIS_PR[$("pr-jenis").value] || JENIS_PR.tinggi, cak = labelPilihan("pr-cakupan");
+  const L = PR.siswa.filter(dalamCakupan(c)), H = urutPr(L, j), B = bandingPr(c, L);
+  const catatan = j.ket(periodePr()) + " Hanya kemajuan resmi (sesi kelompok); latihan mandiri tidak ikut. Nilai yang sama mendapat peringkat yang sama."
+    + (PR.periode.kasar ? " Sebagian periode ini sudah diarsipkan, jadi jumlah soal dan hari berlatih bisa kurang dari sebenarnya." : "");
+  const nama = `Peringkat_Matematika_Dasar_${potongNama(j.nama)}_${potongNama(cak)}_${tglBerkas()}.xlsx`;
+  const lembar = [{ nama: "Peringkat", judul: `Peringkat: ${j.nama}`, sub: `${cak} · ${PR.periode.nama}`,
+    info: [["Cakupan", cak], ["Periode", PR.periode.nama], ["Jenis peringkat", j.nama], ["Masuk peringkat", `${H.length} dari ${L.length} siswa`]],
+    kolom: [{ t: "Peringkat", w: 9, rata: "center", tebal: true }, { t: "Nama", w: 30, tebal: true }, { t: "NISN", w: 13, rata: "center" },
+      { t: "Kelompok MD", w: 12, rata: "center" }, { t: "Rombel", w: 9, rata: "center" }, { t: "Posisi sekarang", w: 30 },
+      { t: `Level tuntas /${PR.jumlah_level}`, w: 11, rata: "center" }, { t: "Naik dalam periode", w: 10, rata: "center" },
+      { t: "Level per hari berlatih", w: 11, rata: "center", fmt: "0.00" }, { t: "Hari berlatih", w: 9, rata: "center" },
+      { t: "Soal dijawab", w: 9, rata: "center" }, { t: "Akurasi", w: 9, rata: "center", fmt: '0"%"', cf: CF_PERSEN },
+      { t: "Menit latihan", w: 9, rata: "center" }, { t: "Tertahan di level (hari)", w: 11, rata: "center" },
+      { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }],
+    baris: H.map(({ r, no }) => [no, r.nama, r.nisn, r.kelompok || "", r.kelas, posisiPr(r), r.lewat, r.tuntas, r.hari ? Math.round(100 * lajuPr(r)) / 100 : "",
+      r.hari, r.n_jawab, r.n_jawab ? Math.round(100 * akurasiPr(r)) : "", Math.round(r.detik / 60), r.tingkat && !r.selesai ? hariDiLevel(r) : "", waktuXL(r.terakhir)]),
+    catatan: [catatan] }];
+  if (B) lembar.push({ nama: "Perbandingan", judul: B.judul, sub: `${cak} · ${PR.periode.nama}`, beku: 1,
+    kolom: [{ t: B.judul.replace("Perbandingan ", ""), w: 16, tebal: true }, { t: "Siswa", w: 8, rata: "center" }, { t: "Berlatih dalam periode", w: 11, rata: "center" },
+      { t: "Rata-rata level tuntas", w: 11, rata: "center", fmt: "0.0" }, { t: "Naik per siswa (periode)", w: 11, rata: "center", fmt: "0.0" },
+      { t: "Akurasi (periode)", w: 10, rata: "center", fmt: '0"%"', cf: CF_PERSEN }, { t: "Level tertinggi", w: 30, bungkus: true }, { t: "Paling cepat naik", w: 30, bungkus: true }],
+    baris: B.baris.map((g) => [g.label, g.n, g.berlatih, Math.round(10 * g.rataLevel) / 10, Math.round(10 * g.naik) / 10, g.akurasi ?? "",
+      g.tinggi.length ? `${juaraTeks(g.tinggi)} (${g.tinggi[0].lewat} level)` : "", g.cepat.length ? `${juaraTeks(g.cepat)} (naik ${g.cepat[0].tuntas} level)` : ""]),
+    catatan: ["Rata-rata level tuntas dihitung dari siswa yang sudah mulai. Naik per siswa = level yang dituntaskan dalam periode dibagi banyak siswa."] });
+  await unduhBukuXLSX({ namaBerkas: nama, judulBuku: "Peringkat", lembar });
+  return nama;
+});
 
 /* ----------------------------------------------------------- Admin: guru & PIN, PIN admin, kosongkan data */
 let ADM = null;
