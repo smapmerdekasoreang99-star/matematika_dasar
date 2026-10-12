@@ -2832,11 +2832,13 @@ async function muatAdmin() {
 const statusPin = (g) => g.status === "acak" ? `<span class="lencana baik">PIN pribadi</span><b class="pin-teks">${esc(g.pin)}</b>`
   : `<span class="lencana emas">Sementara: ID guru</span><b class="pin-teks">${esc(g.id)}</b>`;
 function gambarAdmin() {
-  const L = ADM.guru, belum = L.filter((g) => g.aktif && g.status !== "acak").length;
+  // Hanya guru pembimbing MD (punya kelompok MD di jadwal KBM); PIN guru lain diatur di admin Asesmen Merdeka.
+  const L = ADM.guru.filter((g) => (g.kelompok || []).length), nLain = ADM.guru.length - L.length;
+  const idBelum = L.filter((g) => g.aktif && g.status !== "acak").map((g) => g.id), belum = idBelum.length;
   $("f-admin").innerHTML = `
   <section class="kartu seksi">
     <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 20a6.5 6.5 0 0 0-3-5.5"/></svg></span>
-      <div><h2>Guru dan PIN masuk</h2><p>Semua guru aktif di Data Induk beserta kelompok MD yang diampu (jadwal KBM). PIN pribadi yang sama dipakai di Asesmen Merdeka (Tryout). ${ADM.disinkron ? "Terakhir ditarik " + esc(tglTeks(ADM.disinkron, true)) + "." : "Belum pernah ditarik."}</p></div>
+      <div><h2>Guru dan PIN masuk</h2><p>Guru yang membimbing kelompok MD (jadwal KBM di Data Induk). ${nLain ? `${nLain} guru lain tanpa kelompok MD tidak ditampilkan; PIN-nya diatur di admin Asesmen Merdeka. ` : ""}PIN pribadi yang sama dipakai di Asesmen Merdeka (Tryout). ${ADM.disinkron ? "Terakhir ditarik " + esc(tglTeks(ADM.disinkron, true)) + "." : "Belum pernah ditarik."}</p></div>
       <span class="seksi-aksi admin-aksi"><button class="garis kecil" id="adm-tarik">Tarik guru dari Data Induk</button>${belum ? `<button class="kecil" id="adm-acak-semua">Buat PIN untuk ${belum} guru</button>` : ""}</span></div>
     ${ADM.sementara.length ? `<p class="sesi-peringatan"><b>${ADM.sementara.length} kelompok</b> masih bisa dimasuki dengan nama kelompoknya (${esc(ADM.sementara.join(", "))}), karena belum ada guru yang tercatat untuk kelompok itu di jadwal KBM. Tarik guru dari Data Induk setelah jadwalnya dilengkapi.</p>` : ""}
     ${L.length ? `<div class="adm-pilih"><label><input type="checkbox" id="adm-pilih-semua"> pilih semua guru ber-PIN pribadi</label><span class="kecil redup" id="adm-n-pilih"></span>
@@ -2866,7 +2868,7 @@ function gambarAdmin() {
         <p id="up-pesan" class="kecil hidden" style="margin:0;color:var(--absen-tua);font-weight:600"></p>
         <p class="kecil redup" style="margin:0">Setiap penggantian dan penghapusan dicatat beserta alasannya dan siapa yang melakukannya.</p>
         <div class="aksi" style="justify-content:flex-end"><button class="bahaya" id="up-ok" disabled>Ubah PIN</button></div></div></div>`
-      : '<p class="butir redup">Belum ada guru. Tekan <b>Tarik guru dari Data Induk</b>.</p>'}
+      : `<p class="butir redup">${nLain ? "Belum ada guru yang tercatat membimbing kelompok MD. Lengkapi jadwal KBM di Data Induk, lalu tekan" : "Belum ada guru. Tekan"} <b>Tarik guru dari Data Induk</b>.</p>`}
     <p class="catatan-seksi"><span>PIN guru: PIN pribadi 8 angka buatan admin Matematika Dasar atau operator Asesmen Merdeka; berlaku di kedua aplikasi. Sebelum dibuat, guru bisa masuk Matematika Dasar dengan ID gurunya di Data Induk (mis. G161), tetapi tidak bisa masuk Asesmen Merdeka. Halaman ini hanya terbuka untuk guru yang mengampu kelompok MD. Nama kelompok (mis. MD10-1) hanya bisa dipakai untuk kelompok yang belum punya guru tercatat. Bagikan PIN pribadi langsung ke guru yang bersangkutan.</span></p>
   </section>
   <section class="kartu seksi">
@@ -2928,7 +2930,7 @@ function gambarAdmin() {
       toast(`PIN pribadi dibuat untuk ${r.guru.length} guru dan sudah dicentang — bagikan kartunya`); muatAdmin(); }
     catch (e) { toast(e.message); }
   };
-  if ($("adm-acak-semua")) $("adm-acak-semua").onclick = () => acak(null, `Buat PIN pribadi untuk ${belum} guru yang belum punya?\n\nSetelah itu ID guru tidak bisa dipakai lagi untuk masuk oleh guru-guru tersebut. Bagikan PIN masing-masing kepada gurunya.`);
+  if ($("adm-acak-semua")) $("adm-acak-semua").onclick = () => acak(idBelum, `Buat PIN pribadi untuk ${belum} guru yang belum punya?\n\nSetelah itu ID guru tidak bisa dipakai lagi untuk masuk oleh guru-guru tersebut. Bagikan PIN masing-masing kepada gurunya.`);
   $("f-admin").querySelectorAll("[data-acak]").forEach((b) => b.onclick = () => {
     const g = L.find((x) => x.id === b.dataset.acak);
     acak([g.id], `Buat PIN pribadi untuk ${g.nama}?`);
