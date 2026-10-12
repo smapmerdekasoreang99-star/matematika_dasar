@@ -106,11 +106,11 @@
 .subtab button { background: transparent; color: var(--tinta-2); border: 0; box-shadow: none; padding: 8px 18px; border-radius: var(--r-bulat); font-weight: 700; font-size: var(--h-m); }
 .subtab button.on { background: var(--gelap); color: #fff; }
 .subtab button:focus-visible { outline: 2px solid var(--emas); outline-offset: 2px; }
-/* Perkembangan Siswa: Peringkat (nomor 1–3 diberi warna, kolom yang diurutkan disorot) */
+/* Perkembangan Siswa: Peringkat (nomor 1–3 = emas, perak, perunggu, kolom yang diurutkan disorot) */
 .pr-no { display: inline-grid; place-items: center; min-width: 28px; height: 28px; padding: 0 6px; border-radius: var(--r-bulat); font-weight: 800; font-variant-numeric: tabular-nums; color: var(--tinta-2); }
 .pr-no.p1 { background: var(--emas); color: var(--utama-teks); }
-.pr-no.p2 { background: var(--netral-muda); color: var(--tinta); }
-.pr-no.p3 { background: var(--emas-muda); color: var(--emas-teks); box-shadow: inset 0 0 0 1px var(--emas-tua); }
+.pr-no.p2 { background: #6E7B88; color: #fff; }   /* perak */
+.pr-no.p3 { background: #9A5B2A; color: #fff; }   /* perunggu */
 .tabel th.pr-utama, .tabel td.pr-utama { background: var(--emas-kabut); font-weight: 800; }
 .pr-sub { display: block; font-size: var(--h-xs); font-weight: 400; color: var(--tinta-3); }
 /* Pengaturan Umum: pilihan sasaran & asal tiap isian */
@@ -2781,7 +2781,7 @@ function gambarPeringkat() {
     + (PR.periode.kasar ? " <b>Sebagian periode ini sudah diarsipkan, jadi jumlah soal dan hari berlatih bisa kurang dari sebenarnya.</b>" : "");
   $("t-peringkat").innerHTML = `<thead><tr><th>No</th><th>Nama</th>${semua ? `<th>${MODE_MD ? "Kelompok" : "Kelas"}</th>` : ""}`
     + K.map(([k, t, , cls]) => `<th class="${cls === "angka" ? "angka" : ""}${k === j.kolom ? " pr-utama" : ""}">${t}</th>`).join("") + "</tr></thead><tbody>"
-    + (T.length ? T.map(({ r, no }) => `<tr class="klik" data-n="${esc(r.nisn)}"><td><span class="pr-no${no <= 3 ? " p" + no : ""}">${no}</span></td><td><b>${esc(r.nama)}</b></td>`
+    + (T.length ? T.map(({ r, no }) => `<tr class="klik" data-n="${esc(r.nisn)}"><td><span class="pr-no${no <= 3 ? " p" + no : ""}"${no <= 3 ? ` title="Peringkat ${no}"` : ""}>${no}</span></td><td><b>${esc(r.nama)}</b></td>`
         + (semua ? `<td class="posisi"><span class="pos-nm">${esc(grupPr(r))}</span>${MODE_MD && r.kelas ? `<span class="pos-lv">${esc(r.kelas)}</span>` : ""}</td>` : "")
         + K.map(([k, , f, cls]) => `<td class="${cls}${k === j.kolom ? " pr-utama" : ""}">${f(r)}</td>`).join("") + "</tr>").join("")
       : `<tr><td colspan="${K.length + 3}" class="kosong-data">Belum ada siswa yang memenuhi syarat peringkat ini pada cakupan dan periode yang dipilih.</td></tr>`) + "</tbody>";
