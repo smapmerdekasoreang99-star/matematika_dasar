@@ -424,6 +424,7 @@ body.ct-terkunci { overflow: hidden; }
 
 /* ---- Daftar siswa ---- */
 .daftar-alat { display: grid; grid-template-columns: 190px 150px minmax(0, 1fr) 190px auto auto; gap: var(--j2); align-items: center; }
+#dl-tingkat:disabled { opacity: .5; cursor: not-allowed; }   /* tingkat hanya untuk pilihan "Semua" */
 @media (max-width: 960px) { .daftar-alat { grid-template-columns: 1fr 1fr; } .daftar-alat #dl-cari { grid-column: 1 / -1; grid-row: 1; } }
 /* Bilah aksi massal: muncul saat ada siswa dicentang, menempel di bawah layar */
 .massal { display: none; position: sticky; bottom: var(--j3); z-index: var(--lapis-bar); align-items: center; gap: var(--j2) var(--j3); flex-wrap: wrap;
@@ -954,6 +955,7 @@ async function masuk(pin, diam) {
     $("dl-kelompok").innerHTML = opsi.filter((o) => o.value === "").concat(opsi.filter((o) => o.value !== "")).map((o) => o.outerHTML).join("");
     $("dl-kelompok").value = "";
     if ($("dl-kelompok").selectedIndex < 0) $("dl-kelompok").selectedIndex = 0;
+    aturTingkat();
     isiSasaranAtur(); bukaTab("daftar"); muatKelas(); gambarTingkat(); gambarSinkron(); isiPilihPosisi(); muatJalur(true); muatProfil(true); muatMandiriDaftar().then(() => { if (typeof gambarKelompokAturan === "function") gambarKelompokAturan(); });
   } catch (e) {
     if (diam) return;
@@ -1156,7 +1158,13 @@ async function muatDaftar(diam) {
   catch (e) { if (!diam) $("t-daftar").innerHTML = `<tr><td class="kosong-data">${esc(e.message)}</td></tr>`; return; }
   gambarDaftar();
 }
-$("dl-kelompok").onchange = () => { muatDaftar(); gambarSesi(); };
+// Saringan tingkat hanya berarti saat semua kelompok/rombel dipilih; satu kelompok/rombel → dikunci di "Semua tingkat".
+function aturTingkat() {
+  const satu = !!$("dl-kelompok").value, el = $("dl-tingkat");
+  el.disabled = satu; if (satu) el.value = "";
+  el.title = satu ? "Saringan tingkat hanya bisa dipakai saat memilih semua" : "";
+}
+$("dl-kelompok").onchange = () => { aturTingkat(); muatDaftar(); gambarSesi(); };
 $("dl-muat").onclick = () => muatDaftar();
 $("dl-status").onchange = () => gambarDaftar();
 $("dl-tingkat").onchange = () => { gambarDaftar(); gambarSesi(); };
