@@ -24,6 +24,8 @@
 <style>
 /* Tombol Panduan membaca data di kepala halaman (13 Okt 2026): PDF untuk dibuka, Word untuk dicetak/disunting */
 .panduan { position: relative; }
+/* Kepala halaman (lapisan 30) dinaikkan di atas bilah navigasi (40) dan bilah aksi (35) selama menu terbuka */
+.atas.panduan-buka { z-index: var(--lapis-saran); }
 .panduan > summary { list-style: none; cursor: pointer; font-weight: 700; font-size: var(--h-s); color: var(--tinta-terang);
   border: 1.5px solid rgba(255,255,255,.35); border-radius: var(--r2); padding: var(--j1) var(--j3); min-height: 36px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
 .panduan > summary::-webkit-details-marker { display: none; }
@@ -1001,6 +1003,7 @@ $("pin").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-pin"
 // Panduan: tutup menu saat mengetuk di luar atau menekan Esc
 document.addEventListener("click", (e) => { const p = $("panduan"); if (p.open && !p.contains(e.target)) p.open = false; });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("panduan").open = false; });
+$("panduan").addEventListener("toggle", () => document.querySelector("header.atas").classList.toggle("panduan-buka", $("panduan").open));
 $("btn-keluar").onclick = () => { ssSet(KUNCI_PIN, null); location.reload(); };
 
 $("tab").querySelectorAll("button").forEach((b) => b.onclick = () => bukaTab(b.dataset.v));
