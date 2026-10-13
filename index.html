@@ -766,7 +766,7 @@ async function kirim(waktuHabis) {
       salah(h);
     }
   } catch (e) {
-    if (/berakhir/i.test(e.message)) return habis();
+    if (/berakhir/i.test(e.message)) return berakhirKarena();
     if (/dikunci/i.test(e.message)) { S.terkunci = true; return tampilKunci(); }
     toast(e.message);
   } finally { sibuk = false; }
@@ -933,7 +933,7 @@ function aturAkhir(detik) {
 async function cekWaktu() {
   if (!S || !S.token || cekWaktuJalan) return;
   cekWaktuJalan = true; cekWaktuPada = Date.now();
-  try { const r = await rpc("mtd_sisa_waktu", { p_token: S.token }); if (r.ok) aturAkhir(r.sisa_detik); else if (akhirSesi) akhirSesi = Date.now() - 1000; }
+  try { const r = await rpc("mtd_sisa_waktu", { p_token: S.token }); if (r.ok) aturAkhir(r.sisa_detik); else if (r.alasan === "sesi_kelompok") keSesiKelompok(); else if (akhirSesi) akhirSesi = Date.now() - 1000; }
   catch (e) { /* jaringan: tetap pakai hitungan di HP */ }
   finally { cekWaktuJalan = false; }
 }
@@ -949,7 +949,7 @@ function detak() {
     if (Date.now() - cekWaktuPada > 5000) { cekWaktu(); return; }
     return habis();
   }
-  if (S.mode === "kelas" && !S.uji && Date.now() - cekWaktuPada > 60000) cekWaktu();
+  if (!S.uji && Date.now() - cekWaktuPada > 60000) cekWaktu();   // juga latihan mandiri: tahu bila guru membuka sesi kelompok
   if (akhirSoal && !S.terkunci && !menungguLanjut && !menungguNaik && !$("v-latih").classList.contains("hidden")) {
     const bw = S.atur.batas_waktu_soal, ss = Math.max(0, (akhirSoal - Date.now()) / 1000);
     $("s-waktu").firstElementChild.style.width = (100 * ss / bw) + "%";
@@ -963,6 +963,23 @@ function tutupSesi() {
   hentiAlarm(); tutupTirai();
   ssSet(KUNCI_SESI, null);
   $("jam").classList.add("hidden"); $("btn-keluar").classList.add("hidden");
+}
+
+/* Guru membuka sesi kelompok saat siswa latihan mandiri (13 Okt 2026): server mengakhiri latihan mandiri.
+   Siswa diarahkan masuk lagi dengan kode akses BARU, supaya tahapan kelompok dan kemajuan resmi berlaku. */
+function keSesiKelompok() {
+  tutupSesi();
+  tampil("v-masuk");
+  $("akses").value = ""; $("akses-qr").classList.add("hidden");
+  const m = $("masuk-pesan"); m.className = "pesan"; m.textContent = "Gurumu membuka sesi kelompok. Latihan mandirimu sudah tersimpan. Ketik kode akses yang BARU dari guru, lalu tekan Mulai latihan.";
+  $("akses").focus();
+}
+async function berakhirKarena() {
+  if (S && S.mode === "mandiri" && S.token) {
+    try { const r = await rpc("mtd_sisa_waktu", { p_token: S.token }); if (r.alasan === "sesi_kelompok") return keSesiKelompok(); }
+    catch (e) { /* tetap ke layar waktu habis */ }
+  }
+  habis();
 }
 
 function habis() {
@@ -1076,7 +1093,7 @@ async function kembali() {
     bunyiAlarm();
     if (r.terkunci) return tampilKunci();
     tampilPeringatan(r, d);
-  } catch (e) { if (/berakhir/i.test(e.message)) habis(); }
+  } catch (e) { if (/berakhir/i.test(e.message)) berakhirKarena(); }
 }
 ["pointerdown", "keydown", "touchstart"].forEach((ev) => document.addEventListener(ev, siapAlarm, { passive: true }));
 document.addEventListener("visibilitychange", () => (document.hidden ? pergi() : kembali()));
@@ -1129,7 +1146,7 @@ function tampilKunci() {
       S = Object.assign(S, r);
       if (S.terkunci) return toast("Latihan masih dikunci.");
       hentiAlarm(); tutupTirai(); toast("Kunci dibuka — lanjutkan latihan");
-    } catch (e) { if (/berakhir/i.test(e.message)) return habis(); toast(e.message); }
+    } catch (e) { if (/berakhir/i.test(e.message)) return berakhirKarena(); toast(e.message); }
   };
   $("t-buka").onclick = () => buka("mtd_buka_kunci", { p_token: S.token, p_kode_buka: $("t-kode").value.trim() });
   $("t-periksa").onclick = () => buka("mtd_lanjut", { p_token: S.token });

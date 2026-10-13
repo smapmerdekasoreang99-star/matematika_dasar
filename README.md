@@ -156,6 +156,7 @@ Daftar guru ditarik dari Data Induk lewat `guru_ekspor` (semua guru aktif + kelo
 diampu), sama dengan yang dipakai Tryout.
 
 - **Ubah waktu sesi** (13 Okt 2026): di Sesi Kegiatan, sesi yang sedang dibuka punya **− Kurangi | N menit | + Tambah** (`mtd_ubah_waktu`). Sesi siswa yang sedang berjalan ikut bergeser sebanyak menit yang sama; halaman siswa membaca sisa waktu dari setiap balasan jawaban, tiap menit (`mtd_sisa_waktu`, ringan), dan sekali lagi sebelum menutup sesi. Pengurangan harus menyisakan paling sedikit 1 menit (untuk mengakhiri: Tutup sekarang). Sebelumnya HP siswa tetap menutup sesi pada waktu lama walau guru menambah waktu.
+- **Membuka sesi mengakhiri latihan mandiri** (13 Okt 2026, kejadian MD11-4): `mtd_buka_kelompok` mengakhiri latihan mandiri anggota kelompok yang masih berjalan (`mtd_sesi.alasan = 'sesi_kelompok'`). HP siswa (cek tiap menit / saat menjawab lewat `mtd_sisa_waktu`) kembali ke layar masuk dengan pesan "ketik kode akses yang BARU". Layar guru membedakan **dalam sesi** dan **latihan mandiri** (`n_mandiri` di `mtd_buka_daftar`, `online_mandiri` di `mtd_rekap`).
 - **Kemajuan kelompok**: dipilih per kelompok MD (MD10-1, …), *Semua
   kelompok*, atau *Tanpa kelompok MD* (siswa yang pernah berlatih lalu keluar
   dari kelompok). Pindah kelompok di Data Induk tidak mengubah posisi latihan
