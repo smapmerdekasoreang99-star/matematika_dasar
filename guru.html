@@ -3325,7 +3325,7 @@ window.addEventListener("resize", () => { clearTimeout(ukurT); ukurT = setTimeou
     const w = document.createElement("span"); w.className = "pin-bungkus";
     i.parentNode.insertBefore(w, i); w.appendChild(i);
     i.style.paddingRight = "46px";
-    if (getComputedStyle(i).textAlign === "center") i.style.paddingLeft = "46px";   // isi rata tengah tetap di tengah
+    if (getComputedStyle(i).textAlign === "center") { i.style.paddingLeft = "46px"; i.style.textAlign = "center"; }   // isi rata tengah tetap di tengah
     const b = document.createElement("button");
     b.type = "button"; b.className = "pin-lihat"; b.innerHTML = MATA;
     b.title = "Lihat PIN"; b.setAttribute("aria-label", "Lihat PIN"); b.setAttribute("aria-pressed", "false");
