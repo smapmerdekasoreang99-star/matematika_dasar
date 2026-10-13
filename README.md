@@ -193,7 +193,15 @@ diampu), sama dengan yang dipakai Tryout.
      level, ujung *berhenti* atau *lanjut ke urutan biasa*. **Tiap langkah boleh memakai
      profil aturan sendiri** (13 Okt 2026), mis. Perkalian Dasar Lv 1 = 50 soal, Lv 2 dst = 10 soal:
      berlaku selama siswa di langkah itu, langsung berganti saat naik ke langkah berikutnya.
-     Lapisan: umum ← kelompok ← langkah tahapan ← siswa. Latihan mandiri tidak terpengaruh. Dipasang lewat Daftar siswa → Pasang jalur. Pindahkan posisi manual
+     Ujung *lanjut* boleh memakai **profil sesudah tahapan** untuk urutan umum sesudahnya
+     (kosong = ikut profil kelompok); dilepas bila guru memasang tahapan lain, memindah posisi,
+     memilih Ikut kelompok, atau melepas tahapan kelompok.
+     Tahapan juga punya **aturan dasar** (berlaku di semua langkah; kosong = Pengaturan Umum).
+     **Satu pilihan per kelompok** (13 Okt 2026): tahapan khusus ATAU urutan umum + profil
+     (database menolak keduanya bersamaan); memasang tahapan melepas profil kelompok dan sebaliknya.
+     Lapisan: umum ← aturan dasar (profil kelompok / aturan dasar tahapan) ← langkah tahapan / sesudah tahapan ← siswa.
+     Latihan mandiri tidak terpengaruh.
+     Penyusun tahapan: bagian bernomor (nama, langkah, sesudah tahapan) + ringkasan alur. Dipasang lewat Daftar siswa → Pasang jalur. Pindahkan posisi manual
      melepas jalur.
   Analisis siswa menampilkan *Aturan yang berlaku* beserta asal tiap aturan.
 - **Pengaturan Umum**, dikelompokkan seperti *Pengaturan ujian* di Dasbor Hasil Tryout:
