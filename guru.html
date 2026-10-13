@@ -389,6 +389,9 @@ td.posisi { min-width: 200px; } td.posisi .pos-nm { display: block; font-weight:
 .jl-baris { display: flex; align-items: center; gap: var(--j2); flex-wrap: wrap; padding: var(--j2); background: var(--kertas-3); border-radius: var(--r2); }
 .jl-baris select { width: auto; flex: 1 1 160px; padding: var(--j2); font-size: var(--h-m); }
 .jl-baris select[data-f="dari"], .jl-baris select[data-f="sampai"] { flex: 0 1 110px; }
+.jl-baris .jl-profil { flex: 1 1 100%; display: flex; align-items: center; gap: var(--j2); flex-wrap: wrap; padding-left: 32px; }
+.jl-baris .jl-profil select { flex: 1 1 220px; }
+.jl-langkah li .jl-pr { color: var(--emas-teks); font-weight: 700; }
 .jl-no { width: 26px; height: 26px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--gelap); color: var(--emas); font-weight: 800; font-size: 12px; flex: none; }
 button.tutup-merah { background: var(--absen-muda); color: var(--absen-tua); }
 .massal select#dl-jalur { min-width: 160px; }
@@ -853,7 +856,7 @@ body.lihat .ubah { display: none !important; }
             <li class="l-umum"><span class="l-no">3</span><div><b>Pengaturan Umum</b><small>diatur admin</small></div><span class="l-isi"><span><small>Aturan</small>Pengaturan Umum</span><span><small>Tahapan</small>urutan Tahapan Level</span></span></li>
           </ol>
         </div>
-        <p class="catatan-seksi"><span>Isian aturan yang tidak diisi profil di atas ikut lapisan di bawahnya, satu per satu. Contoh: profil siswa yang hanya mengubah jumlah soal tetap memakai lama sesi dari kelompoknya.</span></p>
+        <p class="catatan-seksi"><span>Isian aturan yang tidak diisi profil di atas ikut lapisan di bawahnya, satu per satu. Contoh: profil siswa yang hanya mengubah jumlah soal tetap memakai lama sesi dari kelompoknya. Profil yang dipasang pada <b>langkah tahapan khusus</b> berlaku selama siswa di langkah itu: mengalahkan profil kelompok, kalah oleh profil siswa.</span></p>
       </section>
       <p id="lapis-buka-p" class="hidden" style="margin:0 0 var(--j4)"><button class="garis kecil" id="lapis-buka">Tampilkan cara sistem memilih aturan dan tahapan</button></p>
 
@@ -878,7 +881,7 @@ body.lihat .ubah { display: none !important; }
 
       <section class="kartu seksi">
         <div class="seksi-kepala"><span class="seksi-ikon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="6" r="2.5"/><path d="M7.5 18H15a3.5 3.5 0 0 0 0-7H9a3.5 3.5 0 0 1 0-7h7.5"/></svg></span>
-          <div><h2>2. Tahapan khusus</h2><p>Urutan tingkat dan level tertentu untuk remedial atau pengayaan. Hanya berisi urutan soal.</p></div>
+          <div><h2>2. Tahapan khusus</h2><p>Urutan tingkat dan level tertentu untuk remedial atau pengayaan. Tiap langkah boleh memakai profil aturan sendiri, mis. Level 1 = 50 soal, Level 2 dst = 10 soal.</p></div>
           <button class="ubah kecil seksi-aksi" id="jl-baru">+ Buat tahapan</button></div>
         <div class="jl-editor hidden" id="jl-editor"></div>
         <div id="jl-daftar"></div>
@@ -1758,7 +1761,7 @@ function gambarInfoKelompok() {
         : `<b>Pengaturan Umum</b><span class="ik-chips">${isianUmum.map((x) => chip(x, G.atur[x.k])).join("")}</span>`}
         ${lainA ? `<div class="ik-lain"><span class="ik-judul">Diatur per siswa</span>${lainA}</div>` : ""}</div>
       <div class="ik-sel"><span class="ik-judul">Tahapan kelompok</span>${j
-        ? `<b>Tahapan "${esc(j.nama)}"</b><small>${j.langkah.map((l) => esc(langkahTeks(l))).join(" → ")} → ${j.akhir === "lanjut" ? "lanjut ke urutan umum" : "selesai"}</small>`
+        ? `<b>Tahapan "${esc(j.nama)}"</b><small>${j.langkah.map((l) => esc(langkahTeks(l)) + (profilLangkah(l) ? ` (${esc(profilLangkah(l))})` : "")).join(" → ")} → ${j.akhir === "lanjut" ? "lanjut ke urutan umum" : "selesai"}</small>`
         : '<b>Tahapan Level</b><small>Urutan bawaan, dari tingkat pertama sampai terakhir.</small>'}
         ${lainT ? `<div class="ik-lain"><span class="ik-judul">Diatur per siswa</span>${lainT}</div>` : ""}</div>
     </div>`;
@@ -1794,6 +1797,8 @@ const SEMUA_KHUSUS = ATUR_KHUSUS.flatMap((g) => g.f);
 const nilaiAturTeks = (x, v) => x.t === "ya" ? (v ? x.on : x.off) : x.t === "pilih" ? ((x.opsi.find((o) => o[0] === (v || "ulang")) || [])[1] || v) : x.t === "kode" ? (v ? v : "tanpa kode")
   : x.k === "batas_salah" || x.k === "batas_waktu_soal" || x.k === "maks_keluar" ? (v ? `${v} ${x.sat}` : "tanpa batas") : `${v} ${x.sat}`;
 // "Dipakai oleh" untuk profil dan tahapan: kelompok (beserta jumlah anggotanya) dan siswa yang dipilih langsung
+// Tahapan yang memakai profil ini di salah satu langkahnya (13 Okt 2026).
+const tahapanProfil = (id) => { const n = JALUR.filter((j) => j.langkah.some((l) => l.profil === id)).map((j) => `"${j.nama}"`); return n.length ? `langkah tahapan ${n.join(", ")}` : ""; };
 const dipakaiTeks = (kel, nKel, nSiswa) => [kel.length ? `kelompok ${kel.join(", ")} (${nKel} siswa)` : "", nSiswa ? `${nSiswa} siswa dipilih langsung` : ""].filter(Boolean).join(" · ");
 
 async function muatProfil(diam) {
@@ -1814,7 +1819,7 @@ async function muatSemua() {
 function gambarProfil() {
   const boleh = PERAN !== "pengawas";
   $("pr-daftar").innerHTML = PROFIL.length ? PROFIL.map((p) => {
-    const pakai = dipakaiTeks(p.kelompok, p.n_kelompok_siswa, p.n_siswa);
+    const pakai = [dipakaiTeks(p.kelompok, p.n_kelompok_siswa, p.n_siswa), tahapanProfil(p.id)].filter(Boolean).join(" · ");
     return `<div class="butir"><div class="jl-kepala"><div><h2>${esc(p.nama)}</h2>${p.catatan ? `<span class="redup kecil">${esc(p.catatan)}</span>` : ""}</div>
       ${p.boleh_ubah ? `<span class="jl-aksi"><button class="garis kecil" data-ubah-profil="${p.id}">Ubah</button><button class="kecil bahaya" data-hapus-profil="${p.id}">Hapus</button></span>` : `<span class="redup kecil">dibuat ${esc(p.pemilik || "admin")}</span>`}</div>
       <div class="pr-chip">${SEMUA_KHUSUS.filter((x) => p.aturan[x.k] !== undefined).map((x) => `<span><small>${x.l}</small><b>${esc(nilaiAturTeks(x, p.aturan[x.k]))}</b></span>`).join("")}</div>
@@ -1822,9 +1827,9 @@ function gambarProfil() {
   }).join("") : '<p class="butir kosong-data">Belum ada profil aturan. Semua siswa memakai Pengaturan Umum.</p>';
   $("pr-daftar").querySelectorAll("[data-ubah-profil]").forEach((b) => b.onclick = () => bukaEditorProfil(PROFIL.find((p) => p.id === +b.dataset.ubahProfil)));
   $("pr-daftar").querySelectorAll("[data-hapus-profil]").forEach((b) => b.onclick = async () => {
-    const p = PROFIL.find((x) => x.id === +b.dataset.hapusProfil), pakai = dipakaiTeks(p.kelompok, p.n_kelompok_siswa, p.n_siswa);
+    const p = PROFIL.find((x) => x.id === +b.dataset.hapusProfil), pakai = [dipakaiTeks(p.kelompok, p.n_kelompok_siswa, p.n_siswa), tahapanProfil(p.id)].filter(Boolean).join(" · ");
     if (!confirm(`Hapus profil "${p.nama}"?\n\n` + (pakai ? `Dipakai oleh: ${pakai}.\nMereka kembali ke aturan di bawahnya (aturan kelompok atau Pengaturan Umum).` : "Profil ini belum dipakai."))) return;
-    try { await rpc("mtd_profil_hapus", { p_pin: PIN, p_id: p.id }); toast("Profil dihapus"); muatProfil(); muatKelas(); } catch (e) { toast(e.message); }
+    try { await rpc("mtd_profil_hapus", { p_pin: PIN, p_id: p.id }); toast("Profil dihapus"); muatProfil(); muatJalur(true); muatKelas(); } catch (e) { toast(e.message); }
   });
 }
 // Aturan & tahapan per kelompok: dua pilihan per baris, masing-masing dengan konfirmasi akibatnya.
@@ -1967,6 +1972,8 @@ $("ck-cari").oninput = cekSiswa;
 let JALUR = [];
 const namaTingkat = (k) => (G.tingkat.find((t) => t.kode === k) || {}).nama || k;
 const langkahTeks = (l) => `${namaTingkat(l.tingkat)} · Lv ${l.dari === l.sampai ? l.dari : l.dari + "–" + l.sampai}`;
+// Nama profil aturan langkah tahapan (13 Okt 2026); null bila langkah ikut profil kelompok/siswa.
+const profilLangkah = (l) => l.profil ? (PROFIL.find((p) => p.id === l.profil) || {}).nama || l.profil_nama || "profil terhapus" : null;
 async function muatJalur(diam) {
   try { JALUR = await rpc("mtd_jalur_daftar", { p_pin: PIN }); } catch (e) { if (!diam) toast(e.message); return; }
   isiPilihTahapan(); gambarJalur(); gambarKelompokAturan(); gambarInfoKelompok();
@@ -1987,7 +1994,7 @@ function gambarJalur() {
     return `<div class="butir">
       <div class="jl-kepala"><div><h2>${esc(j.nama)}</h2><span class="redup kecil">${j.langkah.reduce((a, l) => a + (l.sampai - l.dari + 1), 0)} level · ${j.n_siswa} siswa sedang di tahapan ini · ujung: ${j.akhir === "lanjut" ? "lanjut ke urutan umum" : "berhenti"}</span></div>
         ${j.boleh_ubah ? `<span class="jl-aksi"><button class="garis kecil" data-ubah-jalur="${j.id}">Ubah</button><button class="kecil bahaya" data-hapus-jalur="${j.id}">Hapus</button></span>` : `<span class="redup kecil">dibuat ${esc(j.pemilik || "admin")}</span>`}</div>
-      <ol class="jl-langkah">${j.langkah.map((l) => { const tt = tutupDiLangkah(l); return `<li><b>${esc(namaTingkat(l.tingkat))}</b><span>Level ${l.dari === l.sampai ? l.dari : l.dari + "–" + l.sampai}</span>${tt ? `<span class="lencana emas" title="Ditutup untuk tahapan umum; siswa di tahapan ini tetap mengerjakannya">${esc(tt)}</span>` : ""}</li>`; }).join("")}
+      <ol class="jl-langkah">${j.langkah.map((l) => { const tt = tutupDiLangkah(l); return `<li><b>${esc(namaTingkat(l.tingkat))}</b><span>Level ${l.dari === l.sampai ? l.dari : l.dari + "–" + l.sampai}</span>${profilLangkah(l) ? `<span class="jl-pr" title="Profil aturan selama siswa di langkah ini">· ${esc(profilLangkah(l))}</span>` : ""}${tt ? `<span class="lencana emas" title="Ditutup untuk tahapan umum; siswa di tahapan ini tetap mengerjakannya">${esc(tt)}</span>` : ""}</li>`; }).join("")}
         <li class="jl-ujung">${j.akhir === "lanjut" ? "Lanjut ke urutan umum" : "Selesai"}</li></ol>
       <div class="pr-pakai ${pakai ? "" : "redup"}">${pakai ? "<b>Dipakai oleh:</b> " + esc(pakai) : "Belum dipakai kelompok atau siswa"}</div></div>`; }).join("")
     : '<p class="butir kosong-data">Belum ada tahapan khusus. Tekan <b>+ Buat tahapan</b> untuk menyusun tahapan remedial atau pengayaan.</p>';
@@ -2007,6 +2014,9 @@ function bukaEditorJalur(j) {
     return ts.length ? `<optgroup label="MD${m}">${ts.map((t) => `<option value="${t.kode}" ${t.kode === pilih ? "selected" : ""}>${esc(t.nama)}${!t.aktif ? " (ditutup admin)" : t.level.some((x) => x.aktif === false) ? ` (${t.level.filter((x) => x.aktif === false).length} level ditutup admin)` : ""}</option>`).join("")}</optgroup>` : "";
   }).join("");
   const opsiLevel = (k, pilih) => (G.tingkat.find((t) => t.kode === k) || { level: [] }).level.map((l) => `<option value="${l.level}" ${l.level === pilih ? "selected" : ""}>Level ${l.level}${l.aktif === false ? " (ditutup admin)" : ""}</option>`).join("");
+  // Profil aturan per langkah (13 Okt 2026): kosong = ikut profil kelompok/siswa.
+  const opsiProfil = (pilih) => `<option value="">— ikut profil kelompok/siswa —</option>` + PROFIL.map((p) => `<option value="${p.id}" ${p.id === pilih ? "selected" : ""}>${esc(p.nama)}${p.aturan.n_benar !== undefined ? ` (${p.aturan.n_benar} soal)` : ""}</option>`).join("")
+    + (pilih && !PROFIL.some((p) => p.id === pilih) ? `<option value="${pilih}" selected>${esc(profilLangkah({ profil: pilih, profil_nama: (langkah.find((x) => x.profil === pilih) || {}).profil_nama }))}</option>` : "");
   const gambar = () => {
     ed.innerHTML = `<h2>${j ? "Ubah tahapan" : "Tahapan baru"}</h2>
       <label class="isian" for="jl-nama">Nama tahapan</label><input type="text" id="jl-nama" maxlength="80" placeholder="mis. Remedial Pembagian MD10" value="${esc(j ? j.nama : $("jl-nama")?.value || "")}">
@@ -2015,16 +2025,18 @@ function bukaEditorJalur(j) {
         <select data-i="${i}" data-f="tingkat" aria-label="Tingkat">${opsiTingkat(l.tingkat)}</select>
         <span class="redup kecil">dari</span><select data-i="${i}" data-f="dari" aria-label="Dari level">${opsiLevel(l.tingkat, l.dari)}</select>
         <span class="redup kecil">sampai</span><select data-i="${i}" data-f="sampai" aria-label="Sampai level">${opsiLevel(l.tingkat, l.sampai)}</select>
-        <button class="kecil garis" data-naik="${i}" title="Naikkan" ${i ? "" : "disabled"}>↑</button><button class="kecil tutup-merah" data-hapus="${i}" title="Hapus langkah" ${langkah.length > 1 ? "" : "disabled"}>✕</button></div>${tutupDiLangkah(l) ? `<p class="jl-tutup">⚠ ${esc(tutupDiLangkah(l))} untuk tahapan umum. Siswa di tahapan ini <b>tetap mengerjakannya</b>.</p>` : ""}`).join("")}</div>
+        <button class="kecil garis" data-naik="${i}" title="Naikkan" ${i ? "" : "disabled"}>↑</button><button class="kecil tutup-merah" data-hapus="${i}" title="Hapus langkah" ${langkah.length > 1 ? "" : "disabled"}>✕</button>
+        <span class="jl-profil"><span class="redup kecil">aturan</span><select data-i="${i}" data-f="profil" aria-label="Profil aturan langkah ${i + 1}">${opsiProfil(l.profil)}</select></span></div>${tutupDiLangkah(l) ? `<p class="jl-tutup">⚠ ${esc(tutupDiLangkah(l))} untuk tahapan umum. Siswa di tahapan ini <b>tetap mengerjakannya</b>.</p>` : ""}`).join("")}</div>
       <p><button class="garis kecil" id="jl-tambah">+ Tambah langkah</button></p>
       <div class="isian">Setelah langkah terakhir</div>
       <div class="pilihan"><label><input type="radio" name="jl-akhir" value="berhenti" ${(j ? j.akhir : "berhenti") === "berhenti" ? "checked" : ""}><span><b>Berhenti</b><span>Siswa selesai; guru memutuskan langkah berikutnya</span></span></label>
         <label><input type="radio" name="jl-akhir" value="lanjut" ${j && j.akhir === "lanjut" ? "checked" : ""}><span><b>Lanjut ke urutan umum</b><span>Meneruskan tingkat/level berikutnya di Tahapan Level</span></span></label></div>
-      <p class="redup kecil" style="margin:var(--j2) 0 0">Tahapan hanya mengatur urutan soal. Lama sesi, jumlah soal, dan aturan lain mengikuti profil kelompok atau siswa.</p>
+      <p class="redup kecil" style="margin:var(--j2) 0 0"><b>Aturan</b> tiap langkah: pilih profil (mis. jumlah soal per level) yang berlaku selama siswa di langkah itu; begitu naik ke langkah berikutnya, profil langkah itu yang berlaku. Kosong = ikut profil kelompok. Profil siswa tetap paling kuat.</p>
       <div class="baris" style="margin-top:var(--j4)"><button id="jl-simpan">Simpan tahapan</button><button class="garis" id="jl-batal">Batal</button></div>`;
     ed.querySelectorAll("select[data-i]").forEach((s) => s.onchange = () => {
       const l = langkah[+s.dataset.i], f = s.dataset.f;
       if (f === "tingkat") { const t = G.tingkat.find((x) => x.kode === s.value); l.tingkat = s.value; l.dari = 1; l.sampai = t.level.length; }
+      else if (f === "profil") { if (s.value) l.profil = +s.value; else delete l.profil; }
       else l[f] = +s.value;
       if (l.dari > l.sampai) [l.dari, l.sampai] = [l.sampai, l.dari];
       simpanNama(); gambar();
@@ -2039,7 +2051,7 @@ function bukaEditorJalur(j) {
       if (!nama) return toast("Isi nama tahapan dulu.");
       const pakai = j ? dipakaiTeks(j.kelompok, j.n_kelompok_siswa, j.n_sendiri) : "";
       if (pakai && !confirm(`Simpan perubahan tahapan "${nama}"?\n\nDipakai oleh: ${pakai}.\nLangkah baru langsung berlaku; siswa tidak dipindah dari posisinya sekarang.`)) return;
-      try { await rpc("mtd_jalur_simpan", { p_pin: PIN, p_nama: nama, p_langkah: langkah, p_akhir: akhir, p_id: j ? j.id : null });
+      try { await rpc("mtd_jalur_simpan", { p_pin: PIN, p_nama: nama, p_langkah: langkah.map(({ profil_nama, ...l }) => l), p_akhir: akhir, p_id: j ? j.id : null });
         toast("Tahapan disimpan"); ed.classList.add("hidden"); muatJalur(); } catch (e) { toast(e.message); }
     };
   };

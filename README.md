@@ -190,8 +190,10 @@ diampu), sama dengan yang dipakai Tryout.
   2. *Aturan per kelompok*: profil dipasang ke kelompok MD.
   3. *Aturan beberapa siswa*: Daftar siswa → centang → Pasang aturan.
   4. *Jalur latihan khusus* (remedial/pengayaan): langkah-langkah tingkat + rentang
-     level, ujung *berhenti* atau *lanjut ke urutan biasa*, boleh memakai profil
-     aturan. Dipasang lewat Daftar siswa → Pasang jalur. Pindahkan posisi manual
+     level, ujung *berhenti* atau *lanjut ke urutan biasa*. **Tiap langkah boleh memakai
+     profil aturan sendiri** (13 Okt 2026), mis. Perkalian Dasar Lv 1 = 50 soal, Lv 2 dst = 10 soal:
+     berlaku selama siswa di langkah itu, langsung berganti saat naik ke langkah berikutnya.
+     Lapisan: umum ← kelompok ← langkah tahapan ← siswa. Latihan mandiri tidak terpengaruh. Dipasang lewat Daftar siswa → Pasang jalur. Pindahkan posisi manual
      melepas jalur.
   Analisis siswa menampilkan *Aturan yang berlaku* beserta asal tiap aturan.
 - **Pengaturan Umum**, dikelompokkan seperti *Pengaturan ujian* di Dasbor Hasil Tryout:
