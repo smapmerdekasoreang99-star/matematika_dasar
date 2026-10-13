@@ -403,9 +403,10 @@ td.posisi { min-width: 200px; } td.posisi .pos-nm { display: block; font-weight:
 .jl-kartu-info { font-size: var(--h-xs); color: var(--tinta-2); }
 .jl-kartu-aksi { margin-left: auto; display: inline-flex; gap: 4px; }
 .ikon-tombol { width: 32px; height: 32px; padding: 0; display: inline-grid; place-items: center; border-radius: 8px; border: 1px solid var(--garis-2); background: var(--kertas); color: var(--tinta); font-weight: 700; cursor: pointer; }
-.ikon-tombol:hover:not(:disabled) { border-color: var(--gelap); }
+.ikon-tombol:hover:not(:disabled) { border-color: var(--gelap); background: var(--kertas-3); color: var(--gelap); }
+.ikon-tombol:disabled:hover { background: var(--kertas); color: var(--tinta); }
 .ikon-tombol.hapus { color: var(--absen-tua); }
-.ikon-tombol.hapus:hover:not(:disabled) { background: var(--absen-muda); border-color: var(--absen-tua); }
+.ikon-tombol.hapus:hover:not(:disabled) { background: var(--absen-muda); border-color: var(--absen-tua); color: var(--absen-tua); }
 .ikon-tombol:disabled { opacity: .35; cursor: default; }
 .jl-kartu-isi { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr); gap: var(--j2) var(--j3); margin-top: var(--j3); }
 .jl-f { display: grid; gap: 4px; min-width: 0; font-size: var(--h-xs); font-weight: 700; color: var(--tinta-2); }
@@ -416,7 +417,7 @@ td.posisi { min-width: 200px; } td.posisi .pos-nm { display: block; font-weight:
 .jl-ket-pr b { color: var(--tinta); }
 .jl-kartu .jl-tutup { margin: var(--j2) 0 0; }
 .jl-tambah { width: 100%; padding: var(--j3); border: 1.5px dashed var(--garis-2); border-radius: var(--r2); background: transparent; color: var(--tinta); font-weight: 700; cursor: pointer; }
-.jl-tambah:hover { border-color: var(--gelap); background: var(--kertas-3); }
+.jl-tambah:hover { border-color: var(--gelap); background: var(--kertas-3); color: var(--gelap); }   /* button:hover umum memutihkan teks */
 .jl-lanjut { padding: var(--j3); border-radius: var(--r2); background: var(--emas-kabut); border: 1px solid var(--emas-muda); }
 .jl-lanjut .jl-f, .jl-f-dasar { max-width: 420px; }
 .kel-berlaku { min-width: 240px; }
