@@ -200,7 +200,8 @@ diampu), sama dengan yang dipakai Tryout.
      **Satu pilihan per kelompok** (13 Okt 2026): tahapan khusus ATAU urutan umum + profil
      (database menolak keduanya bersamaan); memasang tahapan melepas profil kelompok dan sebaliknya.
      Lapisan: umum ← aturan dasar (profil kelompok / aturan dasar tahapan) ← langkah tahapan / sesudah tahapan ← siswa.
-     Latihan mandiri tidak terpengaruh.
+     Latihan mandiri memakai "Aturan latihan mandiri" (kelompok/siswa): Pengaturan Umum (bawaan), profil, atau
+     **Sama dengan sesi kelompok** (lapisan sesi dihitung dari posisi mandiri; profil mandiri siswa di atasnya).
      Penyusun tahapan: bagian bernomor (nama, langkah, sesudah tahapan) + ringkasan alur. Dipasang lewat Daftar siswa → Pasang jalur. Pindahkan posisi manual
      melepas jalur.
   Analisis siswa menampilkan *Aturan yang berlaku* beserta asal tiap aturan.

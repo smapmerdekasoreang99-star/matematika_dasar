@@ -1368,9 +1368,9 @@ function isiDefaultMassal() {
   AWAL_A = sA.value; AWAL_T = sT.value; MULAI_DIUBAH = false;
   // Latihan mandiri: aturan & saran yang dipasang langsung pada siswa
   const sAM = $("dl-aturan-m"), sSM = $("dl-saran-m");
-  sAM.innerHTML = '<option value="">Ikut kelompok</option>' + PROFIL.map((p) => `<option value="${p.id}">${esc(p.nama)}</option>`).join("");
+  sAM.innerHTML = '<option value="">Ikut kelompok</option><option value="sesi">Sama dengan sesi kelompok</option>' + PROFIL.map((p) => `<option value="${p.id}">${esc(p.nama)}</option>`).join("");
   sSM.innerHTML = '<option value="">Ikut kelompok</option>' + opsiSaran("");
-  beragam(sAM, [...new Set(L.map((r) => String((MDF.siswa[r.nisn] || {}).profil || "")))]);
+  beragam(sAM, [...new Set(L.map((r) => { const m = MDF.siswa[r.nisn] || {}; return m.sesi ? "sesi" : String(m.profil || ""); }))]);
   beragam(sSM, [...new Set(L.map((r) => { const m = MDF.siswa[r.nisn] || {}; return m.tingkat ? `${m.tingkat}|${m.level}` : ""; }))]);
   AWAL_AM = sAM.value; AWAL_SM = sSM.value;
   aturMulai();
@@ -1424,9 +1424,9 @@ $("dl-terapkan").onclick = async () => {
   const vAM = $("dl-aturan-m").value, vSM = $("dl-saran-m").value, ubahAM = vAM !== "~" && vAM !== AWAL_AM, ubahSM = vSM !== "~" && vSM !== AWAL_SM;
   if (!ubahA && !ubahT && !ubahAM && !ubahSM) return toast("Belum ada aturan atau tahapan yang diubah.");
   const bagian = [], kerja = [];
-  if (ubahAM) { const p = PROFIL.find((x) => x.id === +vAM);
-    bagian.push(p ? `ATURAN LATIHAN MANDIRI: "${p.nama}" (${ringkasProfil(p)}).` : "ATURAN LATIHAN MANDIRI: ikut kelompok.");
-    kerja.push(async () => { await rpc("mtd_mandiri_siswa_set", { p_pin: PIN, p_nisn: L.map((x) => x.nisn), p_jenis: "aturan", p_nilai: p ? { profil: p.id } : null }); return "aturan latihan mandiri"; }); }
+  if (ubahAM) { const p = PROFIL.find((x) => x.id === +vAM), sesi = vAM === "sesi";
+    bagian.push(sesi ? "ATURAN LATIHAN MANDIRI: sama dengan sesi kelompok (aturan dasar, profil langkah tahapan, profil siswa)." : p ? `ATURAN LATIHAN MANDIRI: "${p.nama}" (${ringkasProfil(p)}).` : "ATURAN LATIHAN MANDIRI: ikut kelompok.");
+    kerja.push(async () => { await rpc("mtd_mandiri_siswa_set", { p_pin: PIN, p_nisn: L.map((x) => x.nisn), p_jenis: "aturan", p_nilai: sesi ? { sesi: true } : p ? { profil: p.id } : null }); return "aturan latihan mandiri"; }); }
   if (ubahSM) { const [t, l] = vSM.split("|");
     bagian.push(vSM ? `SARAN LATIHAN MANDIRI: ${namaTingkat(t)} level ${l}.` : "SARAN LATIHAN MANDIRI: ikut kelompok.");
     kerja.push(async () => { await rpc("mtd_mandiri_siswa_set", { p_pin: PIN, p_nisn: L.map((x) => x.nisn), p_jenis: "saran", p_nilai: vSM ? { tingkat: t, level: +l } : null }); return "saran latihan mandiri"; }); }
@@ -1893,7 +1893,7 @@ function gambarKelompokAturan() {
       <td><select data-kel-pilih="${esc(k)}" ${boleh ? "" : "disabled"} aria-label="Latihan di sesi kelompok ${esc(k)}">
         <optgroup label="Tahapan khusus (aturan di dalam tahapan)">${JALUR.map((j) => `<option value="t:${j.id}" ${j.id === tid ? "selected" : ""}>${esc(j.nama)}</option>`).join("") || '<option disabled>Belum ada tahapan khusus</option>'}</optgroup>
         <optgroup label="Urutan umum (Tahapan Level)"><option value="" ${!tid && !pid ? "selected" : ""}>Pengaturan Umum</option>${PROFIL.map((x) => `<option value="p:${x.id}" ${!tid && x.id === pid ? "selected" : ""}>Profil: ${esc(x.nama)}</option>`).join("")}</optgroup></select></td>
-      <td><select data-kel-am="${esc(k)}" ${boleh ? "" : "disabled"} aria-label="Aturan latihan mandiri ${esc(k)}"><option value="">— Pengaturan Umum —</option>${PROFIL.map((x) => `<option value="${x.id}" ${x.id === mk.profil ? "selected" : ""}>${esc(x.nama)}</option>`).join("")}</select></td>
+      <td><select data-kel-am="${esc(k)}" ${boleh ? "" : "disabled"} aria-label="Aturan latihan mandiri ${esc(k)}"><option value="">— Pengaturan Umum —</option><option value="sesi" ${mk.sesi ? "selected" : ""}>Sama dengan sesi kelompok</option>${PROFIL.map((x) => `<option value="${x.id}" ${x.id === mk.profil ? "selected" : ""}>${esc(x.nama)}</option>`).join("")}</select></td>
       <td><select data-kel-sm="${esc(k)}" ${boleh ? "" : "disabled"} aria-label="Saran latihan mandiri ${esc(k)}"><option value="">— Bebas, tanpa saran —</option>${opsiSaran(mk.tingkat ? `${mk.tingkat}|${mk.level}` : "")}</select></td>
       <td class="kecil redup kel-berlaku">${berlakuKelompok(k)}</td></tr>`;
   }).join("")}</tbody></table></div>`;
@@ -1934,7 +1934,9 @@ function gambarKelompokAturan() {
   $("pr-kelompok").querySelectorAll("[data-kel-am], [data-kel-sm]").forEach((sel) => sel.onchange = async () => {
     const aturan = sel.hasAttribute("data-kel-am"), k = aturan ? sel.dataset.kelAm : sel.dataset.kelSm;
     let nilai = null, pesan;
-    if (aturan) { const p = PROFIL.find((x) => x.id === +sel.value); nilai = p ? { profil: p.id } : null;
+    if (aturan && sel.value === "sesi") { nilai = { sesi: true };
+      pesan = `Latihan mandiri ${k} memakai aturan yang sama dengan sesi kelompok?\n\nAturan dasar, profil langkah tahapan, dan profil siswa ikut berlaku, sesuai posisi latihan mandiri tiap siswa.`; }
+    else if (aturan) { const p = PROFIL.find((x) => x.id === +sel.value); nilai = p ? { profil: p.id } : null;
       pesan = p ? `Pasang aturan latihan mandiri "${p.nama}" untuk ${k}?\n\nYang diatur: ${ringkasProfil(p)}.\nBerlaku hanya saat siswa berlatih di luar sesi kelompok.` : `Latihan mandiri ${k} kembali ke Pengaturan Umum?`; }
     else { const [t, l] = sel.value.split("|"); nilai = sel.value ? { tingkat: t, level: +l, catatan: prompt("Catatan untuk siswa (opsional), mis. \"ulangi sampai lancar\":", "") || "" } : null;
       pesan = nilai ? `Sarankan ${namaTingkat(t)} level ${l} untuk latihan mandiri ${k}?\n\nSiswa tetap boleh memilih materi lain.` : `Latihan mandiri ${k} tanpa saran?`; }
