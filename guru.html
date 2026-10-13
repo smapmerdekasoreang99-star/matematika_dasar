@@ -22,6 +22,20 @@
 <link rel="stylesheet" href="assets/matdas.css?v=8">
 <script src="config.js"></script>
 <style>
+/* Tombol Panduan membaca data di kepala halaman (13 Okt 2026): PDF untuk dibuka, Word untuk dicetak/disunting */
+.panduan { position: relative; }
+.panduan > summary { list-style: none; cursor: pointer; font-weight: 700; font-size: var(--h-s); color: var(--tinta-terang);
+  border: 1.5px solid rgba(255,255,255,.35); border-radius: var(--r2); padding: var(--j1) var(--j3); min-height: 36px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+.panduan > summary::-webkit-details-marker { display: none; }
+.panduan > summary:hover, .panduan[open] > summary { border-color: var(--emas); background: rgba(255,255,255,.08); }
+.panduan-menu { position: absolute; right: 0; top: calc(100% + 8px); width: min(300px, calc(100vw - 32px)); background: var(--kertas-2); color: var(--tinta);
+  border: 1px solid var(--garis); border-radius: var(--r3); box-shadow: 0 14px 34px -14px rgba(34,30,23,.45); padding: 6px; z-index: calc(var(--lapis-topbar) + 1); }
+.panduan-menu a { display: block; padding: 10px 12px; border-radius: var(--r2); color: var(--gelap); font-weight: 700; text-decoration: none; }
+.panduan-menu a:hover { background: var(--kertas-3); }
+.panduan-menu small { display: block; font-weight: 400; color: var(--tinta-2); font-size: var(--h-xs); margin-top: 2px; }
+.panduan-menu p { margin: 4px 12px 6px; font-size: var(--h-xs); color: var(--tinta-2); }
+@media (max-width: 560px) { .panduan > summary .p-teks { display: none; }
+  .panduan-menu { position: fixed; left: 16px; right: 16px; top: 86px; width: auto; } }
 /* Navigasi utama: bilah berikon yang menempel di bawah kepala; digeser mendatar di HP */
 .tab { position: sticky; top: 63px; z-index: var(--lapis-nav); display: flex; gap: 4px; margin: var(--j4) 0 var(--j2); padding: 5px;
   background: rgba(255,255,255,.86); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
@@ -620,7 +634,11 @@ body.lihat .ubah { display: none !important; }
 <header class="atas">
   <img src="assets/logo.png" alt="Logo SMA Plus Merdeka Soreang">
   <div class="isi"><div class="judul">Matematika Dasar · Guru</div><div class="sub" id="hd-sub">Kemajuan latihan siswa</div></div>
-  <div class="kanan"><button id="btn-keluar" class="hidden">Keluar</button></div>
+  <div class="kanan"><details class="panduan hidden" id="panduan"><summary title="Panduan membaca data halaman guru"><span aria-hidden="true">📘</span><span class="p-teks">Panduan</span></summary>
+    <div class="panduan-menu"><p>Cara membaca Sesi Kegiatan, Perkembangan Siswa, dan Analisis Siswa Matematika Dasar.</p>
+      <a href="Panduan_Membaca_Data_Matdas.pdf" target="_blank" rel="noopener">Buka panduan (PDF)<small>Langsung terbuka di browser, cocok untuk HP</small></a>
+      <a href="Panduan_Membaca_Data_Matdas.docx" download>Unduh versi Word (.docx)<small>Untuk dicetak atau disunting</small></a></div></details>
+  <button id="btn-keluar" class="hidden">Keluar</button></div>
 </header>
 
 <main class="bungkus lebar">
@@ -943,7 +961,7 @@ async function masuk(pin, diam) {
     $("tab-admin").classList.toggle("hidden", PERAN !== "admin"); $("tab").classList.toggle("tujuh", PERAN === "admin");
     $("pin-sementara").classList.toggle("hidden", !G.sementara);
     $("pin-sementara").innerHTML = G.sementara ? `Anda masuk dengan <b>PIN sementara</b>. Minta PIN pribadi kepada admin Matematika Dasar agar akun Anda tidak bisa dipakai orang lain.` : "";
-    $("v-pin").classList.add("hidden"); $("v-utama").classList.remove("hidden"); $("btn-keluar").classList.remove("hidden");
+    $("v-pin").classList.add("hidden"); $("v-utama").classList.remove("hidden"); $("btn-keluar").classList.remove("hidden"); $("panduan").classList.remove("hidden");
     MODE_MD = (G.kelompok || []).length > 0;
     $("pil-kelas").innerHTML = MODE_MD
       ? G.kelompok.map((k) => `<option>${esc(k)}</option>`).join("") + (G.ada_tanpa_kelompok ? '<option value="-">Tanpa kelompok MD</option>' : "") + (G.kelompok.length > 1 || PERAN === "admin" ? `<option value="">${PERAN === "admin" ? "Semua kelompok" : "Semua kelompok saya"}</option>` : "")
@@ -980,6 +998,9 @@ function gambarSinkron() {
 }
 $("btn-pin").onclick = () => masuk($("pin").value.trim());
 $("pin").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-pin").click(); });
+// Panduan: tutup menu saat mengetuk di luar atau menekan Esc
+document.addEventListener("click", (e) => { const p = $("panduan"); if (p.open && !p.contains(e.target)) p.open = false; });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("panduan").open = false; });
 $("btn-keluar").onclick = () => { ssSet(KUNCI_PIN, null); location.reload(); };
 
 $("tab").querySelectorAll("button").forEach((b) => b.onclick = () => bukaTab(b.dataset.v));
