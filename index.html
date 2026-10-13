@@ -747,6 +747,7 @@ async function kirim(waktuHabis) {
     const nomorTadi = S.nomor;
     if (!r.peta) r.peta = S.peta;   // server hanya mengirim peta tingkat saat naik level (hemat ±3 KB per jawaban)
     S = r;
+    aturAkhir(r.sisa_detik);
     const hh = r.hasil;
     if (!hh || hh.naik || hh.ulang || S.nomor === 1) salahNo = new Set();
     if (hh && !hh.benar && !hh.naik && !hh.ulang && lanjutMode()) salahNo.add(nomorTadi);
@@ -907,7 +908,7 @@ function mulai(r) {
   $("uji-pita").innerHTML = r.uji ? "<b>Uji coba guru</b> · jawaban tidak masuk rekap siswa. Tutup tab ini bila selesai."
     : "<b>Latihan mandiri</b> · kemajuan di sini terpisah dari kemajuan resmi. Kemajuan resmi hanya bertambah saat sesi kelompok bersama guru.";
   $("uji-pita").classList.toggle("hidden", !r.uji && r.mode !== "mandiri");
-  akhirSesi = Date.now() + r.sisa_detik * 1000;
+  akhirSesi = Date.now() + r.sisa_detik * 1000; cekWaktuPada = Date.now();
   $("jam").classList.remove("hidden"); $("btn-keluar").classList.remove("hidden");
   if (r.selesai) return selesai();
   tampil("v-latih");
@@ -919,12 +920,36 @@ function mulai(r) {
   if (S.terkunci) tampilKunci(); else tutupTirai();
 }
 
+/* Sisa waktu dari server (13 Okt 2026): guru bisa menambah/mengurangi waktu sesi kelompok. Dibaca dari setiap
+   balasan jawaban, tiap menit selama sesi kelompok (mtd_sisa_waktu, ringan), dan sekali lagi sebelum sesi ditutup. */
+let cekWaktuPada = 0, cekWaktuJalan = false;
+function aturAkhir(detik) {
+  if (!akhirSesi || detik == null) return;
+  const baru = Date.now() + detik * 1000, lama = akhirSesi;
+  akhirSesi = baru;
+  if (baru - lama > 30000) toast("Waktu latihan ditambah oleh guru.");
+  else if (lama - baru > 30000) toast("Waktu latihan dikurangi oleh guru.");
+}
+async function cekWaktu() {
+  if (!S || !S.token || cekWaktuJalan) return;
+  cekWaktuJalan = true; cekWaktuPada = Date.now();
+  try { const r = await rpc("mtd_sisa_waktu", { p_token: S.token }); if (r.ok) aturAkhir(r.sisa_detik); else if (akhirSesi) akhirSesi = Date.now() - 1000; }
+  catch (e) { /* jaringan: tetap pakai hitungan di HP */ }
+  finally { cekWaktuJalan = false; }
+}
+
 function detak() {
   if (!S || !akhirSesi) return;
   const sisa = Math.max(0, Math.round((akhirSesi - Date.now()) / 1000));
   $("jam").textContent = `${Math.floor(sisa / 60)}:${String(sisa % 60).padStart(2, "0")}`;
   $("jam").classList.toggle("hampir", sisa <= 60);
-  if (sisa <= 0) return habis();
+  if (sisa <= 0) {
+    // Sebelum menutup, tanya server dulu: guru mungkin baru menambah waktu sesi
+    if (cekWaktuJalan) return;
+    if (Date.now() - cekWaktuPada > 5000) { cekWaktu(); return; }
+    return habis();
+  }
+  if (S.mode === "kelas" && !S.uji && Date.now() - cekWaktuPada > 60000) cekWaktu();
   if (akhirSoal && !S.terkunci && !menungguLanjut && !menungguNaik && !$("v-latih").classList.contains("hidden")) {
     const bw = S.atur.batas_waktu_soal, ss = Math.max(0, (akhirSoal - Date.now()) / 1000);
     $("s-waktu").firstElementChild.style.width = (100 * ss / bw) + "%";

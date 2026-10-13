@@ -160,7 +160,7 @@
 .ik-lipat summary { cursor: pointer; padding: var(--j3) var(--j5); font-weight: 700; font-size: var(--h-m); }
 @media (max-width: 860px) { .ik-baris { grid-template-columns: 1fr; padding: var(--j3) var(--j4); } }
 /* Sesi latihan per kelompok (Sesi Kegiatan) */
-.sesi-baris { display: grid; grid-template-columns: 150px minmax(0, 1fr) 130px 400px; gap: var(--j3) var(--j4); align-items: center;
+.sesi-baris { display: grid; grid-template-columns: 150px minmax(0, 1fr) 130px 470px; gap: var(--j3) var(--j4); align-items: center;
   padding: var(--j3) var(--j5); border-bottom: 1px solid var(--garis); }
 .sesi-baris:last-child { border-bottom: 0; }
 .sesi-baris.buka { background: var(--hadir-muda); background: color-mix(in srgb, var(--hadir-muda) 55%, transparent); }
@@ -174,14 +174,26 @@
 .sesi-aksi .sesi-layar { display: inline-flex; align-items: center; justify-content: center; gap: var(--j2); }
 .sesi-aksi .ikon { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linejoin: round; }
 .sesi-aksi .ikon path:first-child { fill: none; }
-.sesi-tambah { grid-column: auto; display: flex; align-items: stretch; min-height: 38px; overflow: hidden;
+/* Ubah waktu sesi yang sedang berjalan (13 Okt 2026): − Kurangi | N menit | + Tambah, selebar kolom aksi */
+.sesi-aksi.buka { grid-template-columns: repeat(3, 1fr); }
+.ubah-waktu { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr minmax(118px, auto) 1fr; min-height: 40px; overflow: hidden;
   border: 1.5px solid var(--garis-2); border-radius: var(--r2); background: #fff; }
-.sesi-tambah:focus-within { border-color: var(--emas-tua); box-shadow: 0 0 0 4px rgba(194,148,51,.14); }
-.sesi-aksi .sesi-tambah button { flex: 1; width: auto; min-height: 0; border: 0; border-right: 1.5px solid var(--garis-2); border-radius: 0; }
-.sesi-aksi .sesi-tambah button { white-space: nowrap; padding: 0 var(--j3); }
-.sesi-tambah input[type=number] { width: 52px; flex: none; padding: 0 var(--j1); border: 0; border-radius: 0; font-size: var(--h-m); font-weight: 700; text-align: center; box-shadow: none; }
-.sesi-tambah input[type=number]:focus { box-shadow: none; }
-.sesi-tambah .satuan { display: flex; align-items: center; padding: 0 var(--j2); border-left: 1px solid var(--garis); background: var(--kertas-3); font-size: var(--h-s); color: var(--tinta-2); }
+.ubah-waktu:focus-within { border-color: var(--emas-tua); box-shadow: 0 0 0 4px rgba(194,148,51,.14); }
+.sesi-aksi .ubah-waktu button { width: auto; min-height: 0; border: 0; border-radius: 0; padding: 0 var(--j3); font-size: var(--h-s); font-weight: 700;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+.ubah-waktu button b { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-size: 15px; line-height: 1; color: #fff; }
+.ubah-waktu .uw-kurang { background: var(--absen-muda); color: var(--absen-tua); }
+.ubah-waktu .uw-kurang b { background: var(--absen); }
+.ubah-waktu .uw-kurang:hover:not(:disabled) { background: #F1D3CB; color: var(--absen-tua); }
+.ubah-waktu .uw-tambah { background: var(--hadir-muda); color: var(--hadir-tua); }
+.ubah-waktu .uw-tambah b { background: var(--hadir); }
+.ubah-waktu .uw-tambah:hover:not(:disabled) { background: #D3E6D9; color: var(--hadir-tua); }
+.ubah-waktu button:disabled { opacity: .45; cursor: not-allowed; }
+.uw-isi { display: flex; align-items: center; justify-content: center; gap: 4px; border-left: 1.5px solid var(--garis-2); border-right: 1.5px solid var(--garis-2); padding: 0 var(--j2); cursor: text; }
+.uw-isi input[type=number] { width: 56px; padding: 0; border: 0; border-radius: 0; font-size: var(--h-m); font-weight: 800; text-align: center; box-shadow: none; background: transparent; }
+.uw-isi input[type=number]:focus { box-shadow: none; }
+.uw-isi span { font-size: var(--h-s); color: var(--tinta-2); }
+@media (max-width: 720px) { .sesi-aksi.buka { grid-template-columns: 1fr 1fr; } .sesi-aksi.buka .bahaya { grid-column: 1 / -1; } }
 .sesi-ringkas { margin: 0; padding: var(--j3) var(--j5); background: var(--kertas-3); border-bottom: 1px solid var(--garis); font-size: var(--h-s); line-height: 1.5; }
 .sesi-peringatan { margin: 0; padding: var(--j3) var(--j5); background: var(--emas-kabut); border-bottom: 1px solid var(--garis); font-size: var(--h-s); }
 @media (max-width: 720px) { .sesi-baris { grid-template-columns: 1fr auto; padding: var(--j3) var(--j4); } .sesi-status { grid-column: 1 / -1; grid-row: 2; } .sesi-aksi { grid-column: 1 / -1; justify-content: flex-start; } }
@@ -1435,7 +1447,7 @@ const sisaSesi = (k) => Math.max(0, Math.ceil((new Date(k.sampai).getTime() - (D
 const jamTeks = (iso) => new Date(iso).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
 function gambarSesi() {
   if (!BUKA) return;
-  if (document.activeElement && document.activeElement.matches("#sesi-isi [data-tambah-menit]")) return;
+  if (document.activeElement && document.activeElement.matches("#sesi-isi [data-uw-menit]")) return;
   const pilih = $("dl-kelompok").value, tk = $("dl-tingkat").value, boleh = true;
   const terbuka = (k) => k.buka && sisaSesi(k) > 0;
   // Kelompok yang sedang dibuka diurutkan paling atas; saringan tingkat ikut berlaku (MD10-1 / 10-1 → 10)
@@ -1454,8 +1466,8 @@ function gambarSesi() {
         <div class="sesi-status">${buka ? `<span class="lencana baik"><span class="titik-on"></span>Dibuka · sisa ${sisaSesi(k)} menit</span><small>dibuka ${esc(k.oleh || "guru")} · sampai pukul ${jamTeks(k.sampai)} · ${k.n_online} sedang berlatih</small>`
           : `<span class="lencana">Ditutup</span><small>${G.atur && G.atur.mandiri === false ? "siswa tidak bisa masuk" : "siswa hanya bisa latihan mandiri"}</small>`}</div>
         <div class="sesi-kode">${buka ? `<small>Kode akses</small><b>${esc(k.kode)}</b>` : ""}</div>
-        <div class="sesi-aksi">${!boleh ? "" : buka
-          ? `<button class="garis kecil sesi-layar" data-layar="${esc(k.kelompok)}">${IKON_QR}QR &amp; kode masuk</button><button class="garis kecil sesi-layar" data-teratas="${esc(k.kelompok)}">${IKON_TERATAS}Tampilkan teratas</button><span class="sesi-tambah"><button class="garis kecil" data-tambah="${esc(k.kelompok)}" title="Memperpanjang sesi yang sedang berjalan; kode akses tetap">+ Tambah</button><input type="number" data-tambah-menit="${esc(k.kelompok)}" min="1" max="300" step="1" inputmode="numeric" value="${MENIT_TAMBAH[k.kelompok] || 15}" aria-label="Menit tambahan ${esc(k.kelompok)}"><span class="satuan">menit</span></span><button class="kecil bahaya" data-tutup="${esc(k.kelompok)}">Tutup sekarang</button>`
+        <div class="sesi-aksi${buka ? " buka" : ""}">${!boleh ? "" : buka
+          ? `<button class="garis kecil sesi-layar" data-layar="${esc(k.kelompok)}">${IKON_QR}QR &amp; kode masuk</button><button class="garis kecil sesi-layar" data-teratas="${esc(k.kelompok)}">${IKON_TERATAS}Tampilkan teratas</button><button class="kecil bahaya" data-tutup="${esc(k.kelompok)}">Tutup sekarang</button><div class="ubah-waktu" role="group" aria-label="Ubah waktu sesi ${esc(k.kelompok)}"><button type="button" class="uw-kurang" data-uw="-1" data-kel="${esc(k.kelompok)}" ${sisaSesi(k) <= 1 ? 'disabled title="Sisa waktu kurang dari 2 menit. Untuk mengakhiri, pakai Tutup sekarang."' : 'title="Mempersingkat sesi ini; siswa yang sedang berlatih ikut selesai lebih cepat"'}><b aria-hidden="true">−</b>Kurangi</button><label class="uw-isi"><input type="number" data-uw-menit="${esc(k.kelompok)}" min="1" max="300" step="1" inputmode="numeric" value="${esc(MENIT_TAMBAH[k.kelompok] || 15)}" aria-label="Jumlah menit"><span>menit</span></label><button type="button" class="uw-tambah" data-uw="1" data-kel="${esc(k.kelompok)}" title="Memperpanjang sesi ini; kode akses tetap"><b aria-hidden="true">+</b>Tambah</button></div>`
           : `${pilihMenit(k.kelompok)}<button class="kecil" data-buka="${esc(k.kelompok)}">Buka sesi</button>`}</div></div>`;
     }).join("");
     const cari = (k) => BUKA.kelompok.find((x) => x.kelompok === k);
@@ -1469,19 +1481,8 @@ function gambarSesi() {
     try { const r = await rpc("mtd_buka_kelompok", { p_pin: PIN, p_kelompok: [k], p_menit: m }); delete MENIT_PILIH[k]; await muatSesi(); tampilKode(k); toast(`Sesi ${k} dibuka, kode ${r.kelompok[0].kode}`); }
     catch (e) { toast(e.message); }
   });
-  $("sesi-isi").querySelectorAll("[data-tambah-menit]").forEach((i) => {
-    i.oninput = () => { MENIT_TAMBAH[i.dataset.tambahMenit] = i.value; };
-    i.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); i.parentNode.querySelector("[data-tambah]").click(); } };
-  });
-  $("sesi-isi").querySelectorAll("[data-tambah]").forEach((b) => b.onclick = async () => {
-    const k = cari(b.dataset.tambah), i = b.parentNode.querySelector("[data-tambah-menit]"), m = +i.value;
-    if (!Number.isInteger(m) || m < 1 || m > 300) { toast("Isi menit tambahan 1–300"); i.focus(); return; }
-    // Server menghitung lama dari sekarang (paling lama 300 menit): sisa + tambahan
-    const total = sisaSesi(k) + m, lama = Math.max(5, Math.min(300, total));
-    try { await rpc("mtd_buka_kelompok", { p_pin: PIN, p_kelompok: [k.kelompok], p_menit: lama }); MENIT_TAMBAH[k.kelompok] = m;
-      toast(total > 300 ? `Sesi ${k.kelompok} diperpanjang sampai batas 300 menit dari sekarang, kode tetap` : `Sesi ${k.kelompok} diperpanjang ${m} menit, kode tetap`); muatSesi(); }
-    catch (e) { toast(e.message); }
-  });
+  $("sesi-isi").querySelectorAll("[data-uw-menit]").forEach((i) => { i.oninput = () => { MENIT_TAMBAH[i.dataset.uwMenit] = i.value; }; });
+  $("sesi-isi").querySelectorAll("[data-uw]").forEach((b) => b.onclick = () => ubahWaktu(b.dataset.kel, +b.dataset.uw, b));
   $("sesi-isi").querySelectorAll("[data-tutup]").forEach((b) => b.onclick = async () => {
     const k = cari(b.dataset.tutup);
     if (!confirm(`Tutup sesi ${k.kelompok} sekarang?\n\n${k.n_online ? `${k.n_online} siswa yang sedang berlatih akan dikeluarkan. ` : ""}Kemajuan siswa tetap tersimpan.${k.kode ? ` Kode ${k.kode} tidak berlaku lagi.` : ""} Siswa hanya bisa masuk lagi saat sesi dibuka.`)) return;
@@ -1490,6 +1491,26 @@ function gambarSesi() {
   });
   $("sesi-isi").querySelectorAll("[data-layar]").forEach((b) => b.onclick = () => tampilKode(b.dataset.layar));
   $("sesi-isi").querySelectorAll("[data-teratas]").forEach((b) => b.onclick = () => tampilTeratas(b.dataset.teratas));
+}
+/* Tambah / kurangi waktu sesi yang sedang berjalan (13 Okt 2026). Sesi siswa ikut bergeser sebanyak menit yang sama;
+   HP siswa membaca sisa waktu baru dalam ±1 menit. Pengurangan harus menyisakan paling sedikit 1 menit. */
+async function ubahWaktu(kel, arah, tombol) {
+  const k = BUKA && BUKA.kelompok.find((x) => x.kelompok === kel), i = $("sesi-isi").querySelector(`[data-uw-menit="${CSS.escape(kel)}"]`), m = +i.value;
+  if (!k || !k.sampai) return toast("Sesi ini sudah ditutup.");
+  if (!Number.isInteger(m) || m < 1 || m > 300) { toast("Isi jumlah menit 1–300"); i.focus(); return; }
+  const akhir = new Date(k.sampai).getTime(), sisa = (akhir - (Date.now() - BUKA.selisih)) / 1000;
+  if (arah < 0) {
+    const maks = Math.floor((sisa - 60) / 60);
+    if (m > maks) { toast(maks > 0 ? `Sisa waktu ${kel} tinggal ${Math.ceil(sisa / 60)} menit, jadi paling banyak dikurangi ${maks} menit.` : `Sisa waktu ${kel} kurang dari 2 menit. Untuk mengakhiri, pakai Tutup sekarang.`); i.focus(); return; }
+    if (!confirm(`Kurangi waktu sesi ${kel} ${m} menit?\n\nSesi berakhir pukul ${jamTeks(new Date(akhir - m * 60000))} (sebelumnya ${jamTeks(akhir)}). Siswa yang sedang berlatih ikut selesai lebih cepat; kemajuannya tetap tersimpan.`)) return;
+  } else if (sisa / 60 + m > 300) { toast("Sisa waktu sesi paling lama 300 menit (5 jam)."); i.focus(); return; }
+  tombol.disabled = true;
+  try {
+    const r = await rpc("mtd_ubah_waktu", { p_pin: PIN, p_kelompok: kel, p_menit: arah * m });
+    MENIT_TAMBAH[kel] = m;
+    toast(`Waktu sesi ${kel} ${arah > 0 ? "ditambah" : "dikurangi"} ${m} menit · berakhir pukul ${jamTeks(r.sampai)}; kode tetap`);
+    await muatSesi();
+  } catch (e) { toast(e.message); tombol.disabled = false; }
 }
 // Ikon kecil tombol tampilan layar (garis tipis, mengikuti warna teks tombol)
 const IKON_QR = '<svg class="ikon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>';
