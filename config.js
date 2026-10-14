@@ -1,1 +1,1 @@
-window.TKA_SUPABASE = { url: "https://jzxcnfetpjkltjjbglxz.supabase.co", key: "sb_publishable_9pl5IOJl-Vx0KEnHtCs3nA_ioZOkacq" };
+window.TKA_SUPABASE = { url: "https://dcakhvbfuhedebnbjndr.supabase.co", key: "sb_publishable_j_1jJEBNhjfhhKYXja1FLw_RkFs_Fsx" };
