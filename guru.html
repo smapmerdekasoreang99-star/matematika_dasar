@@ -788,7 +788,7 @@ body.lihat .ubah { display: none !important; }
       <div class="ubin" id="pr-ubin"></div>
       <div class="kartu"><h2 id="pr-judul">Peringkat</h2><p class="redup kecil" id="pr-ket" style="margin-top:0"></p>
         <div class="gulir"><table class="tabel" id="t-peringkat" data-beku="2"></table></div>
-        <p class="redup kecil">Hanya kemajuan resmi (sesi kelompok); latihan mandiri tidak ikut. Nilai yang sama mendapat peringkat yang sama. Ketuk nama untuk melihat analisisnya.</p></div>
+        <p class="redup kecil" id="pr-kaki">Hanya kemajuan resmi (sesi kelompok); latihan mandiri tidak ikut. Nilai yang sama mendapat peringkat yang sama. Ketuk nama untuk melihat analisisnya.</p></div>
       <div class="kartu" id="pr-banding-kartu"><h2 id="pr-banding-judul">Perbandingan</h2>
         <div class="gulir"><table class="tabel" id="t-pr-banding" data-beku="1"></table></div>
         <p class="redup kecil">Ketuk baris untuk melihat peringkat di dalamnya. Rata-rata level tuntas dihitung dari siswa yang sudah mulai.</p></div>
@@ -2837,7 +2837,7 @@ async function muatPerKelompok() {
 /* ----------------------------------------------------------- Perkembangan Siswa: Peringkat (12 Okt 2026) */
 /* Peringkat satu sekolah, satu angkatan, atau satu kelompok (mtd_peringkat). Server mengirim angka satu periode per siswa;
    cakupan dan jenis peringkat dipilih di halaman tanpa memuat ulang. Guru hanya melihat kelompoknya sendiri, admin semua.
-   Hanya kemajuan resmi (sesi kelompok). Nilai yang sama = peringkat sama (1, 2, 2, 4). */
+   Kemajuan resmi (sesi kelompok), kecuali "Paling rajin latihan mandiri" (m_*). Nilai yang sama = peringkat sama (1, 2, 2, 4). */
 let PR = null;   // { periode, pilihan, jumlah_level, siswa }
 const PR_MIN_HARI = 3, PR_MIN_JAWAB = 50;
 const angkaId = (x, d = 1) => Number(x).toLocaleString("id-ID", { maximumFractionDigits: d });
@@ -2863,6 +2863,10 @@ const JENIS_PR = {
   rajin: { nama: "Paling rajin", kolom: "hari", ikut: (r) => r.hari > 0,
     banding: (a, b) => b.hari - a.hari || b.n_jawab - a.n_jawab,
     ket: (p) => `Banyak hari berlatih selama ${p}. Bila sama, yang menjawab lebih banyak soal di atas.` },
+  // 17 Okt 2026: satu-satunya peringkat dari latihan mandiri (di luar sesi); posisi resmi tidak terpengaruh.
+  mandiri: { nama: "Paling rajin latihan mandiri", kolom: "mandiri", ikut: (r) => r.m_hari > 0,
+    banding: (a, b) => b.m_hari - a.m_hari || b.m_jawab - a.m_jawab || b.m_detik - a.m_detik,
+    ket: (p) => `Banyak hari berlatih mandiri (di luar sesi kelompok) selama ${p}. Bila sama, yang menjawab lebih banyak soal di atas, lalu yang lebih lama berlatih.` },
   teliti: { nama: "Paling teliti", kolom: "akurasi", ikut: (r) => r.n_jawab >= PR_MIN_JAWAB,
     banding: (a, b) => Math.round(1000 * akurasiPr(b)) - Math.round(1000 * akurasiPr(a)) || b.n_jawab - a.n_jawab,
     ket: (p) => `Persentase jawaban benar selama ${p}; paling sedikit ${PR_MIN_JAWAB} soal dijawab.` },
@@ -2880,7 +2884,10 @@ const KOLOM_PR = [
   ["akurasi", "Akurasi", (r) => r.n_jawab ? `${Math.round(100 * akurasiPr(r))}%<span class="pr-sub">${r.n_jawab} soal</span>` : "–", "angka"],
   ["waktu", "Waktu<br>latihan", (r) => r.detik ? lamaTeks(r.detik) : "–", "angka"],
   ["dilevel", "Tertahan<br>di level ini", (r) => `<span class="pos-nm">${hariDiLevel(r)} hari</span><span class="pos-lv">${r.percobaan || 1}× dimulai</span>`, "posisi"],
+  ["mandiri", "Latihan mandiri<br>(periode)", (r) => r.m_hari ? `<span class="pos-nm">${r.m_hari} hari · ${r.m_jawab} soal</span><span class="pos-lv">${r.m_jawab ? `${Math.round(100 * r.m_benar / r.m_jawab)}% benar · ` : ""}${lamaTeks(r.m_detik)}${r.m_tuntas ? ` · ${r.m_tuntas} level tuntas` : ""}</span>` : '<span class="redup">–</span>', "posisi"],
 ];
+// Kolom khusus satu jenis peringkat (hanya tampil saat jenis itu dipilih)
+const KOLOM_KHUSUS_PR = new Set(["dilevel", "mandiri"]);
 const dalamCakupan = (c) => (r) => !c || (c.startsWith("a:") ? r.angkatan === c.slice(2) : grupPr(r) === c.slice(2));
 function urutPr(L, j) {
   const A = L.filter(j.ikut).sort((a, b) => j.banding(a, b) || a.nama.localeCompare(b.nama)), H = [];
@@ -2953,10 +2960,14 @@ function gambarPeringkat() {
     [L.length, "siswa", "siswa"], [L.filter((r) => r.hari > 0).length, `berlatih · ${PR.periode.nama.toLowerCase()}`, "aktif", "baik"],
     [angkaId(mulai.length ? mulai.reduce((t, r) => t + r.lewat, 0) / mulai.length : 0), "rata-rata level tuntas", "level", "emas"],
     [L.reduce((t, r) => t + r.tuntas, 0), "level dituntaskan dalam periode", "ulang"],
-    [nJ ? Math.round(100 * nB / nJ) + "%" : "–", "akurasi dalam periode", "akurasi"],
+    j.kolom === "mandiri" ? [L.filter((r) => r.m_hari > 0).length, "berlatih mandiri dalam periode", "aktif"]
+      : [nJ ? Math.round(100 * nB / nJ) + "%" : "–", "akurasi dalam periode", "akurasi"],
   ]);
   const H = urutPr(L, j), T = n ? H.filter((x) => x.no <= n) : H;
-  const K = KOLOM_PR.filter(([k]) => k !== "dilevel" || j.kolom === "dilevel"), semua = !c.startsWith("k:");
+  const K = KOLOM_PR.filter(([k]) => !KOLOM_KHUSUS_PR.has(k) || j.kolom === k), semua = !c.startsWith("k:");
+  $("pr-kaki").textContent = (j.kolom === "mandiri"
+    ? "Hanya latihan mandiri (di luar sesi kelompok); tidak menaikkan posisi resmi. Kolom lain tetap kemajuan resmi."
+    : "Hanya kemajuan resmi (sesi kelompok); latihan mandiri tidak ikut.") + " Nilai yang sama mendapat peringkat yang sama. Ketuk nama untuk melihat analisisnya.";
   $("pr-judul").textContent = `${j.nama} · ${labelPilihan("pr-cakupan")}`;
   // Siswa kelas 11/12 bisa mulai dari tingkat yang lebih tinggi, jadi level tertinggi lintas angkatan tidak setara.
   const campur = j.kolom === "lewat" && new Set(L.map((r) => r.angkatan)).size > 1;
@@ -2994,7 +3005,9 @@ $("pr-unduh").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
   if (!PR) throw new Error("Belum ada data. Muat ulang dulu.");
   const c = $("pr-cakupan").value, j = JENIS_PR[$("pr-jenis").value] || JENIS_PR.tinggi, cak = labelPilihan("pr-cakupan");
   const L = PR.siswa.filter(dalamCakupan(c)), H = urutPr(L, j), B = bandingPr(c, L);
-  const catatan = j.ket(periodePr()) + " Hanya kemajuan resmi (sesi kelompok); latihan mandiri tidak ikut. Nilai yang sama mendapat peringkat yang sama."
+  const catatan = j.ket(periodePr()) + (j.kolom === "mandiri"
+      ? " Peringkat dari latihan mandiri (di luar sesi kelompok); kolom selain \"mandiri\" tetap kemajuan resmi."
+      : " Hanya kemajuan resmi (sesi kelompok); kolom \"mandiri\" hanya sebagai keterangan.") + " Nilai yang sama mendapat peringkat yang sama."
     + (PR.periode.kasar ? " Sebagian periode ini sudah diarsipkan, jadi jumlah soal dan hari berlatih bisa kurang dari sebenarnya." : "");
   const nama = `Peringkat_Matematika_Dasar_${potongNama(j.nama)}_${potongNama(cak)}_${tglBerkas()}.xlsx`;
   const lembar = [{ nama: "Peringkat", judul: `Peringkat: ${j.nama}`, sub: `${cak} · ${PR.periode.nama}`,
@@ -3005,9 +3018,13 @@ $("pr-unduh").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
       { t: "Level per hari berlatih", w: 11, rata: "center", fmt: "0.00" }, { t: "Hari berlatih", w: 9, rata: "center" },
       { t: "Soal dijawab", w: 9, rata: "center" }, { t: "Akurasi", w: 9, rata: "center", fmt: '0"%"', cf: CF_PERSEN },
       { t: "Menit latihan", w: 9, rata: "center" }, { t: "Tertahan di level (hari)", w: 11, rata: "center" },
-      { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }],
+      { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 },
+      { t: "Hari berlatih mandiri", w: 10, rata: "center" }, { t: "Soal mandiri", w: 9, rata: "center" },
+      { t: "Akurasi mandiri", w: 9, rata: "center", fmt: '0"%"', cf: CF_PERSEN }, { t: "Menit mandiri", w: 9, rata: "center" },
+      { t: "Level tuntas mandiri", w: 10, rata: "center" }, { t: "Terakhir mandiri", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }],
     baris: H.map(({ r, no }) => [no, r.nama, r.nisn, r.kelompok || "", r.kelas, posisiPr(r), r.lewat, r.tuntas, r.hari ? Math.round(100 * lajuPr(r)) / 100 : "",
-      r.hari, r.n_jawab, r.n_jawab ? Math.round(100 * akurasiPr(r)) : "", Math.round(r.detik / 60), r.tingkat && !r.selesai ? hariDiLevel(r) : "", waktuXL(r.terakhir)]),
+      r.hari, r.n_jawab, r.n_jawab ? Math.round(100 * akurasiPr(r)) : "", Math.round(r.detik / 60), r.tingkat && !r.selesai ? hariDiLevel(r) : "", waktuXL(r.terakhir),
+      r.m_hari || 0, r.m_jawab || 0, r.m_jawab ? Math.round(100 * r.m_benar / r.m_jawab) : "", Math.round((r.m_detik || 0) / 60), r.m_tuntas || 0, waktuXL(r.m_terakhir)]),
     catatan: [catatan] }];
   if (B) lembar.push({ nama: "Perbandingan", judul: B.judul, sub: `${cak} · ${PR.periode.nama}`, beku: 1,
     kolom: [{ t: B.judul.replace("Perbandingan ", ""), w: 16, tebal: true }, { t: "Siswa", w: 8, rata: "center" }, { t: "Berlatih dalam periode", w: 11, rata: "center" },

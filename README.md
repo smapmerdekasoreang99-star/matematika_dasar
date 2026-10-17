@@ -40,6 +40,8 @@ perubahan lewat [`../database_tryout/`](../database_tryout/README.md)
    latihan mandiri untuk menilai ketekunan: kolom **Latihan mandiri (7 hari)** di Perkembangan Siswa dan rekap
    Excel, kartu **Latihan mandiri (di luar sesi)** di Analisis Siswa, serta label **Rajin mandiri**,
    **Tanpa latihan mandiri**, dan **Mandiri jauh di atas sesi** (akurasi mandiri ≥ 25 poin di atas akurasi resmi).
+   Sub-tab **Peringkat → Paling rajin latihan mandiri** (17 Okt 2026) mengurutkan hari berlatih mandiri, lalu soal,
+   lalu waktu, untuk periode 7/30 hari, semester, atau sejak awal (`mtd_peringkat` kolom `m_*`); jenis peringkat lain tetap resmi. Guru hanya melihat kelompok MD miliknya, admin semua.
    Di halaman siswa, latihan mandiri ditandai pita "Latihan mandiri · kemajuan di sini terpisah".
    **Latihan mandiri tidak harus sama dengan sesi:** siswa bebas memilih tingkat dan level di kartu
    **🏠 Latihan mandiri** (`mtd_materi_mandiri`, `mtd_pilih_mandiri`; hanya posisi mandiri yang pindah), serta jumlah
