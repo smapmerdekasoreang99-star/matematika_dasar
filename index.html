@@ -1258,14 +1258,23 @@ function tampilKunci() {
     "Panggil guru atau pengawas untuk memasukkan <b>kode buka</b>. Waktu latihan tetap berjalan.",
     '<input type="text" id="t-kode" autocomplete="off" placeholder="Kode buka dari pengawas" style="text-transform:uppercase">' +
     '<button id="t-buka">Buka kunci</button>' +
-    '<button class="tautan" id="t-periksa">Sudah dibuka guru dari dasbor? Periksa lagi</button>');
+    '<button class="tautan" id="t-periksa">Sudah dibuka guru dari dasbor? Periksa lagi</button>' +
+    '<p id="t-galat" class="pesan buruk hidden" role="alert"></p>');
   const buka = async (fn, args) => {
+    $("t-galat").classList.add("hidden");
     try {
       const r = await rpc(fn, args);
       S = Object.assign(S, r);
       if (S.terkunci) return toast("Latihan masih dikunci.");
       hentiAlarm(); tutupTirai(); toast("Kunci dibuka — lanjutkan latihan");
-    } catch (e) { if (/berakhir/i.test(e.message)) return berakhirKarena(); toast(e.message); }
+    } catch (e) {
+      if (/berakhir/i.test(e.message)) return berakhirKarena();
+      // Guru sering mengetik kode masuk (MD12-3, 19 Okt 2026); kode buka kunci berbeda dan diatur di Pengaturan.
+      $("t-galat").innerHTML = /kode buka salah/i.test(e.message)
+        ? "<b>Kode buka salah. Ini bukan kode masuk.</b> Kode buka kunci berbeda dengan kode masuk latihan; guru dapat melihatnya di aturan latihan bagian <b>Pengawasan keluar halaman → Kode buka kunci</b>. Atau guru menekan <b>Buka kunci</b> di Daftar Siswa, lalu kamu ketuk <b>Periksa lagi</b>."
+        : esc(e.message);
+      $("t-galat").classList.remove("hidden");
+    }
   };
   $("t-buka").onclick = () => buka("mtd_buka_kunci", { p_token: S.token, p_kode_buka: $("t-kode").value.trim() });
   $("t-periksa").onclick = () => buka("mtd_lanjut", { p_token: S.token });
