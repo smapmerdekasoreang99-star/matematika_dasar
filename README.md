@@ -82,8 +82,12 @@ pengelompokan/ujian), supaya sesi tetap mengukur kemampuan.
   "← perhatikan". Disusun di peramban dari soal + kunci yang **sudah** dikirim server sesudah menjawab
   (tidak ada kunci baru yang bocor); bila siswa/guru menyembunyikan jawaban benar, pembahasan juga
   tidak tampil. Hasil hitungan pembahasan selalu dicocokkan dengan kunci server — bila beda atau
-  bentuk soal belum dikenali, pembahasan tidak tampil. **Cakupan: seluruh MD10 (16 tingkat)**,
-  diuji 5.040 soal acak (40 per level) → semua berpembahasan dan cocok. MD11/MD12 belum.
+  bentuk soal belum dikenali, pembahasan tidak tampil. **Cakupan: seluruh MD10 (16 tingkat) dan MD11
+  (9 tingkat, 20 Okt 2026)**, diuji 5.040 soal MD10 + 3.600 soal MD11 acak → semua berpembahasan dan cocok.
+  MD11: koma lurus/samakan angka di belakang koma, kali tanpa koma lalu pasang koma, pembagi dijadikan
+  bulat, hasil antara tak berhenti ditulis pecahan, persen/pecahan → desimal, bandingkan lewat desimal,
+  soal cerita persen (diskon bertingkat, untung/rugi dibanding harga beli, kenaikan dibanding nilai awal),
+  notasi baku (arah geser koma → tanda pangkat), sifat eksponen. MD12 belum (soal MD12 tidak dibahas).
   Uji coba guru juga menampilkannya; di halaman guru, **Contoh → Tampilkan Jawaban** menampilkan
   pembahasan yang sama (dilipat per soal, tidak ikut Mode Layar Penuh).
 - **📖 Tinjau kesalahanku** (kartu di latihan mandiri): soal yang salah di **5 sesi kelompok terakhir**
