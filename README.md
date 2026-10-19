@@ -106,6 +106,10 @@ pengelompokan/ujian), supaya sesi tetap mengukur kemampuan.
   `mtd_jawaban`; catatannya di tabel `mtd_tinjau` (dilihat, paham, banyak coba).
   Fungsi: `mtd_tinjau_daftar`, `mtd_tinjau_lihat`, `mtd_tinjau_coba`, `mtd_tinjau_jawab` (hanya
   token latihan mandiri yang masih berjalan; sesi kelompok yang masih berjalan tidak ikut).
+- **Guru melihat hasilnya** (20 Okt 2026): Analisis Siswa → kartu Latihan mandiri → bagian **Tinjau kesalahan
+  sesi kelompok** (soal salah di 5 sesi terakhir, pembahasan dibuka, sudah dipahami, soal serupa dijawab; kunci `tinjau`
+  di `mtd_detail_mandiri`, migrasi `20261020120000`), dan Catatan otomatis menyebut "Belum meninjau …". Panduan
+  guru (docx/pdf) diperbarui: 1.3, 4.5, 5.2.
 - Syarat terlihat siswa: Pengaturan Umum → Halaman Latihan → **Latihan mandiri di luar sesi kelompok**
   harus **boleh** (19 Okt 2026 di server masih mati).
 

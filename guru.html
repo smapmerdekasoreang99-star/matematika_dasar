@@ -2359,7 +2359,27 @@ function catatanMandiri(D, M) {
   const nJ = D.per_tingkat.reduce((a, x) => a + x.n_jawab, 0), nB = D.per_tingkat.reduce((a, x) => a + x.n_benar, 0), r = M.ringkas;
   if (r && r.n_jawab >= 20 && nJ >= 20 && 100 * r.n_benar / r.n_jawab - 100 * nB / nJ >= 25)
     c.push(`<b>Perlu dicek:</b> akurasi latihan mandiri ${Math.round(100 * r.n_benar / r.n_jawab)}% jauh di atas akurasi dalam sesi ${Math.round(100 * nB / nJ)}%. Kemungkinan dibantu orang lain atau AI saat berlatih sendiri.`);
+  // Tinjau kesalahanku (20 Okt 2026): apakah siswa belajar dari kesalahan di sesi kelompok
+  const t = M.tinjau;
+  if (t && t.n_salah) {
+    if (!t.n_dilihat && !t.n_paham) c.push(`<b>Belum meninjau</b> ${t.n_salah} soal yang salah di sesi kelompok terakhir (fitur Tinjau kesalahanku di latihan mandiri).`);
+    else c.push(`Meninjau kesalahan sesi kelompok: <b>${t.n_dilihat} dari ${t.n_salah}</b> soal dibuka pembahasannya, <b>${t.n_paham}</b> sudah dipahami (benar di soal serupa).`);
+  }
   return c;
+}
+/* Ringkasan Tinjau kesalahanku satu siswa (mtd_detail_mandiri.tinjau). */
+function tinjauHtml(t) {
+  if (!t) return "";
+  if (!t.n_salah) return '<p class="redup kecil">Tinjau kesalahan: tidak ada soal salah di sesi kelompok terakhir yang perlu ditinjau.</p>';
+  const ps = (a) => Math.round(100 * a / t.n_salah);
+  return `<h3 style="margin:var(--j4) 0 var(--j2)">Tinjau kesalahan sesi kelompok</h3>
+    <p class="redup kecil" style="margin-top:0">Soal yang salah di 5 sesi kelompok terakhir. Siswa membuka pembahasannya di latihan mandiri, lalu membuktikan pemahaman dengan soal serupa.${t.terakhir ? ` Terakhir meninjau ${tglTeks(t.terakhir, true)}.` : ""}</p>
+    <div class="ubin">${ubinHtml([
+      [t.n_salah, "soal salah di 5 sesi terakhir", "ulang"],
+      [`${t.n_dilihat}`, `pembahasan dibuka (${ps(t.n_dilihat)}%)`, "mulai", t.n_dilihat ? "baik" : "emas"],
+      [`${t.n_paham}`, `sudah dipahami (${ps(t.n_paham)}%)`, "level", t.n_paham ? "baik" : ""],
+      [t.n_coba, "soal serupa dijawab", "akurasi"],
+    ])}</div>`;
 }
 /* Pengaturan latihan mandiri (10 Okt 2026): profil aturan & saran tingkat/level, per kelompok atau siswa. */
 let MDF = { kelompok: {}, siswa: {} };
@@ -2383,6 +2403,7 @@ function kartuMandiri(M) {
       [r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) + "%" : "–", `akurasi mandiri (${r.n_jawab || 0} soal)`, "akurasi"],
       [M.posisi ? `Lv ${M.posisi.level}` : "–", M.posisi ? `posisi mandiri: ${esc(M.posisi.nama_tingkat)}` : "belum ada posisi mandiri", "level"],
     ])}</div>
+    ${tinjauHtml(M.tinjau)}
     ${(M.tuntas || []).length ? `<div class="gulir"><table class="tabel"><thead><tr><th>Tanggal</th><th>Tingkat</th><th>Level</th><th class="angka">Percobaan</th><th class="angka">Salah</th></tr></thead><tbody>${M.tuntas.slice(0, 10).map((x) =>
       `<tr><td class="kecil">${tglTeks(x.tuntas, true)}</td><td>${esc(x.nama_tingkat)}</td><td>Lv ${x.level}</td><td class="angka">${x.percobaan}</td><td class="angka">${x.n_salah}</td></tr>`).join("")}</tbody></table></div>`
       : '<p class="redup">Belum ada level yang dituntaskan saat latihan mandiri.</p>'}</div>`;
