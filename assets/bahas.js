@@ -843,7 +843,7 @@ const BahasMatdas = (() => {
 
   /* Satu persamaan dua variabel "3x − 2y = 7" → {a, b, c}. */
   function bacaPers2(s) {
-    const [kiri, kanan] = s.split(" = ");
+    const [kiri, kanan] = s.replace(/ =\s*$/, " = 0").split(" = ");   // ruas kanan kosong = 0 (soal lama)
     if (kanan === undefined || !/^−?\d+$/.test(kanan)) return null;
     const e = { a: 0, b: 0, c: +kanan.replace("−", "-") };
     const suku = kiri.replace(/ − /g, " + −").split(" + ");

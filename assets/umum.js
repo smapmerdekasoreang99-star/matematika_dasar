@@ -121,7 +121,8 @@ function soalHtml(teks) {
       `<span class="opsi-statis">${u.opsi.map(([h, t]) => `<span><b>${h}.</b> ${esc(t)}</span>`).join("")}</span>`;
   }
   if (/[A-Za-z]{3,}/.test(teks)) return `<span class="cerita">${esc(teks)}</span>`;   // soal cerita
-  if (teks.includes(" ; ")) return `<span class="sistem">${teks.split(" ; ").map((p) => `<span>${aljabarHtml(p)}</span>`).join("")}</span>`;
+  // SPLDV: soal lama dari server menulis ruas kanan 0 sebagai kosong ("x − y = "); tampilkan "= 0".
+  if (teks.includes(" ; ")) return `<span class="sistem">${teks.split(" ; ").map((p) => `<span>${aljabarHtml(p.replace(/ =\s*$/, " = 0"))}</span>`).join("")}</span>`;
   if (/^[−\d□]/.test(teks) && teks.includes(", "))
     return '<span class="deret">' + teks.split(", ").map((t) => t === "□" ? '<span class="kotak-soal" aria-label="suku yang dicari">□</span>'
       : `<span class="nm">${esc(t.startsWith("−") ? "−" + bil(t.slice(1)) : bil(t))}</span>`).join('<span class="koma-deret">,</span> ') + "</span>";
