@@ -87,7 +87,15 @@ pengelompokan/ujian), supaya sesi tetap mengukur kemampuan.
   MD11: koma lurus/samakan angka di belakang koma, kali tanpa koma lalu pasang koma, pembagi dijadikan
   bulat, hasil antara tak berhenti ditulis pecahan, persen/pecahan → desimal, bandingkan lewat desimal,
   soal cerita persen (diskon bertingkat, untung/rugi dibanding harga beli, kenaikan dibanding nilai awal),
-  notasi baku (arah geser koma → tanda pangkat), sifat eksponen. MD12 belum (soal MD12 tidak dibahas).
+  notasi baku (arah geser koma → tanda pangkat; koma melewati angka mana saja), sifat eksponen.
+  **MD12 (5 tingkat, 20 Okt 2026)**, diuji 2.160 soal acak: PLSV (buka kurung, hilangkan pecahan dengan KPK,
+  pindah ruas berganti tanda, bagi koefisien, periksa), SPLDV (substitusi; eliminasi + substitusi, periksa di
+  persamaan lain), soal cerita (misalkan x, y → model → selesaikan; umur "… tahun lalu/lagi"), pola bilangan
+  (aturan dicari dari suku yang diketahui: beda, rasio, Fibonacci, selisih bertingkat, ×m + c, operasi
+  bergantian, dua pola berselang), penarikan kesimpulan (p, q dinamai; ponens/tollens/silogisme/kuantor/
+  kesetaraan/ingkaran; pilihan siswa yang keliru dijelaskan). Baris "Jadi …" tampil sebagai kotak kesimpulan.
+  20 Okt 2026 ditemukan & diperbaiki: soal SPLDV dengan ruas kanan 0 tertulis "x − y = " (migrasi
+  `20261020100000_matdas_spldv_ruas_kanan_nol_ditulis`; belum ada jawaban K12-02 di data).
   Uji coba guru juga menampilkannya; di halaman guru, **Contoh → Tampilkan Jawaban** menampilkan
   pembahasan yang sama (dilipat per soal, tidak ikut Mode Layar Penuh).
 - **📖 Tinjau kesalahanku** (kartu di latihan mandiri): soal yang salah di **5 sesi kelompok terakhir**

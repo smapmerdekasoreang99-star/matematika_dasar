@@ -7,10 +7,12 @@
      h = HTML satu langkah, p = langkah yang berkaitan dengan jenis kesalahan siswa (disorot),
      susun = HTML cara bersusun (boleh kosong).
    Hasil hitungan pembahasan selalu dicocokkan dengan kunci server; bila berbeda (atau bentuk soal
-   belum dikenali, mis. MD12) hasilnya null dan tidak ada pembahasan yang tampil.
+   belum dikenali) hasilnya null dan tidak ada pembahasan yang tampil.
    Cakupan saat ini: MD10 — bilangan bulat (+ − × ÷, positif-negatif), pembagian bersisa,
    operasi gabungan, pecahan, gabungan pecahan, bilangan yang hilang; MD11 — desimal, gabungan desimal,
-   campuran desimal/pecahan/persen, mengurutkan, persentase dalam kehidupan, notasi baku & eksponen.
+   campuran desimal/pecahan/persen, mengurutkan, persentase dalam kehidupan, notasi baku & eksponen;
+   MD12 — persamaan linear satu variabel, SPLDV, soal cerita SPLDV, pola bilangan, penarikan kesimpulan.
+   o.jawaban (pilihan siswa) dipakai untuk menjelaskan pilihan yang keliru pada penarikan kesimpulan.
    Butuh umum.js (bil, pecHtml, kunciHtml). */
 "use strict";
 
@@ -554,6 +556,7 @@ const BahasMatdas = (() => {
   const bacaRp = (t) => Number(String(t).replace(/^Rp/, "").replace(/,00$/, "").replace(/\./g, ""));
   const bacaRibu = (t) => Number(String(t).replace(/\./g, ""));
   function persenCerita(soal, kunci, jenis) {
+    if (/[<>&"]/.test(soal)) return null;                         // teks soal ditulis apa adanya ke HTML
     const RP = "(Rp[\\d.]+,00)", L = [], k = Number(kunci);
     const persenDari = (d, h, uang) => { const v = h * d / 100; L.push({ h: `${d}% dari ${uang ? rp(h) : N(h)}${sama}${pecHtml("", d, 100)} × ${uang ? rp(h) : N(h)}${sama}${uang ? rp(v) : N(v)}` }); return v; };
     const persenBagian = (s, h, uang, sebut) => {
@@ -641,7 +644,7 @@ const BahasMatdas = (() => {
   /* Eksponen (K11-09 level 3–5). Teks memakai pangkat ⁰¹²…⁻ yang diubah ke ^n. */
   const SUP = { "⁰": "0", "¹": "1", "²": "2", "³": "3", "⁴": "4", "⁵": "5", "⁶": "6", "⁷": "7", "⁸": "8", "⁹": "9", "⁻": "-" };
   const kaliBerulang = (b, e) => e === 1 ? N(b) : Array(e).fill(b).join(" × ");
-  function eksponen(soal, kunci) {
+  function eksponen(soal, kunci, jenis) {
     const s = soal.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁻]+/g, (x) => "^" + [...x].map((c) => SUP[c]).join(""));
     const k = bacaKunci(kunci), L = [];
     const pkt = (b, e) => `${N(b)}${sup(e)}`;
@@ -660,8 +663,12 @@ const BahasMatdas = (() => {
     if ((m = s.match(/^(\d+(?:,\d+)?) ([×÷]) 10\^(\d+)$/))) {          // a × 10ⁿ, a ÷ 10ⁿ
       const a = bacaDes(m[1]), n = +m[3], kali = m[2] === "×";
       hasil = kali ? Q(a.p * pangkat10(n), a.q) : Q(a.p, a.q * pangkat10(n));
-      L.push({ h: `${kali ? "Dikali" : "Dibagi"} 10${sup(n)} artinya koma digeser ${n} tempat ke ${kali ? "kanan" : "kiri"}${kali ? " (tambahkan 0 bila angkanya kurang)" : " (tambahkan 0 di depan bila angkanya kurang)"}.` });
-      L.push({ h: `${N(m[1])} ${m[2]} 10${sup(n)}${sama}${D(hasil.p, hasil.q)}` });
+      // Angka yang dilewati koma, dan banyak 0 yang perlu ditambahkan
+      const [ip, fp = ""] = m[1].split(",");
+      const lewat = kali ? (fp + "0".repeat(n)).slice(0, n) : ip.padStart(n, "0").slice(-n);
+      const nol0 = Math.max(0, kali ? n - fp.length : n - ip.length);
+      L.push({ h: `${kali ? "Dikali" : "Dibagi"} 10${sup(n)} artinya koma digeser <b>${n} tempat ke ${kali ? "kanan" : "kiri"}</b> (${kali ? "bilangannya menjadi lebih besar" : "bilangannya menjadi lebih kecil"}).`, p: jenis === "koma" });
+      L.push({ h: `${N(m[1])} → koma melewati angka ${lewat.split("").map((c) => `<b>${c}</b>`).join(" ")}${nol0 ? ` (${nol0} angka 0 ditambahkan ${kali ? "di belakang" : "di depan"})` : ""} → ${D(hasil.p, hasil.q)}`, p: jenis === "koma" });
     } else if ((m = s.match(/^(\d+)\^(\d+) ([×÷]) (\d+)\^(\d+)$/)) && m[1] === m[4]) {
       const b = +m[1], e = m[3] === "×" ? +m[2] + +m[5] : +m[2] - +m[5];
       L.push({ h: m[3] === "×" ? `Bilangan pokok sama, dikali → pangkatnya dijumlahkan: ${pkt(b, +m[2])} × ${pkt(b, +m[5])}${sama}${N(b)}<sup>${m[2]} + ${m[5]}</sup>${sama}${pkt(b, e)}`
@@ -698,7 +705,7 @@ const BahasMatdas = (() => {
     if (/^Urutkan dari yang /.test(soal)) return urutkan(soal, kunci, jenis);
     if (/[A-Za-z]{3,}/.test(soal)) return /%|persen/.test(soal) && /^\d+$/.test(kunci) ? persenCerita(soal, kunci, jenis) : undefined;
     if (/^\d(?:,\d+)?;-?\d+$/.test(kunci) && /^[\d.,]+$/.test(soal)) return notasiBaku(soal, kunci, jenis);
-    if (/[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(soal)) return eksponen(soal, kunci);
+    if (/[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(soal)) return eksponen(soal, kunci, jenis);
     if (!/[,%]/.test(soal)) return undefined;
     const k = bacaKunci(kunci);
     if (!k) return null;
@@ -718,6 +725,428 @@ const BahasMatdas = (() => {
     return r && samaQ(Q(r.hasil.p, r.hasil.q), k) ? r : null;
   }
 
+  /* ============================================================ MD12 (20 Okt 2026)
+     Persamaan linear satu variabel, SPLDV, soal cerita SPLDV, pola bilangan, penarikan kesimpulan. */
+  const V = (v) => `<i class="var">${v}</i>`;
+  const tambahQ = (a, b) => Q(a.p * b.q + b.p * a.q, a.q * b.q);
+  const kaliQ = (a, b) => Q(a.p * b.p, a.q * b.q);
+  const negQ = (a) => ({ p: -a.p, q: a.q });
+  const nol = { p: 0, q: 1 }, satu = { p: 1, q: 1 };
+  const QN = (x) => x.q === 1 ? N(x.p) : P(x.p, x.q);                 // bilangan pecahan/bulat → HTML
+  const QNk = (x) => x.p < 0 ? `(${QN(x)})` : QN(x);
+  /* Suku a·v + b (a, b pecahan) → HTML "3x − 5", "−x", "(2/3)x + 1". */
+  function linHtml(a, b, v) {
+    const s = [];
+    if (a.p) {
+      const abs = { p: Math.abs(a.p), q: a.q }, k = abs.p === 1 && abs.q === 1 ? "" : QN(abs);
+      s.push({ neg: a.p < 0, t: `${k}${V(v)}` });
+    }
+    if (b.p || !s.length) s.push({ neg: b.p < 0, t: QN({ p: Math.abs(b.p), q: b.q }) });
+    return s.map((x, i) => i === 0 ? (x.neg ? "−" : "") + x.t : (x.neg ? " − " : " + ") + x.t).join("");
+  }
+  /* Ruas dua variabel a·x + b·y → HTML */
+  function lin2Html(a, b) {
+    const s = [];
+    [[a, "x"], [b, "y"]].forEach(([k, v]) => { if (k) s.push({ neg: k < 0, t: `${Math.abs(k) === 1 ? "" : N(Math.abs(k))}${V(v)}` }); });
+    return s.length ? s.map((x, i) => i === 0 ? (x.neg ? "−" : "") + x.t : (x.neg ? " − " : " + ") + x.t).join("") : N(0);
+  }
+  const persHtml = (e) => `${lin2Html(e.a, e.b)}${sama}${N(e.c)}`;
+
+  /* Ruas persamaan satu variabel: "3(x − 4) + 2x", "1/3 (x + 2) − 4", "2/3 x + 5", "−x". → {a, b, suku: [...]}.
+     Setiap suku: {a, b, kurung?: {k, isi}} (sudah termasuk tandanya). */
+  function bacaRuas(s, v) {
+    let i = 0;
+    const sp = () => { while (s[i] === " ") i++; };
+    const angka = () => { const m = /^\d+/.exec(s.slice(i)); if (!m) return null; i += m[0].length; return +m[0]; };
+    const kaliSuku = (k, t) => ({ a: kaliQ(k, t.a), b: kaliQ(k, t.b), kurung: t.kurung ? { k: kaliQ(k, t.kurung.k), isi: t.kurung.isi } : undefined });
+    function suku() {
+      sp();
+      let k = null;
+      const n = angka();
+      if (n !== null) { k = Q(n, 1); if (s[i] === "/") { i++; const d = angka(); if (d === null) throw new Error("pecahan"); k = Q(n, d); } }
+      sp();
+      if (s[i] === "(") {
+        i++; const isi = ungkapan(); sp();
+        if (s[i] !== ")") throw new Error("kurung"); i++;
+        const kk = k || satu;
+        return { a: kaliQ(kk, isi.a), b: kaliQ(kk, isi.b), kurung: { k: kk, isi } };
+      }
+      if (s[i] === v) { i++; return { a: k || satu, b: nol }; }
+      if (k === null) throw new Error("suku");
+      return { a: nol, b: k };
+    }
+    function ungkapan() {
+      sp();
+      let neg = false;
+      if (s[i] === "−") { neg = true; i++; }
+      let t = suku(); if (neg) t = kaliSuku(negQ(satu), t);
+      const daftar = [t];
+      for (;;) {
+        sp();
+        if (s[i] !== "+" && s[i] !== "−") break;
+        const o = s[i]; i++;
+        let u = suku(); if (o === "−") u = kaliSuku(negQ(satu), u);
+        daftar.push(u);
+      }
+      return { a: daftar.reduce((x, t) => tambahQ(x, t.a), nol), b: daftar.reduce((x, t) => tambahQ(x, t.b), nol), suku: daftar };
+    }
+    const r = ungkapan(); sp();
+    if (i !== s.length) throw new Error("sisa");
+    return r;
+  }
+  const nilaiRuas = (r, x) => tambahQ(kaliQ(r.a, x), r.b);
+
+  /* Persamaan linear satu variabel (K12-01). */
+  function plsv(soal, kunci, jenis) {
+    const vm = soal.match(/[a-z]/);
+    if (!vm || !/^-?\d+$/.test(kunci)) return null;
+    const v = vm[0], sisi = soal.split(" = ");
+    if (sisi.length !== 2) return null;
+    const Lr = bacaRuas(sisi[0], v), Rr = bacaRuas(sisi[1], v), x0 = Q(+kunci, 1), L = [];
+    let A = { a: Lr.a, b: Lr.b }, B = { a: Rr.a, b: Rr.b };
+    const persSekarang = () => `${linHtml(A.a, A.b, v)}${sama}${linHtml(B.a, B.b, v)}`;
+    // 1. Buka kurung
+    const kurung = [...Lr.suku, ...Rr.suku].filter((t) => t.kurung);
+    if (kurung.length) {
+      L.push({ h: `Buka kurung: kalikan bilangan di depan kurung dengan setiap suku di dalamnya. ${kurung.map((t) =>
+        `${QNk(t.kurung.k)}(${linHtml(t.kurung.isi.a, t.kurung.isi.b, v)})${sama}${linHtml(t.a, t.b, v)}`).join("; ")}`, p: jenis === "tanda" });
+    }
+    const gabung = (r) => r.suku.filter((t) => t.a.p).length > 1 || r.suku.filter((t) => !t.a.p && t.b.p).length > 1 || r.suku.some((t) => t.kurung && t.a.p && t.b.p && r.suku.length > 1);
+    if (kurung.length || gabung(Lr) || gabung(Rr)) L.push({ h: `Sederhanakan setiap ruas (gabungkan suku sejenis): ${persSekarang()}` });
+    // 2. Hilangkan pecahan
+    const peny = [A.a, A.b, B.a, B.b].map((x) => x.q);
+    const m = peny.reduce((x, y) => kpk(x, y), 1);
+    if (m > 1) {
+      const kM = Q(m, 1);
+      A = { a: kaliQ(A.a, kM), b: kaliQ(A.b, kM) }; B = { a: kaliQ(B.a, kM), b: kaliQ(B.b, kM) };
+      L.push({ h: `Hilangkan pecahan: kalikan kedua ruas dengan ${N(m)} (KPK penyebutnya): ${persSekarang()}` });
+    }
+    // 3. Kumpulkan suku
+    const kiriV = tambahQ(A.a, negQ(B.a)), kananB = tambahQ(B.b, negQ(A.b));
+    if (!kiriV.p) return null;
+    if (B.a.p || A.b.p) {
+      const kiri = B.a.p ? `${linHtml(A.a, nol, v)} ${B.a.p > 0 ? "−" : "+"} ${linHtml({ p: Math.abs(B.a.p), q: B.a.q }, nol, v)}` : linHtml(A.a, nol, v);
+      const kanan = A.b.p ? `${QN(B.b)} ${A.b.p > 0 ? "−" : "+"} ${QN({ p: Math.abs(A.b.p), q: A.b.q })}` : QN(B.b);
+      L.push({ h: `Kumpulkan suku ber-${V(v)} di ruas kiri dan bilangan di ruas kanan. Suku yang pindah ruas berganti tanda: ${kiri}${sama}${kanan}`, p: jenis === "tanda" || jenis === "lain" });
+      L.push({ h: `${linHtml(kiriV, nol, v)}${sama}${QN(kananB)}` });
+    }
+    // 4. Bagi koefisien
+    const hasil = Q(kananB.p * kiriV.q, kananB.q * kiriV.p);
+    if (!(kiriV.p === 1 && kiriV.q === 1)) L.push({ h: `Bagi kedua ruas dengan ${QNk(kiriV)}: ${V(v)}${sama}${QN(kananB)} ÷ ${QNk(kiriV)}${sama}${QN(hasil)}`, p: jenis === "tanda" });
+    if (!samaQ(hasil, x0)) return null;
+    const nl = nilaiRuas(Lr, x0), nr = nilaiRuas(Rr, x0);
+    if (!samaQ(nl, nr)) return null;
+    L.push({ h: `Periksa: ganti ${V(v)} dengan ${QNk(x0)} → ruas kiri ${QN(nl)}, ruas kanan ${QN(nr)} ✓` });
+    L.push({ h: `Jadi ${V(v)}${sama}${QN(x0)}` });
+    return { langkah: L, susun: "", hasil: true };
+  }
+
+  /* Satu persamaan dua variabel "3x − 2y = 7" → {a, b, c}. */
+  function bacaPers2(s) {
+    const [kiri, kanan] = s.split(" = ");
+    if (kanan === undefined || !/^−?\d+$/.test(kanan)) return null;
+    const e = { a: 0, b: 0, c: +kanan.replace("−", "-") };
+    const suku = kiri.replace(/ − /g, " + −").split(" + ");
+    for (const t of suku) {
+      const m = t.match(/^(−?)(\d*)([xy])$/);
+      if (!m) return null;
+      e[m[3] === "x" ? "a" : "b"] += (m[1] ? -1 : 1) * (m[2] ? +m[2] : 1);
+    }
+    return e;
+  }
+  /* Selesaikan SPLDV dengan eliminasi + substitusi. nama: {x, y} keterangan variabel (soal cerita). */
+  function eliminasi(e1, e2, L, jenis) {
+    const hilangX = Math.abs(e1.a) === Math.abs(e2.a) && Math.abs(e1.b) !== Math.abs(e2.b);
+    const kH = hilangX ? "a" : "b", kT = hilangX ? "b" : "a", vH = hilangX ? "x" : "y", vT = hilangX ? "y" : "x";
+    const g = kpk(Math.abs(e1[kH]), Math.abs(e2[kH])), m1 = g / Math.abs(e1[kH]), m2 = g / Math.abs(e2[kH]);
+    const k1 = { a: e1.a * m1, b: e1.b * m1, c: e1.c * m1 }, k2 = { a: e2.a * m2, b: e2.b * m2, c: e2.c * m2 };
+    L.push({ h: `Eliminasi ${V(vH)} (hilangkan ${V(vH)}): samakan dulu koefisien ${V(vH)}${m1 === 1 && m2 === 1 ? " — keduanya sudah sama besar." : `. Kalikan persamaan (1) dengan ${N(m1)} dan persamaan (2) dengan ${N(m2)}:`}` });
+    if (m1 !== 1 || m2 !== 1) { L.push({ h: `(1) × ${N(m1)}: ${persHtml(k1)}`, anak: true }); L.push({ h: `(2) × ${N(m2)}: ${persHtml(k2)}`, anak: true }); }
+    const samaTanda = Math.sign(k1[kH]) === Math.sign(k2[kH]);
+    const r = samaTanda ? { a: k1.a - k2.a, b: k1.b - k2.b, c: k1.c - k2.c } : { a: k1.a + k2.a, b: k1.b + k2.b, c: k1.c + k2.c };
+    L.push({ h: `Koefisien ${V(vH)} ${samaTanda ? "bertanda sama, jadi kedua persamaan <b>dikurangkan</b>" : "berlawanan tanda, jadi kedua persamaan <b>dijumlahkan</b>"}: ${persHtml(r)}` });
+    if (!r[kT] || r.c % r[kT]) return null;
+    const nT = r.c / r[kT];
+    if (r[kT] !== 1) L.push({ h: `${V(vT)}${sama}${N(r.c)} ÷ ${Nk(r[kT])}${sama}${N(nT)}` });
+    // substitusi ke persamaan (1) (atau (2) bila koefisien variabel lain di (1) nol)
+    const e = e1[kH] ? e1 : e2, no = e1[kH] ? 1 : 2;
+    const sisa = e.c - e[kT] * nT;
+    if (sisa % e[kH]) return null;
+    const nH = sisa / e[kH];
+    L.push({ h: `Substitusi ${V(vT)}${sama}${N(nT)} ke persamaan (${no}): ${ganti(e, { [vT]: nT })}${sama}${N(e.c)}` });
+    const kv = `${e[kH] === 1 ? "" : e[kH] === -1 ? "−" : N(e[kH])}${V(vH)}`;
+    let akhir = "";
+    if (e[kH] === -1) akhir = ` → ${V(vH)}${sama}${N(nH)} (kedua ruas dikali −1)`;
+    else if (e[kH] !== 1) akhir = ` → ${V(vH)}${sama}${N(sisa)} ÷ ${Nk(e[kH])}${sama}${N(nH)}`;
+    L.push({ h: `${kv}${sama}${N(e.c)} ${e[kT] * nT < 0 ? "+" : "−"} ${N(Math.abs(e[kT] * nT))}${sama}${N(sisa)}${akhir}` });
+    return hilangX ? { x: nH, y: nT } : { x: nT, y: nH };
+  }
+  /* Ruas kiri a·x + b·y dengan variabel yang diketahui diganti nilainya: "4(15.000) + 3y", "x − 12", "2 + (−5)". */
+  function ganti(e, nilai) {
+    const s = [];
+    [["a", "x"], ["b", "y"]].forEach(([k, v]) => {
+      const c = e[k];
+      if (!c) return;
+      const ab = Math.abs(c);
+      let t;
+      if (nilai[v] === undefined) t = `${ab === 1 ? "" : N(ab)}${V(v)}`;
+      else t = ab === 1 ? Nk(nilai[v]) : `${N(ab)}(${N(nilai[v])})`;
+      s.push({ neg: c < 0, t });
+    });
+    return s.map((x, i) => i === 0 ? (x.neg ? "−" : "") + x.t.replace(/^\((<span class="nm">−[^<]*<\/span>)\)$/, "$1") : (x.neg ? " − " : " + ") + x.t).join("");
+  }
+  function substitusi(e1, varSub, k, L) {                          // persamaan (2): y = kx atau x = ky
+    const lain = varSub === "y" ? "x" : "y";
+    const kSub = varSub === "y" ? e1.b : e1.a, kLain = varSub === "y" ? e1.a : e1.b;
+    L.push({ h: `Substitusi persamaan (2) ke persamaan (1): ganti ${V(varSub)} dengan ${k === 1 ? "" : k === -1 ? "−" : N(k)}${V(lain)}.` });
+    const koef = kLain + kSub * k;
+    L.push({ h: `${lin2Html(varSub === "y" ? e1.a : 0, varSub === "x" ? e1.b : 0).replace(/^0$/, "")}${(varSub === "y" ? e1.a : e1.b) ? " " : ""}${kSub < 0 ? "−" : (varSub === "y" ? e1.a : e1.b) ? "+" : ""} ${Math.abs(kSub) === 1 ? "" : N(Math.abs(kSub))}(${k === 1 ? "" : N(k)}${V(lain)})${sama}${N(e1.c)} → ${koef === 1 ? "" : koef === -1 ? "−" : N(koef)}${V(lain)}${sama}${N(e1.c)}` });
+    if (!koef || e1.c % koef) return null;
+    const nL = e1.c / koef, nS = k * nL;
+    if (koef !== 1) L.push({ h: `${V(lain)}${sama}${N(e1.c)} ÷ ${Nk(koef)}${sama}${N(nL)}` });
+    L.push({ h: `Hitung ${V(varSub)} dari persamaan (2): ${V(varSub)}${sama}${N(k)} × ${Nk(nL)}${sama}${N(nS)}` });
+    return varSub === "y" ? { x: nL, y: nS } : { x: nS, y: nL };
+  }
+  function spldv(soal, kunci, jenis) {
+    const km = kunci.match(/^(-?\d+);(-?\d+)$/), b = soal.split(" ; ");
+    if (!km || b.length !== 2) return null;
+    const L = [], e1 = bacaPers2(b[0]);
+    if (!e1) return null;
+    let hasil;
+    const sub = b[1].match(/^([xy]) = (−?)(\d*)([xy])$/);
+    L.push({ h: `Beri nomor: (1) ${b[0].includes("=") ? persHtml(e1) : ""}` });
+    if (sub) {
+      if (sub[1] === sub[4]) return null;
+      const k = (sub[2] ? -1 : 1) * (sub[3] ? +sub[3] : 1);
+      L[0].h += `; (2) ${V(sub[1])}${sama}${k === 1 ? "" : k === -1 ? "−" : N(k)}${V(sub[4])}`;
+      hasil = substitusi(e1, sub[1], k, L);
+    } else {
+      const e2 = bacaPers2(b[1]);
+      if (!e2) return null;
+      L[0].h += `; (2) ${persHtml(e2)}`;
+      hasil = eliminasi(e1, e2, L, jenis);
+      if (hasil) L.push({ h: `Periksa di persamaan (2): ${ganti(e2, hasil)}${sama}${N(e2.a * hasil.x + e2.b * hasil.y)} ✓` });
+    }
+    if (!hasil || hasil.x !== +km[1] || hasil.y !== +km[2]) return null;
+    L.push({ h: `Jadi ${V("x")}${sama}${N(hasil.x)} dan ${V("y")}${sama}${N(hasil.y)}`, p: jenis === "tertukar" || jenis === "sebagian" });
+    return { langkah: L, susun: "", hasil: true };
+  }
+
+  /* Soal cerita SPLDV (K12-03): harga barang dan umur. */
+  const KATA = { satu: 1, dua: 2, tiga: 3, empat: 4, lima: 5, enam: 6, tujuh: 7, delapan: 8, sembilan: 9, sepuluh: 10 };
+  const kata = (t) => KATA[String(t).toLowerCase()];
+  function ceritaSPLDV(soal, kunci, jenis) {
+    if (/[<>&"]/.test(soal)) return null;                         // nama/barang ditulis apa adanya ke HTML
+    const L = [], k = Number(kunci), RP = "(Rp[\\d.]+,00)";
+    let m, e1, e2, nx, ny, jawab;
+    if ((m = soal.match(new RegExp(`^(\\S+) membeli (\\d+) (.+?) dan (\\d+) (.+?) seharga ${RP}\\. (\\S+) membeli (\\d+) (.+?) dan (\\d+) (.+?) di toko yang sama seharga ${RP}\\. Berapa harga (.+)\\?$`)))) {
+      const b1 = m[3], b2 = m[5];
+      if (m[9] !== b1 || m[11] !== b2) return null;
+      nx = `harga satu ${b1}`; ny = `harga satu ${b2}`;
+      e1 = { a: +m[2], b: +m[4], c: bacaRp(m[6]) }; e2 = { a: +m[8], b: +m[10], c: bacaRp(m[12]) };
+      const tanya = m[13];
+      let t;
+      if ((t = tanya.match(/^satu (.+)$/))) jawab = (s) => t[1] === b1 ? s.x : t[1] === b2 ? s.y : null;
+      else if ((t = tanya.match(/^(\d+) (.+?) dan (\d+) (.+)$/)) && t[2] === b1 && t[4] === b2) jawab = (s) => { L.push({ h: `Harga ${N(t[1])} ${b1} dan ${N(t[3])} ${b2}${sama}${N(t[1])} × ${rp(s.x)} + ${N(t[3])} × ${rp(s.y)}${sama}${rp(+t[1] * s.x + +t[3] * s.y)}` }); return +t[1] * s.x + +t[3] * s.y; };
+      else return null;
+    } else {
+      const umur = soal.match(/^(.*?)Berapa (umur (\S+) sekarang|jumlah umur (\S+) dan (\S+) lima tahun lagi)\?$/);
+      if (!umur) return null;
+      const isi = umur[1].trim();
+      // nama pertama dan kedua
+      let a1, a2;
+      if ((m = isi.match(/^Jumlah umur (\S+) dan (\S+) adalah (\d+) tahun\. Selisih umur mereka (\d+) tahun, dan \1 lebih tua\.$/))) {
+        a1 = m[1]; a2 = m[2]; e1 = { a: 1, b: 1, c: +m[3] }; e2 = { a: 1, b: -1, c: +m[4] };
+        L.push({ h: `Misalkan ${V("x")} = umur ${a1}, ${V("y")} = umur ${a2}. Jumlah umur → (1); ${a1} lebih tua, jadi selisihnya ${V("x")} − ${V("y")} → (2).` });
+      } else if ((m = isi.match(/^Umur (\S+) (\S+) kali umur (\S+)\. Jumlah umur mereka (\d+) tahun\.$/)) && kata(m[2])) {
+        a1 = m[1]; a2 = m[3]; const w = kata(m[2]);
+        e1 = { a: 1, b: 1, c: +m[4] }; e2 = { a: 1, b: -w, c: 0 };
+        L.push({ h: `Misalkan ${V("x")} = umur ${a1}, ${V("y")} = umur ${a2}. "Umur ${a1} ${m[2]} kali umur ${a2}": ${V("x")}${sama}${N(w)}${V("y")}, ditulis ${persHtml(e2)} → (2). Jumlah umur → (1).` });
+      } else if ((m = isi.match(/^(\S+) kali umur (\S+) ditambah (\S+) kali umur (\S+) adalah (\d+) tahun\. Sedangkan (\S+) kali umur \4 dikurangi (\S+) kali umur \2 adalah (\d+) tahun\.$/)) && [m[1], m[3], m[6], m[7]].every(kata)) {
+        a1 = m[2]; a2 = m[4];
+        e1 = { a: kata(m[1]), b: kata(m[3]), c: +m[5] }; e2 = { a: -kata(m[7]), b: kata(m[6]), c: +m[8] };
+        L.push({ h: `Misalkan ${V("x")} = umur ${a1}, ${V("y")} = umur ${a2}. Kalimat pertama → (1), kalimat kedua → (2) (perhatikan: umur ${a2} disebut lebih dulu, umur ${a1} dikurangkan).` });
+      } else if ((m = isi.match(/^(\S+) tahun yang lalu, umur (\S+) (\S+) kali umur (\S+)\. Jumlah umur mereka sekarang (\d+) tahun\.$/)) && kata(m[1]) && kata(m[3])) {
+        a1 = m[2]; a2 = m[4]; const w = kata(m[1]), kk = kata(m[3]);
+        e1 = { a: 1, b: 1, c: +m[5] }; e2 = { a: 1, b: -kk, c: w - kk * w };
+        L.push({ h: `Misalkan ${V("x")} = umur ${a1} sekarang, ${V("y")} = umur ${a2} sekarang. ${N(w)} tahun yang lalu umur mereka ${V("x")} − ${N(w)} dan ${V("y")} − ${N(w)} (keduanya dikurangi ${N(w)}).`, p: !!jenis });
+        L.push({ h: `${V("x")} − ${N(w)}${sama}${N(kk)}(${V("y")} − ${N(w)}) → ${V("x")} − ${N(w)}${sama}${N(kk)}${V("y")} − ${N(kk * w)} → ${persHtml(e2)} → (2). Jumlah umur sekarang → (1).` });
+      } else if ((m = isi.match(/^(\S+) tahun lagi, umur (\S+) menjadi (\S+) kali umur (\S+)\. Selisih umur mereka (\d+) tahun\.$/)) && kata(m[1]) && kata(m[3])) {
+        a1 = m[2]; a2 = m[4]; const w = kata(m[1]), kk = kata(m[3]);
+        e1 = { a: 1, b: -1, c: +m[5] }; e2 = { a: 1, b: -kk, c: kk * w - w };
+        L.push({ h: `Misalkan ${V("x")} = umur ${a1} sekarang, ${V("y")} = umur ${a2} sekarang. ${N(w)} tahun lagi umur mereka ${V("x")} + ${N(w)} dan ${V("y")} + ${N(w)} (keduanya ditambah ${N(w)}).`, p: !!jenis });
+        L.push({ h: `${V("x")} + ${N(w)}${sama}${N(kk)}(${V("y")} + ${N(w)}) → ${V("x")} + ${N(w)}${sama}${N(kk)}${V("y")} + ${N(kk * w)} → ${persHtml(e2)} → (2). Selisih umur → (1).` });
+      } else return null;
+      nx = `umur ${a1}`; ny = `umur ${a2}`;
+      jawab = (s) => {
+        if (umur[3] === a1) return s.x;
+        if (umur[3] === a2) return s.y;
+        if (umur[4] === a1 && umur[5] === a2) {
+          L.push({ h: `Lima tahun lagi umur mereka masing-masing bertambah 5, jadi jumlahnya bertambah 10: ${N(s.x)} + ${N(s.y)} + 10${sama}${N(s.x + s.y + 10)} tahun`, p: !!jenis });
+          return s.x + s.y + 10;
+        }
+        return null;
+      };
+    }
+    if (!L.length) L.push({ h: `Misalkan ${V("x")} = ${nx}, ${V("y")} = ${ny}.` });
+    L.push({ h: `Buat model matematikanya: (1) ${persHtml(e1)}; (2) ${persHtml(e2)}` });
+    const s = eliminasi(e1, e2, L, jenis);
+    if (!s) return null;
+    const uang = /Rp/.test(soal) ? rp : (v) => `${N(v)} tahun`;
+    L.push({ h: `Didapat ${nx} = ${uang(s.x)} dan ${ny} = ${uang(s.y)}` });
+    const h = jawab(s);
+    if (h !== k) return null;
+    L.push({ h: `Jadi jawabannya ${/Rp/.test(soal) ? rp(k) : `${N(k)} tahun`}` });
+    return { langkah: L, susun: "", hasil: true };
+  }
+
+  /* Pola bilangan (K12-04): cari aturan yang cocok dengan semua suku yang diketahui. */
+  const bacaBil = (t) => Number(String(t).replace("−", "-"));
+  function pola(soal, kunci) {
+    const t = soal.split(", ");
+    if (t.length < 5 || !t.includes("□")) return null;
+    const kosong = t.map((x, i) => x === "□" ? i : -1).filter((i) => i >= 0);
+    const k = kunci.split(";").map(Number);
+    if (k.length !== kosong.length || kosong[0] < 2) return null;
+    const u = t.map((x) => x === "□" ? null : bacaBil(x)), n = u.length;
+    const cocok = (f) => f.length === n && f.every((x, i) => u[i] === null || x === u[i]) && kosong.every((i, j) => f[i] === k[j]);
+    const buat = (awal, langkah) => { const f = awal.slice(); for (let i = f.length; i < n; i++) f.push(langkah(f, i)); return f; };
+    const sg = (v) => v < 0 ? `− ${N(-v)}` : `+ ${N(v)}`;
+    const L = [];
+    const isi = (f, cara) => kosong.forEach((i, j) => L.push({ h: `Suku ke-${i + 1}: ${cara(f, i)}${sama}${N(f[i])}` }));
+    let f;
+    const [u0, u1] = u;
+    // 1. Aritmetika
+    if (cocok(f = buat([u0], (g, i) => g[i - 1] + (u1 - u0)))) {
+      const d = u1 - u0;
+      L.push({ h: `Selisih dua suku berurutan selalu sama: ${N(u1)} − ${Nk(u0)}${sama}${N(d)}. Ini barisan aritmetika dengan beda ${N(d)}.` });
+      isi(f, (g, i) => `${N(g[i - 1])} ${sg(d)}`);
+    } else if (u0 && Number.isInteger(u1 / u0) && cocok(f = buat([u0], (g, i) => g[i - 1] * (u1 / u0)))) {
+      const r = u1 / u0;
+      L.push({ h: `Setiap suku dikali bilangan yang sama: ${N(u1)} ÷ ${Nk(u0)}${sama}${N(r)}. Ini barisan geometri dengan rasio ${N(r)}.` });
+      isi(f, (g, i) => `${N(g[i - 1])} × ${Nk(r)}`);
+    } else if (u1 && Number.isInteger(u0 / u1) && cocok(f = buat([u0], (g, i) => g[i - 1] / (u0 / u1)))) {
+      const r = u0 / u1;
+      L.push({ h: `Setiap suku dibagi bilangan yang sama: ${N(u0)} ÷ ${Nk(u1)}${sama}${N(r)} (barisan geometri dengan rasio ${pecHtml("", 1, r)}).` });
+      isi(f, (g, i) => `${N(g[i - 1])} ÷ ${Nk(r)}`);
+    } else if (cocok(f = buat([u0, u1], (g, i) => g[i - 1] + g[i - 2]))) {
+      L.push({ h: "Setiap suku adalah jumlah dua suku sebelumnya (pola Fibonacci)." });
+      isi(f, (g, i) => `${N(g[i - 2])} + ${N(g[i - 1])}`);
+    } else {
+      let ketemu = false;
+      // 2. Selisih bertingkat: selisih bertambah tetap e
+      for (let e = -30; e <= 30 && !ketemu; e++) {
+        if (!e) continue;
+        const d0 = u1 - u0;
+        if (cocok(f = buat([u0], (g, i) => g[i - 1] + d0 + (i - 1) * e))) {
+          ketemu = true;
+          const sel = f.slice(1).map((x, i) => x - f[i]);
+          L.push({ h: `Selisihnya tidak tetap, tetapi selalu bertambah ${N(e)}: ${sel.map((x) => N(x)).join(", ")}. Ini pola selisih bertingkat.` });
+          isi(f, (g, i) => `${N(g[i - 1])} + ${N(g[i] - g[i - 1])}`);
+        }
+      }
+      // 3. Dikali m lalu ditambah c
+      for (let mm = 2; mm <= 5 && !ketemu; mm++) {
+        const c = u1 - mm * u0;
+        if (c && cocok(f = buat([u0], (g, i) => g[i - 1] * mm + c))) {
+          ketemu = true;
+          L.push({ h: `Setiap suku dikali ${N(mm)} lalu ${c > 0 ? "ditambah" : "dikurangi"} ${N(Math.abs(c))}: ${N(u0)} × ${N(mm)} ${sg(c)}${sama}${N(u1)}.` });
+          isi(f, (g, i) => `${N(g[i - 1])} × ${N(mm)} ${sg(c)}`);
+        }
+      }
+      // 4. Dua operasi bergantian
+      const opsi = [];
+      for (let a = -40; a <= 40; a++) if (a) opsi.push({ t: a > 0 ? `+ ${a}` : `− ${-a}`, f: (x) => x + a, h: (x) => `${N(x)} ${sg(a)}` });
+      for (let r = 2; r <= 5; r++) opsi.push({ t: `× ${r}`, f: (x) => x * r, h: (x) => `${N(x)} × ${N(r)}` });
+      for (const o1 of opsi) {
+        if (ketemu) break;
+        if (o1.f(u0) !== u1) continue;
+        for (const o2 of opsi) {
+          if (o1 === o2) continue;
+          if (cocok(f = buat([u0], (g, i) => (i % 2 ? o1 : o2).f(g[i - 1])))) {
+            ketemu = true;
+            L.push({ h: `Ada dua operasi yang bergantian: <b>${o1.t}</b>, lalu <b>${o2.t}</b>, lalu ${o1.t} lagi, dan seterusnya.` });
+            isi(f, (g, i) => (i % 2 ? o1 : o2).h(g[i - 1]));
+            break;
+          }
+        }
+      }
+      // 5. Dua pola berselang (suku ganjil dan suku genap masing-masing aritmetika)
+      for (let d = -40; d <= 40 && !ketemu; d++) {
+        for (let e = -40; e <= 40 && !ketemu; e++) {
+          if (cocok(f = buat([u0, u1], (g, i) => g[i - 2] + (i % 2 ? e : d)))) {
+            ketemu = true;
+            L.push({ h: `Ada dua pola yang berselang-seling: suku ke-1, 3, 5, … ${d >= 0 ? "bertambah" : "berkurang"} ${N(Math.abs(d))}; suku ke-2, 4, 6, … ${e >= 0 ? "bertambah" : "berkurang"} ${N(Math.abs(e))}.` });
+            isi(f, (g, i) => `${N(g[i - 2])} ${sg(i % 2 ? e : d)}`);
+          }
+        }
+      }
+      if (!ketemu) return null;
+    }
+    L.push({ h: `Jadi ${kosong.length > 1 ? "bilangan pengganti kotak berturut-turut" : "bilangan pengganti kotak"} ${k.map((x) => N(x)).join(" dan ")}` });
+    return { langkah: L, susun: "", hasil: true };
+  }
+
+  /* Penarikan kesimpulan (K12-05, pilihan ganda). */
+  const ALASAN = {
+    konvers: "membalik urutan implikasi. \"Jika p, maka q\" tidak sama dengan \"Jika q, maka p\".",
+    invers: "menyangkal kedua bagian tanpa membaliknya. \"Jika tidak p, maka tidak q\" belum tentu benar.",
+    kuantor: "kata \"semua\" dipakai, padahal yang pasti hanya \"sebagian\".",
+    tidak_sah: "pernyataan itu tidak mengikuti dari premis; belum tentu benar.",
+    ingkaran: "bukan ingkaran/kesetaraan yang tepat.",
+  };
+  function kesimpulan(soal, kunci, jenis, jawaban) {
+    const b = soal.split(" ¶ ");
+    if (b.length < 4 || !/^[A-E]$/.test(kunci)) return null;
+    const premis = b[0], tanya = b[1], opsi = Object.fromEntries(b.slice(2).map((o) => [o[0], o.slice(3)]));
+    const benar = opsi[kunci];
+    if (!benar) return null;
+    const L = [], q = (t) => `<b>${esc(t)}</b>`;
+    const kecil = (t) => t.charAt(0).toLowerCase() + t.slice(1);
+    let m;
+    if ((m = premis.match(/^"Jika (.+?), maka (.+?)\."$/))) {
+      L.push({ h: `Misalkan p: ${q(m[1])}; q: ${q(m[2])}. Pernyataannya "jika p, maka q" (p → q).` });
+      if (/setara/.test(tanya)) {
+        L.push({ h: `Yang setara dengan p → q ada dua: kontraposisi (tidak q → tidak p) dan "tidak p atau q".`, p: !!jenis });
+        L.push({ h: `Di pilihan yang ada: ${q(benar)} (bentuk "tidak p atau q").` });
+      } else if (/Ingkaran/.test(tanya)) {
+        L.push({ h: `Ingkaran p → q adalah "p dan tidak q": syaratnya terjadi, tetapi akibatnya tidak terjadi.`, p: !!jenis });
+        L.push({ h: `Jadi ingkarannya: ${q(benar)}` });
+      } else return null;
+    } else if ((m = premis.match(/^Semua (.+?)\. (Sebagian|Semua) (.+?) adalah (.+?)\.$/))) {
+      L.push({ h: `Premis 1: semua ${q(m[1])}. Premis 2: ${kecil(m[2])} ${q(m[3])} adalah ${q(m[4])}.` });
+      L.push({ h: m[2] === "Sebagian"
+        ? `Hanya <b>sebagian</b> ${esc(m[3])} yang termasuk ${esc(m[4])}, jadi yang pasti hanya sebagian itu yang memiliki sifatnya.`
+        : `<b>Semua</b> ${esc(m[3])} termasuk ${esc(m[4])}, jadi semuanya juga memiliki sifat ${esc(m[4])}.`, p: jenis === "kuantor" });
+      L.push({ h: `Kesimpulan: ${q(benar)}` });
+    } else if ((m = premis.match(/^Jika (.+?), maka (.+?)\. Jika (.+?), maka (.+?)\.$/)) && m[2] === m[3]) {
+      L.push({ h: `Misalkan p: ${q(m[1])}; q: ${q(m[2])}; r: ${q(m[4])}. Premisnya p → q dan q → r.` });
+      L.push({ h: `Silogisme: dari p → q dan q → r disimpulkan <b>p → r</b> (jika ${esc(m[1])}, maka ${esc(m[4])}).` });
+      if (/^Jika .*tidak|^Jika .* tidak /.test(benar) && !benar.startsWith(`Jika ${m[1]}`)) L.push({ h: `p → r setara dengan kontraposisinya, <b>tidak r → tidak p</b>. Pilihan yang sesuai: ${q(benar)}`, p: jenis === "invers" || jenis === "konvers" });
+      else L.push({ h: `Pilihan yang sesuai: ${q(benar)}` });
+    } else if ((m = premis.match(/^Jika (.+?), maka (.+?)\. (.+?)\.$/))) {
+      const fakta = kecil(m[3]);
+      L.push({ h: `Misalkan p: ${q(m[1])}; q: ${q(m[2])}. Premis 1: p → q. Premis 2: ${q(m[3])}.` });
+      if (fakta === m[1]) L.push({ h: `Premis 2 menyatakan p terjadi. Modus ponens: p → q dan p, maka <b>q</b>.`, p: !!jenis });
+      else L.push({ h: `Premis 2 menyatakan q <b>tidak</b> terjadi. Modus tollens: p → q dan tidak q, maka <b>tidak p</b>.`, p: !!jenis });
+      L.push({ h: `Kesimpulan: ${q(benar)}` });
+    } else return null;
+    const j = String(jawaban || "").toUpperCase();
+    if (jenis && ALASAN[jenis] && opsi[j]) L.push({ h: `Pilihanmu (${j}) keliru karena ${esc(ALASAN[jenis])}`, p: true });
+    L.push({ h: `Jadi jawabannya <b>${kunci}</b>.` });
+    return { langkah: L, susun: "", hasil: true };
+  }
+
+  /* Pintu MD12: undefined = bukan bentuk MD12. */
+  function susunMD12(soal, kunci, jenis, jawaban) {
+    if (soal.includes(" ¶ ")) return kesimpulan(soal, kunci, jenis, jawaban);
+    if (/^[−\d□]/.test(soal) && soal.includes(", ") && soal.includes("□")) return pola(soal, kunci);
+    if (/ ; /.test(soal) && /[xy]/.test(soal)) return spldv(soal, kunci, jenis);
+    if (/membeli .* seharga|umur/i.test(soal) && !/%|persen/.test(soal)) return ceritaSPLDV(soal, kunci, jenis);
+    if (/[a-z]/.test(soal) && soal.includes(" = ") && !/[A-Za-z]{3,}/.test(soal) && !soal.includes("□")) return plsv(soal, kunci, jenis);
+    return undefined;
+  }
+
   /* ------------------------------------------------------------ pintu masuk */
   function bahasSoal(o) {
     try { return susun(o); } catch (e) { return null; }
@@ -725,6 +1154,8 @@ const BahasMatdas = (() => {
   function susun(o) {
     const soal = String(o.soal || "").trim(), kunci = String(o.kunci == null ? "" : o.kunci).trim(), jenis = o.jenis || "";
     if (!soal || !kunci) return null;
+    const md12 = susunMD12(soal, kunci, jenis, o.jawaban);
+    if (md12 !== undefined) return md12;
     const md11 = susunMD11(soal, kunci, jenis);
     if (md11 !== undefined) return md11;
     // Pembagian bersisa: "47 ÷ 5", kunci "9 sisa 2"
@@ -761,8 +1192,11 @@ const BahasMatdas = (() => {
   function bahasHtml(b) {
     if (!b) return "";
     let no = 0;
-    const li = b.langkah.map((x) => {
-      if (x.anak) return `<li class="bh-anak${x.p ? " bh-sorot" : ""}">${x.h}${x.p ? ' <span class="bh-tanda">← perhatikan</span>' : ""}</li>`;
+    const akhir = b.langkah.length - 1;
+    const li = b.langkah.map((x, i) => {
+      // Baris penutup "Jadi …" tampil sebagai kotak kesimpulan, tanpa nomor
+      if (i === akhir && /^Jadi /.test(x.h)) return `<li class="bh-jadi"><span class="bh-cek" aria-hidden="true">✓</span><span class="bh-isi">${x.h}</span></li>`;
+      if (x.anak) return `<li class="bh-anak${x.p ? " bh-sorot" : ""}"><span class="bh-isi">${x.h}${x.p ? ' <span class="bh-tanda">← perhatikan</span>' : ""}</span></li>`;
       no++;
       return `<li${x.p ? ' class="bh-sorot"' : ""}><span class="bh-no">${no}</span><span class="bh-isi">${x.h}${x.p ? ' <span class="bh-tanda">← perhatikan</span>' : ""}</span></li>`;
     }).join("");

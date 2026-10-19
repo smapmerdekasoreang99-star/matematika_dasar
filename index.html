@@ -18,7 +18,7 @@
 <meta property="og:image:alt" content="Logo SMA Plus Merdeka Soreang">
 <!-- /pratinjau -->
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=9">
+<link rel="stylesheet" href="assets/matdas.css?v=10">
 <script src="config.js?v=2"></script>
 <style>
 /* ---- Masuk ---- */
@@ -392,7 +392,7 @@ details.peta[open] summary::before { transform: rotate(90deg); }
 <div class="toast" id="toast" role="status"></div>
 
 <script src="assets/umum.js?v=10"></script>
-<script src="assets/bahas.js?v=2"></script>
+<script src="assets/bahas.js?v=3"></script>
 <script>window.MTD_SIAP = false;</script>
 <script>
 "use strict";
@@ -832,7 +832,7 @@ function salah(h) {
   $("f-saran").textContent = sr || "";
   $("f-saran").classList.toggle("hidden", !sr);
   // Pembahasan hanya di latihan mandiri (dan uji coba guru), tidak di sesi kelompok; butuh kunci yang sudah dikirim server.
-  const bh = (S.mode === "mandiri" || S.uji) && adaKunci ? bahasSoal({ soal: h.soal, kunci: h.kunci, jenis: h.jenis }) : null;
+  const bh = (S.mode === "mandiri" || S.uji) && adaKunci ? bahasSoal({ soal: h.soal, kunci: h.kunci, jenis: h.jenis, jawaban: h.jawaban }) : null;
   $("f-bahas").innerHTML = bh ? '<summary>📘 Lihat cara mengerjakan</summary>' + bahasHtml(bh) : "";
   $("f-bahas").open = false;
   $("f-bahas").classList.toggle("hidden", !bh);
@@ -938,7 +938,7 @@ async function muatTinjau() {
 }
 const semuaTinjau = () => (TJ || []).flatMap((x) => x.salah || []);
 function butirTinjau(x) {
-  const bh = bahasSoal({ soal: x.soal, kunci: x.kunci, jenis: x.jenis });
+  const bh = bahasSoal({ soal: x.soal, kunci: x.kunci, jenis: x.jenis, jawaban: x.jawaban });
   const sr = x.jenis && JENIS[x.jenis] && JENIS[x.jenis].saran;
   return `<div class="tj-butir${x.paham ? " paham" : ""}">
     <div class="tj-atas"><span>${esc(x.nama || x.tingkat)} · Level ${x.level} · nomor ${x.nomor}</span>${x.paham ? '<span class="tj-paham">✓ sudah dipahami</span>' : ""}</div>

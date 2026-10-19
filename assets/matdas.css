@@ -188,3 +188,8 @@ table[data-beku] .fz-akhir { box-shadow: 4px 0 6px -4px rgba(29, 42, 58, .25); }
 .tj-sesi > .tj-butir + .tj-butir { margin-top: var(--j2); }
 /* Kepala halaman lengket: elemen yang digulir ke atas tidak tertutup */
 .coba-pita, .tinjau-kartu, #k-salah, #k-soal { scroll-margin-top: 112px; }
+/* Baris kesimpulan pembahasan ("Jadi …") */
+.bh-langkah > li.bh-jadi { margin-top: var(--j1); padding: var(--j2) var(--j3); background: var(--hadir-muda); color: var(--hadir-tua); font-weight: 700; border-radius: var(--r1); }
+.bh-cek { flex: none; width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--hadir); color: #fff; font-size: var(--h-xs); font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center; }
+.bahas sup { font-size: .7em; line-height: 0; }
