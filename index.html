@@ -18,7 +18,7 @@
 <meta property="og:image:alt" content="Logo SMA Plus Merdeka Soreang">
 <!-- /pratinjau -->
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=8">
+<link rel="stylesheet" href="assets/matdas.css?v=9">
 <script src="config.js?v=2"></script>
 <style>
 /* ---- Masuk ---- */
@@ -310,6 +310,11 @@ details.peta[open] summary::before { transform: rotate(90deg); }
         <p class="redup kecil" style="margin:0">Kemajuan latihan mandiri terpisah dari kemajuan resmi di sesi kelompok. Pilih sendiri materi yang ingin dilatih.</p>
       </div>
     </details>
+    <!-- Tinjau kesalahanku: soal yang salah di 5 sesi kelompok terakhir + pembahasan + coba soal serupa (19 Okt 2026) -->
+    <details class="kartu tinjau-kartu hidden" id="tinjau-kartu">
+      <summary><span class="mk-judul">📖 Tinjau kesalahanku</span><span class="redup kecil" id="tj-ringkas"></span></summary>
+      <div class="tj-isi" id="tj-isi"></div>
+    </details>
     <div class="kartu posisi-kartu">
       <div class="posisi-atas">
         <div class="baris-atas"><span class="modul" id="p-modul">MD10</span><span id="p-urut">Tingkat 1 dari 14</span></div>
@@ -324,6 +329,7 @@ details.peta[open] summary::before { transform: rotate(90deg); }
       </div>
     </div>
 
+    <div class="coba-pita hidden" id="coba-pita" role="note"><span id="coba-teks"></span><button class="kecil garis" id="coba-batal">Kembali ke latihan</button></div>
     <div class="kartu soal-kartu" id="k-soal">
       <div class="soal-no" id="s-no">Soal nomor 1</div>
       <div class="setara-info hidden" id="s-setara" role="status"></div>
@@ -343,8 +349,10 @@ details.peta[open] summary::before { transform: rotate(90deg); }
         <span class="lbl" id="f-kunci-lbl">Seharusnya</span><span id="f-kunci" class="kunci"></span>
       </div>
       <div class="saran hidden" id="f-saran"></div>
+      <details class="bahas-lipat hidden" id="f-bahas"></details>
       <div class="pesan hidden" id="f-ulang"></div>
       <button id="btn-lanjut" style="width:100%">Lanjut ke soal pengganti →</button>
+      <button class="garis hidden" id="btn-coba-kembali" style="width:100%;margin-top:var(--j2)">Kembali ke latihan</button>
     </div>
 
     <div class="kartu rayakan hidden" id="k-naik" role="alert">
@@ -384,6 +392,7 @@ details.peta[open] summary::before { transform: rotate(90deg); }
 <div class="toast" id="toast" role="status"></div>
 
 <script src="assets/umum.js?v=10"></script>
+<script src="assets/bahas.js?v=1"></script>
 <script>window.MTD_SIAP = false;</script>
 <script>
 "use strict";
@@ -393,6 +402,8 @@ let A = null;                 // isian jawaban
 // Mode "Lanjut nomor berikutnya": nomor yang dijawab salah di level ini (hanya untuk titik kemajuan; hilang bila halaman dimuat ulang)
 const lanjutMode = () => S && S.atur && S.atur.bila_salah === "lanjut";
 let salahNo = new Set(), naikTertunda = null;
+let CB = null;                // "Coba soal serupa" dari Tinjau kesalahanku: {id, soal, x}; null = latihan biasa
+const soalKini = () => CB ? CB.soal : S.soal;
 let sibuk = false, akhirSesi = 0, akhirSoal = 0, jamTimer = null, menungguLanjut = false, menungguNaik = false;
 
 /* ----------------------------------------------------------- tampilan */
@@ -466,8 +477,8 @@ function isiPetunjuk() {
 }
 
 function isiSoal() {
-  const s = S.soal;
-  $("s-no").textContent = `Soal nomor ${S.nomor} dari ${S.atur.n_benar}`;
+  const s = soalKini();
+  $("s-no").textContent = CB ? "Coba soal serupa" : `Soal nomor ${S.nomor} dari ${S.atur.n_benar}`;
   // Soal yang sudah memuat "=" atau berupa sistem/pola tidak ditambah "= …"
   // Soal yang sudah memuat "=" atau berupa sistem/pola/cerita/pilihan tidak ditambah "= …"
   const tanpaSama = ["hilang", "persamaan", "spldv", "pola", "cerita", "pilihan", "urut"].includes(s.bentuk);
@@ -501,7 +512,7 @@ function isiSoal() {
   isiPetunjuk();
   gambarJawab(); gambarPapan();
   // batas waktu per soal
-  const bw = S.atur.batas_waktu_soal;
+  const bw = CB ? 0 : S.atur.batas_waktu_soal;    // soal serupa tanpa batas waktu
   $("s-waktu").classList.toggle("hidden", !(bw > 0));
   akhirSoal = bw > 0 ? Date.now() + Math.max(0, bw - (S.soal_detik || 0)) * 1000 : 0;
   detak();
@@ -530,7 +541,7 @@ function gambarJawab() {
     : A.ur
     ? `<div class="urut-wadah"><div class="urut-hasil" aria-label="Urutanmu">${A.items.map((_, i) => A.urut[i] !== undefined
           ? `<button type="button" class="urut-isi" data-batal="${i}" title="Ketuk untuk membatalkan">${bilHtml(A.items[A.urut[i]])}</button>`
-          : '<span class="urut-kosong"></span>').join('<span class="urut-panah">' + (uraiUrut(S.soal.teks).arah === "terbesar" ? "&gt;" : "&lt;") + "</span>")}</div>
+          : '<span class="urut-kosong"></span>').join('<span class="urut-panah">' + (uraiUrut(soalKini().teks).arah === "terbesar" ? "&gt;" : "&lt;") + "</span>")}</div>
         <div class="urut-pilih">${A.items.map((t, i) => A.urut.includes(i) ? "" : `<button type="button" class="urut-chip" data-ambil="${i}">${bilHtml(t)}</button>`).join("")}</div></div>`
     : A.nt
     ? `${k("a", A.a, "lebar-isi")}<span class="op">× 10</span><span class="pangkat-wadah">${A.nneg ? '<span class="neg-tanda kecil">−</span>' : ""}${k("n", A.n, "kecil pangkat")}</span>`
@@ -744,6 +755,7 @@ async function kirim(waktuHabis) {
   const j = teksJawaban();
   if (j === null && !waktuHabis) return toast(A.ur ? "Ketuk semua bilangan sampai urutannya lengkap." : A.nt ? "Isi bilangan dan pangkatnya." : A.mb ? "Isi semua kotak jawaban." : A.ss ? "Isi hasil bagi dan sisanya." : A.ds ? "Lengkapi jawabanmu (angka setelah koma atau garis pecahan)." : "Lengkapi pembilang dan penyebutnya.");
   if (j === "" && !waktuHabis) return toast(A.pl ? "Pilih salah satu jawaban dulu." : "Tulis jawabanmu dulu.");
+  if (CB) return kirimCoba(j);
   sibuk = true;
   try {
     // soal.id tidak ada di server lama: undefined tidak ikut terkirim, jadi urutan pemasangan tidak penting.
@@ -819,17 +831,24 @@ function salah(h) {
   const sr = (JENIS[h.jenis] || {}).saran;
   $("f-saran").textContent = sr || "";
   $("f-saran").classList.toggle("hidden", !sr);
+  // Pembahasan hanya di latihan mandiri (dan uji coba guru), tidak di sesi kelompok; butuh kunci yang sudah dikirim server.
+  const bh = (S.mode === "mandiri" || S.uji) && adaKunci ? bahasSoal({ soal: h.soal, kunci: h.kunci, jenis: h.jenis }) : null;
+  $("f-bahas").innerHTML = bh ? '<summary>📘 Lihat cara mengerjakan</summary>' + bahasHtml(bh) : "";
+  $("f-bahas").open = false;
+  $("f-bahas").classList.toggle("hidden", !bh);
   $("f-ulang").textContent = h.ulang ? `Salahmu di level ini sudah lebih dari ${S.atur.batas_salah}. Level ini diulang dari nomor 1. Tetap semangat!` : "";
   $("f-ulang").classList.toggle("hidden", !h.ulang);
   // Mode lanjut: salah di nomor terakhir tetap menuntaskan level, jadi setelah kartu ini tampil kartu naik level
   naikTertunda = h.naik ? h : null;
-  $("btn-lanjut").textContent = h.ulang ? "Ulangi dari nomor 1 →" : h.naik ? "Lanjut →" : lanjutMode() ? "Lanjut ke nomor berikutnya →" : "Lanjut ke soal pengganti →";
+  $("btn-coba-kembali").classList.toggle("hidden", !CB);
+  $("btn-lanjut").textContent = CB ? "Coba soal serupa lagi →" : h.ulang ? "Ulangi dari nomor 1 →" : h.naik ? "Lanjut →" : lanjutMode() ? "Lanjut ke nomor berikutnya →" : "Lanjut ke soal pengganti →";
   $("k-salah").classList.remove("hidden");
   isiPosisi();
   $("btn-lanjut").focus();
 }
 
 $("btn-lanjut").onclick = () => {
+  if (CB) { menungguLanjut = false; return mulaiCoba(CB.id); }
   menungguLanjut = false;
   $("k-salah").classList.add("hidden");
   if (naikTertunda) { const n = naikTertunda; naikTertunda = null; return naik(n); }
@@ -905,9 +924,104 @@ const simpanPilihanMandiri = async () => {
 };
 $("mk-soal").onchange = simpanPilihanMandiri; $("mk-kunci").onchange = simpanPilihanMandiri;
 
+/* ----------------------------------------------------------- tinjau kesalahanku (19 Okt 2026)
+   Hanya di latihan mandiri: soal yang salah di 5 sesi kelompok terakhir (yang sudah selesai), jawaban benar,
+   pembahasan (assets/bahas.js), dan "Coba soal serupa" (soal baru dari level yang sama; benar = sudah dipahami).
+   Tidak mengubah kemajuan maupun nilai resmi. */
+let TJ = null, TJ_TOKEN = null;
+async function muatTinjau() {
+  const ada = !!(S && S.mode === "mandiri" && !S.uji);
+  if (!ada) { $("tinjau-kartu").classList.add("hidden"); return; }
+  if (TJ && TJ_TOKEN === S.token) return gambarTinjau();
+  try { TJ = await rpc("mtd_tinjau_daftar", { p_token: S.token }); TJ_TOKEN = S.token; } catch (e) { TJ = []; }
+  gambarTinjau();
+}
+const semuaTinjau = () => (TJ || []).flatMap((x) => x.salah || []);
+function butirTinjau(x) {
+  const bh = bahasSoal({ soal: x.soal, kunci: x.kunci, jenis: x.jenis });
+  const sr = x.jenis && JENIS[x.jenis] && JENIS[x.jenis].saran;
+  return `<div class="tj-butir${x.paham ? " paham" : ""}">
+    <div class="tj-atas"><span>${esc(x.nama || x.tingkat)} · Level ${x.level} · nomor ${x.nomor}</span>${x.paham ? '<span class="tj-paham">✓ sudah dipahami</span>' : ""}</div>
+    <div class="tj-soal">${soalHtml(x.soal)}</div>
+    <div class="tj-baris"><span class="lbl">Jawabanmu</span><span class="coret">${x.jenis === "waktu" && !String(x.jawaban || "").trim() ? '<span class="redup">(waktu habis)</span>' : jawabHtml(x.jawaban)}</span>
+      <span class="lbl">Seharusnya</span><span class="kunci">${kunciHtml(x.kunci, x.bentuk)}</span></div>
+    ${sr ? `<div class="saran">${esc(sr)}</div>` : ""}
+    ${bh ? `<details class="bahas-lipat" data-lihat="${x.id}"><summary>📘 Lihat cara mengerjakan</summary>${bahasHtml(bh)}</details>` : ""}
+    <div class="tj-aksi"><button class="kecil" data-coba="${x.id}">${x.paham ? "Coba lagi soal serupa" : "Coba soal serupa"}</button></div>
+  </div>`;
+}
+function gambarTinjau() {
+  const semua = semuaTinjau();
+  $("tinjau-kartu").classList.toggle("hidden", !semua.length);
+  if (!semua.length) return;
+  const paham = semua.filter((x) => x.paham).length;
+  $("tj-ringkas").textContent = `· ${semua.length} soal salah di ${TJ.length} sesi kelompok terakhir · ${paham} sudah dipahami`;
+  $("tj-isi").innerHTML = '<p class="redup kecil" style="margin:0">Soal yang salah di sesi kelompok bersama guru. Baca cara mengerjakannya, lalu buktikan dengan soal serupa. Tidak mengubah nilai resmimu.</p>' +
+    TJ.map((se, i) => { const s = se.salah || [], ph = s.filter((x) => x.paham).length;
+      return `<details class="tj-sesi"${i === 0 ? " open" : ""}><summary>Sesi ${esc(tglTeks(se.mulai, true))} · ${s.length} salah${ph ? ` · ${ph} sudah dipahami` : ""}</summary>${s.map(butirTinjau).join("")}</details>`; }).join("");
+  $("tj-isi").querySelectorAll("[data-lihat]").forEach((d) => d.addEventListener("toggle", () => {
+    const x = semuaTinjau().find((b) => b.id === +d.dataset.lihat);
+    if (!d.open || !x || x.dilihat) return;
+    x.dilihat = true;
+    rpc("mtd_tinjau_lihat", { p_token: S.token, p_id: x.id }).catch(() => { x.dilihat = false; });
+  }));
+  $("tj-isi").querySelectorAll("[data-coba]").forEach((b) => b.onclick = () => mulaiCoba(+b.dataset.coba));
+}
+async function mulaiCoba(id) {
+  if (sibuk) return;
+  if (!CB && (menungguLanjut || menungguNaik)) return toast("Tekan tombol Lanjut di kartu soal dulu, lalu coba lagi.");
+  sibuk = true;
+  try {
+    const r = await rpc("mtd_tinjau_coba", { p_token: S.token, p_id: id });
+    const x = semuaTinjau().find((b) => b.id === id);
+    CB = { id, soal: r.soal, x };
+    $("coba-teks").innerHTML = `<b>Coba soal serupa</b>${x ? ` · ${esc(x.nama || x.tingkat)} level ${x.level}` : ""} · tidak memengaruhi kemajuan`;
+    $("coba-pita").classList.remove("hidden");
+    $("tinjau-kartu").open = false;
+    ["k-salah", "k-naik"].forEach((v) => $(v).classList.add("hidden"));
+    $("k-soal").classList.remove("hidden");
+    menungguLanjut = menungguNaik = false;
+    isiSoal();
+    $("coba-pita").scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (e) {
+    if (/berakhir/i.test(e.message)) return berakhirKarena();
+    toast(e.message);
+  } finally { sibuk = false; }
+}
+async function kirimCoba(j) {
+  sibuk = true;
+  try {
+    const h = await rpc("mtd_tinjau_jawab", { p_token: S.token, p_id: CB.id, p_jawaban: j || "" }, 15000);
+    if (h.benar) {
+      kilat();
+      if (CB.x) CB.x.paham = true;
+      toast("Benar! Kesalahan ini sekarang ditandai sudah dipahami ✓");
+      selesaiCoba(true);
+    } else salah(h);
+  } catch (e) {
+    if (/berakhir/i.test(e.message)) return berakhirKarena();
+    toast(e.message);
+  } finally { sibuk = false; }
+}
+function selesaiCoba(bukaTinjau) {
+  CB = null; menungguLanjut = false;
+  $("coba-pita").classList.add("hidden"); $("k-salah").classList.add("hidden"); $("btn-coba-kembali").classList.add("hidden");
+  $("k-soal").classList.remove("hidden");
+  isiSoal();
+  if (TJ) gambarTinjau();
+  if (bukaTinjau && !$("tinjau-kartu").classList.contains("hidden")) {
+    $("tinjau-kartu").open = true;
+    $("tinjau-kartu").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+}
+$("coba-batal").onclick = () => selesaiCoba(true);
+$("btn-coba-kembali").onclick = () => selesaiCoba(true);
+
 function mulai(r) {
   S = r;
+  CB = null; $("coba-pita").classList.add("hidden");
   gambarMandiri();
+  muatTinjau();
   ssSet(KUNCI_SESI, r.token);
   // Uji coba guru, atau latihan mandiri (kemajuan terpisah dari kemajuan resmi sesi kelompok)
   $("uji-pita").innerHTML = r.uji ? "<b>Uji coba guru</b> · jawaban tidak masuk rekap siswa. Tutup tab ini bila selesai."

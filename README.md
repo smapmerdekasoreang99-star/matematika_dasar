@@ -70,6 +70,33 @@ perubahan lewat [`../database_tryout/`](../database_tryout/README.md)
    dijawab (`p_soal`), dan bila soalnya sudah berganti server hanya membalas keadaan
    terkini. Siswa melihat "Jawabanmu tadi sudah tercatat" lalu lanjut ke soal berikutnya.
 
+## Pembahasan dan Tinjau kesalahanku (19 Okt 2026)
+
+Keputusan user: **hanya di latihan mandiri**, tidak di sesi kelompok (juga tidak di tes
+pengelompokan/ujian), supaya sesi tetap mengukur kemampuan.
+
+- **Pembahasan langkah demi langkah** (`assets/bahas.js`): saat siswa salah di latihan mandiri,
+  kartu "Belum tepat" punya lipatan **📘 Lihat cara mengerjakan** — cara bersusun (dengan simpanan),
+  porogapit, aturan tanda, urutan operasi, samakan penyebut/KPK, kebalikan pecahan, sederhanakan
+  dengan FPB, operasi kebalikan untuk □. Langkah yang berkaitan dengan jenis kesalahan siswa disorot
+  "← perhatikan". Disusun di peramban dari soal + kunci yang **sudah** dikirim server sesudah menjawab
+  (tidak ada kunci baru yang bocor); bila siswa/guru menyembunyikan jawaban benar, pembahasan juga
+  tidak tampil. Hasil hitungan pembahasan selalu dicocokkan dengan kunci server — bila beda atau
+  bentuk soal belum dikenali, pembahasan tidak tampil. **Cakupan: seluruh MD10 (16 tingkat)**,
+  diuji 5.040 soal acak (40 per level) → semua berpembahasan dan cocok. MD11/MD12 belum.
+  Uji coba guru juga menampilkannya; di halaman guru, **Contoh → Tampilkan Jawaban** menampilkan
+  pembahasan yang sama (dilipat per soal, tidak ikut Mode Layar Penuh).
+- **📖 Tinjau kesalahanku** (kartu di latihan mandiri): soal yang salah di **5 sesi kelompok terakhir**
+  yang sudah selesai dan ada salahnya (sesi terbaru terbuka, lainnya terlipat), dengan jawaban siswa,
+  jawaban benar, saran, dan pembahasan. **Coba soal serupa**: server membuat satu soal baru dari level
+  yang sama (kunci tetap di server, tanpa batas waktu per soal); benar → ditandai **✓ sudah dipahami**;
+  salah → pembahasan + "Coba soal serupa lagi". Tidak mengubah kemajuan, nilai resmi, maupun
+  `mtd_jawaban`; catatannya di tabel `mtd_tinjau` (dilihat, paham, banyak coba).
+  Fungsi: `mtd_tinjau_daftar`, `mtd_tinjau_lihat`, `mtd_tinjau_coba`, `mtd_tinjau_jawab` (hanya
+  token latihan mandiri yang masih berjalan; sesi kelompok yang masih berjalan tidak ikut).
+- Syarat terlihat siswa: Pengaturan Umum → Halaman Latihan → **Latihan mandiri di luar sesi kelompok**
+  harus **boleh** (19 Okt 2026 di server masih mati).
+
 ## Soal dibuat otomatis
 
 Soal tidak diketik guru. Server membuatnya acak dari aturan tiap level, yang

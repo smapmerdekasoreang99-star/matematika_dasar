@@ -142,3 +142,49 @@ table[data-beku] .fz-kol { position: sticky; z-index: 1; }
 table[data-beku] td.fz-kol { background-color: var(--kertas-2); }
 table[data-beku] th.fz-kol { z-index: 3; }
 table[data-beku] .fz-akhir { box-shadow: 4px 0 6px -4px rgba(29, 42, 58, .25); }
+
+/* ---- Pembahasan langkah demi langkah (19 Okt 2026, assets/bahas.js) ---- */
+.bahas-lipat { margin-top: var(--j3); border: 1px solid var(--garis); border-radius: var(--r2); background: var(--kertas-2); text-align: left; }
+.bahas-lipat > summary { cursor: pointer; padding: var(--j3); font-weight: 700; color: var(--sakit-tua); list-style: none; display: flex; align-items: center; gap: var(--j2); }
+.bahas-lipat > summary::-webkit-details-marker { display: none; }
+.bahas-lipat > summary::after { content: "▾"; margin-left: auto; transition: transform .15s; }
+.bahas-lipat[open] > summary::after { transform: rotate(180deg); }
+.bahas-lipat > .bahas { padding: 0 var(--j3) var(--j3); }
+.bahas { font-size: var(--h-n); line-height: 1.55; color: var(--tinta); }
+.bh-susun { display: flex; justify-content: center; margin: var(--j1) 0 var(--j3); }
+.bh-tabel { border-collapse: collapse; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.bh-tabel td { width: 1.05em; padding: 0 .04em; text-align: center; line-height: 1.3; border: 0; }
+.bh-tabel td.op { color: var(--tinta-2); }
+.bh-tabel tr.simpan td { font-size: 13px; color: var(--absen-tua, #8A2E2E); line-height: 1; vertical-align: bottom; }
+.bh-tabel tr.garis td { border-bottom: 2px solid var(--tinta); }
+.bh-langkah { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--j2); }
+.bh-langkah > li { display: flex; gap: var(--j2); align-items: baseline; padding: var(--j1) var(--j2); border-radius: var(--r1); overflow-wrap: anywhere; }
+.bh-no { flex: none; width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--sakit-muda); color: var(--sakit-tua); font-size: var(--h-xs); font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center; }
+.bh-isi { min-width: 0; }
+.bh-langkah > li.bh-anak { padding-left: calc(1.6em + var(--j4)); font-size: var(--h-m); color: var(--tinta-2); }
+.bh-langkah > li.bh-sorot { background: var(--emas-muda); }
+.bh-tanda { font-size: var(--h-xs); font-weight: 800; color: var(--emas-teks); white-space: nowrap; }
+.bahas .pc-f { font-size: .85em; }
+
+/* ---- Tinjau kesalahanku (latihan mandiri) ---- */
+.tinjau-kartu { border-left: 4px solid var(--emas); padding: var(--j3) var(--j4); }
+.tinjau-kartu > summary { cursor: pointer; display: flex; align-items: center; gap: var(--j2); flex-wrap: wrap; list-style: none; }
+.tinjau-kartu > summary::-webkit-details-marker { display: none; }
+.tj-isi { display: grid; gap: var(--j3); margin-top: var(--j3); }
+.tj-butir { border: 1px solid var(--garis); border-radius: var(--r2); padding: var(--j3); background: var(--kertas-2); display: grid; gap: var(--j2); }
+.tj-butir.paham { border-color: var(--hadir); background: var(--hadir-muda); }
+.tj-atas { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--j2); font-size: var(--h-xs); color: var(--tinta-2); }
+.tj-soal { font-size: 20px; font-weight: 700; }
+.tj-baris { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--j1) var(--j3); align-items: center; font-size: var(--h-m); }
+.tj-baris .lbl { font-size: var(--h-xs); font-weight: 700; color: var(--tinta-2); text-transform: uppercase; letter-spacing: .04em; }
+.tj-aksi { display: flex; flex-wrap: wrap; gap: var(--j2); }
+.tj-aksi button { flex: 1 1 160px; }
+.tj-paham { font-weight: 800; color: var(--hadir-tua); }
+.coba-pita { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--j2); padding: var(--j2) var(--j3);
+  border-radius: var(--r2); background: var(--emas-muda); color: var(--emas-teks); font-size: var(--h-s); font-weight: 600; margin-bottom: var(--j3); }
+.tj-sesi > summary { cursor: pointer; font-size: var(--h-s); font-weight: 700; color: var(--tinta-2); padding: var(--j1) 0; }
+.tj-sesi[open] > summary { margin-bottom: var(--j2); }
+.tj-sesi > .tj-butir + .tj-butir { margin-top: var(--j2); }
+/* Kepala halaman lengket: elemen yang digulir ke atas tidak tertutup */
+.coba-pita, .tinjau-kartu, #k-salah, #k-soal { scroll-margin-top: 112px; }

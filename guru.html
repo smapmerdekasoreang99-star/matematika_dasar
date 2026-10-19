@@ -18,7 +18,7 @@
 <meta property="og:image:alt" content="Logo SMA Plus Merdeka Soreang">
 <!-- /pratinjau -->
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=8">
+<link rel="stylesheet" href="assets/matdas.css?v=9">
 <script src="config.js?v=2"></script>
 <style>
 /* Tombol Panduan membaca data di kepala halaman (13 Okt 2026): PDF untuk dibuka, Word untuk dicetak/disunting */
@@ -476,6 +476,7 @@ body.ct-terkunci { overflow: hidden; }
   padding: .2em .6em .2em max(1.9em, 34px); position: relative; background: var(--kertas-2); border: 1px solid var(--garis); border-radius: var(--r3); line-height: 1.35; }
 .ctl-isi .ct-item::before { content: counter(ct) "."; position: absolute; left: max(.55em, 10px); top: 50%; transform: translateY(-50%); font-size: max(.6em, 12px); font-weight: 700; color: var(--tinta-3); }
 .ctl-isi .ct-bahas { flex-basis: 100%; }
+.ctl-isi details.ct-bahas { display: none; }   /* pembahasan langkah tidak ikut diproyeksikan */
 .ctl-isi .contoh-baca .ct-soal { flex-basis: 100%; }
 /* Layar terlalu kecil untuk memuat semuanya pada huruf terbaca: satu kolom yang digulir */
 .ctl-isi.ctl-gulir { grid-template-rows: none !important; grid-auto-flow: row; grid-auto-rows: max-content; overflow-y: auto; }
@@ -998,6 +999,7 @@ body.lihat .ubah { display: none !important; }
 </div>
 
 <script src="assets/umum.js?v=10"></script>
+<script src="assets/bahas.js?v=1"></script>
 <script src="assets/simpan.js?v=3"></script>
 <script src="assets/kepala-excel.js?v=1"></script>
 <script src="assets/excel.js?v=5"></script>
@@ -2528,13 +2530,16 @@ function gambarTingkat() {
   });
 }
 
-/* Contoh soal: soal tampil lebih dulu, jawaban (dan pembahasan bila server mengirimnya) lewat centang
-   "Tampilkan Jawaban". Jawaban disembunyikan dengan CSS supaya susunan tidak bergeser saat dicentang. */
+/* Contoh soal: soal tampil lebih dulu, jawaban (dan pembahasan) lewat centang "Tampilkan Jawaban".
+   Jawaban disembunyikan dengan CSS supaya susunan tidak bergeser saat dicentang. Pembahasan langkah demi
+   langkah (assets/bahas.js, sama dengan yang dilihat siswa di latihan mandiri) dilipat per soal. */
 function contohItem(s) {
   const jwb = (isi, panah = true) => `<span class="ct-jwb">${panah ? '<span class="redup">→</span> ' : ""}<span class="k">${isi}</span></span>`;
+  const bh = !s.pembahasan ? bahasSoal({ soal: s.teks, kunci: s.kunci }) : null;
   const bahas = Array.isArray(s.pembahasan) && s.pembahasan.length
     ? `<span class="ct-bahas"><ol>${s.pembahasan.map((x) => `<li>${esc(x)}</li>`).join("")}</ol></span>`
-    : s.pembahasan ? `<span class="ct-bahas">${esc(s.pembahasan).replace(/\n/g, "<br>")}</span>` : "";
+    : s.pembahasan ? `<span class="ct-bahas">${esc(s.pembahasan).replace(/\n/g, "<br>")}</span>`
+    : bh ? `<details class="ct-bahas bahas-lipat"><summary>📘 Cara mengerjakan</summary>${bahasHtml(bh)}</details>` : "";
   const baca = ["urut", "pilihan", "cerita"].includes(s.bentuk);
   const isi = s.bentuk === "hilang" ? jwb(`<span class="kotak-soal">□</span> = ${kunciHtml(s.kunci)}`)
     : s.bentuk === "persamaan" ? jwb(`<i class="var">${esc(s.var || "x")}</i> = ${kunciHtml(s.kunci)}`)
