@@ -159,6 +159,8 @@
 .ik-lipat summary { cursor: pointer; padding: var(--j3) var(--j5); font-weight: 700; font-size: var(--h-m); }
 @media (max-width: 860px) { .ik-baris { grid-template-columns: 1fr; padding: var(--j3) var(--j4); } }
 /* Sesi latihan per kelompok (Sesi Kegiatan) */
+.buruk-teks { color: var(--absen); }
+.pindah-catat { display: block; margin-top: 3px; font-size: var(--h-xs); color: var(--absen); font-weight: 600; }
 .sesi-baris { display: grid; grid-template-columns: 150px minmax(0, 1fr) 130px 470px; gap: var(--j3) var(--j4); align-items: center;
   padding: var(--j3) var(--j5); border-bottom: 1px solid var(--garis); }
 .sesi-baris:last-child { border-bottom: 0; }
@@ -799,7 +801,7 @@ body.lihat .ubah { display: none !important; }
     <!-- Daftar siswa: anggota kelompok MD, status masuk, kunci keluar halaman -->
     <div id="p-daftar" class="hidden">
       <div class="kepala-hal"><div><span class="eyebrow">Di kelas</span><h1>Sesi Kegiatan</h1>
-        <p>Buka sesi latihan, lihat siapa yang sedang berlatih atau terkunci, dan atur siswa terpilih. Diperbarui otomatis tiap 30 detik.</p></div></div>
+        <p>Buka sesi latihan, lihat siapa yang sedang berlatih atau terkunci, dan atur siswa terpilih. Diperbarui otomatis tiap 30 detik. <span id="dl-segar" class="kecil redup" role="status"></span></p></div></div>
       <div class="daftar-alat">
         <select id="dl-kelompok" aria-label="Pilih kelompok"></select>
         <select id="dl-tingkat" aria-label="Saring tingkat">
@@ -1234,10 +1236,25 @@ $("btn-unduh-rekap").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () 
 });
 
 /* ----------------------------------------------------------- daftar siswa */
+/* 20 Okt 2026: hanya balasan permintaan TERAKHIR yang dipakai (balasan pembaruan otomatis untuk kelompok lama yang
+   datang terlambat tidak lagi menimpa daftar kelompok yang baru dipilih), dan jam pembaruan terakhir ditampilkan;
+   pembaruan otomatis yang gagal diberi tanda, tidak lagi diam-diam menampilkan data lama. */
+let daftarKe = 0;
+const jamDetik = () => new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 async function muatDaftar(diam) {
+  const ke = ++daftarKe;
   if (!diam) $("t-daftar").innerHTML = '<tr><td class="kosong-data">Memuat…</td></tr>';
-  try { DAFTAR = await rpc("mtd_rekap", { p_pin: PIN, p_kelas: $("dl-kelompok").value || null }); }
-  catch (e) { if (!diam) $("t-daftar").innerHTML = `<tr><td class="kosong-data">${esc(e.message)}</td></tr>`; return; }
+  let D;
+  try { D = await rpc("mtd_rekap", { p_pin: PIN, p_kelas: $("dl-kelompok").value || null }); }
+  catch (e) {
+    if (ke !== daftarKe) return;
+    if (!diam) $("t-daftar").innerHTML = `<tr><td class="kosong-data">${esc(e.message)}</td></tr>`;
+    $("dl-segar").innerHTML = `<b class="buruk-teks">Gagal memperbarui pukul ${jamDetik()}</b> (${esc(e.message)}); angka di bawah mungkin belum terbaru. Dicoba lagi otomatis, atau tekan Muat ulang.`;
+    return;
+  }
+  if (ke !== daftarKe) return;
+  DAFTAR = D;
+  $("dl-segar").textContent = `Terakhir diperbarui pukul ${jamDetik()}.`;
   gambarDaftar();
 }
 // Saringan tingkat hanya berarti saat semua kelompok/rombel dipilih; satu kelompok/rombel → dikunci di "Semua tingkat".
@@ -1298,7 +1315,7 @@ function gambarDaftar() {
     (R.length ? R.map((r, i) => `<tr class="klik ${PILIH.has(r.nisn) ? "dipilih" : ""}" data-n="${esc(r.nisn)}"><td class="pilih ubah"><input type="checkbox" data-pilih="${esc(r.nisn)}" ${PILIH.has(r.nisn) ? "checked" : ""} aria-label="Pilih ${esc(r.nama)}"></td><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>
       <td class="nisn">${esc(r.nisn)}</td><td class="nisn">${esc(r.nis || "–")}</td><td>${esc(r.kelas)}</td>
       ${semua && MODE_MD ? `<td>${esc(r.kelompok || "–")}</td>` : ""}
-      <td>${statusDaftar(r)}</td>
+      <td>${statusDaftar(r)}${r.pindah_pt >= 2 ? `<span class="pindah-catat" title="Sesi siswa ini tertutup ${r.pindah_pt} kali karena NISN yang sama dipakai masuk di HP/tab lain (sejak pertemuan terakhir). Mungkin dua perangkat memakai satu NISN, atau teman salah mengetik NISN.">NISN dipakai di perangkat lain ${r.pindah_pt}×</span>` : ""}</td>
       <td class="posisi">${r.tingkat ? `<span class="pos-nm">${esc(r.nama_tingkat)}</span><span class="pos-lv">Level ${r.level}</span>` : '<span class="redup">–</span>'}</td>
       <td class="angka">${r.keluar_pt || '<span class="redup">0</span>'}</td>
       <td>${r.terkunci ? `<button class="kecil" data-buka="${esc(r.nisn)}">Buka kunci</button>` : ""}</td></tr>`).join("")
@@ -1485,9 +1502,11 @@ function pilihMenit(kel) {
   const L = [...new Set([...LAMA_SESI, bawaan, pilih])].sort((a, b) => a - b);
   return `<select data-menit="${esc(kel)}" aria-label="Lama sesi ${esc(kel)}">${L.map((m) => `<option value="${m}" ${m === pilih ? "selected" : ""}>${m} menit${m === bawaan ? " (profil)" : ""}</option>`).join("")}</select>`;
 }
+let sesiKe = 0;
 async function muatSesi() {
   if (!MODE_MD) return;
-  try { BUKA = await rpc("mtd_buka_daftar", { p_pin: PIN }); BUKA.selisih = Date.now() - new Date(BUKA.sekarang).getTime(); }
+  const ke = ++sesiKe;
+  try { const B = await rpc("mtd_buka_daftar", { p_pin: PIN }); if (ke !== sesiKe) return; BUKA = B; BUKA.selisih = Date.now() - new Date(BUKA.sekarang).getTime(); }
   catch (e) { $("sesi-kartu").classList.remove("hidden"); $("sesi-isi").innerHTML = `<p class="butir redup">${esc(e.message)}</p>`; return; }
   gambarSesi();
 }
@@ -2684,7 +2703,7 @@ const SEKSI = [
     { k: "pecahan_sederhana", jenis: "ya", l: "Jawaban pecahan wajib paling sederhana", s: "Bila wajib, 2/4 untuk kunci 1/2 dihitung salah (siswa diberi tahu nilainya sudah benar).", on: "Wajib", off: "Tidak wajib" },
   ] },
   { ikon: "jam", judul: "Sesi & titik awal", ket: "Lama satu kali latihan dan dari mana siswa baru memulai.", baris: [
-    { k: "durasi_menit", jenis: "angka", satuan: "menit", min: 5, maks: 180, l: "Lama satu sesi", s: "Setelah waktu habis, saat masuk lagi siswa mulai dari nomor 1 di levelnya." },
+    { k: "durasi_menit", jenis: "angka", satuan: "menit", min: 5, maks: 180, l: "Lama satu sesi", s: "Bawaan lama sesi saat guru membuka sesi kelompok (siswa selesai bersama sesi kelompok), dan lama satu kali latihan mandiri. Saat masuk lagi siswa melanjutkan dari nomor terakhirnya." },
     { k: "mulai", jenis: "pilih", l: "Titik awal siswa baru", s: "Hanya berlaku untuk siswa yang belum pernah masuk.",
       pilih: [["awal", "Dari Penjumlahan Dasar", "Semua siswa mulai dari tingkat pertama MD10"], ["kelas", "Sesuai tingkat kelompoknya", "Mis. kelompok MD11 mulai dari tingkat pertama MD11"]] },
   ], catatan: "Ingin satu tingkat, satu kelompok, atau beberapa siswa mulai dari tingkat dan level tertentu? Buka <b>Sesi Kegiatan</b>, saring tingkat/kelompok, centang siswanya, lalu di bilah bawah pilih <b>Tahapan umum</b> dan <b>Mulai dari</b>. Centang <i>hanya yang belum pernah masuk</i> agar siswa yang sudah maju tidak tergeser. Untuk satu siswa juga bisa lewat <b>Analisis siswa → Pindahkan posisi</b>." },

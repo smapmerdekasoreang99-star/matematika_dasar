@@ -60,10 +60,19 @@ perubahan lewat [`../database_tryout/`](../database_tryout/README.md)
    Soalnya diganti yang baru, nomornya tetap sama.
 4. Salah **lebih dari 3 kali** di satu level (bisa diubah): level diulang dari
    nomor 1.
-5. Satu sesi **30 menit** (bisa diubah). Setelah waktu habis atau siswa keluar,
-   tingkat dan level tetap tersimpan. Saat masuk lagi, siswa mulai dari
-   nomor 1 di level itu. Memuat ulang halaman di tengah sesi **tidak**
-   mengulang nomor.
+5. Sesi kelompok berakhir bersama sesi yang dibuka guru (termasuk tambah/kurangi
+   waktu); "Lama satu sesi" hanya bawaan pilihan lama sesi saat membuka sesi dan
+   lama latihan mandiri (sejak 20 Okt 2026; dulu ikut memotong sesi tiap siswa).
+   Setelah waktu habis, keluar, atau sesi tertutup, tingkat, level, **nomor soal,
+   dan hitungan salah** tetap tersimpan (`mtd_posisi.nomor`, `salah`); saat masuk
+   lagi siswa melanjutkan dari nomor terakhir. Nomor kembali ke 1 hanya bila naik
+   level, salah melewati batas, atau posisi/tahapan ditetapkan ulang (pemicu
+   `mtd_posisi_nomor_awal`). Masuk lagi untuk melanjutkan tidak menambah percobaan.
+   Satu NISN satu sesi: masuk di HP/tab lain menutup sesi sebelumnya
+   (`mtd_sesi.alasan = 'perangkat_lain'`; HP yang tergeser diberi tahu, dan Sesi
+   Kegiatan menandai siswa yang tergeser ≥ 2 kali sejak pertemuan terakhir).
+   "Sedang berlatih" di Sesi Kegiatan = sesi berjalan dan ada soal baru dalam
+   15 menit terakhir.
 6. Sinyal tersendat saat mengirim jawaban: halaman mengirim ulang sendiri (sampai 3 kali,
    jeda acak; permintaan yang menggantung dibatalkan setelah 15 detik). Jawaban yang
    ternyata sudah tercatat **tidak dinilai dua kali**: halaman mengirim ID soal yang
