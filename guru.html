@@ -353,6 +353,8 @@ span.ab-asal.a-umum { background: var(--kertas-3); color: var(--tinta-2); box-sh
 .ck-kepala > div { display: grid; }
 .kel-tabel select { min-width: 190px; padding: var(--j2); font-size: var(--h-m); }
 /* Lencana ringkas di tabel: satu baris, nama panjang dipotong (lengkap di judul) */
+.tabel tr.pos-kini td { font-weight: 700; }
+.tabel tr.pos-kini .lencana { margin-left: 4px; white-space: nowrap; }
 .lencana.ringkas { display: inline-block; margin: 0; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
 .lencana-daftar { display: flex; flex-wrap: wrap; align-content: flex-start; gap: 4px; min-width: 210px; max-width: 260px; }   /* cukup lebar: 2–3 lencana sebaris, baris tabel tetap pendek */
 /* Bilah Daftar siswa: kepala, baris Aturan, baris Tahapan (tombol Terapkan sejajar di kanan) */
@@ -2438,6 +2440,8 @@ function kartuMandiri(M) {
 }
 function gambarSiswa() {
   const D = DETAIL, p = D.posisi;
+  // tingkat posisi sekarang ditandai di tabel Per tingkat (21 Okt 2026: riwayat tuntas sempat dikira posisi)
+  const posKini = (t) => !!p && !p.selesai && p.tingkat === t;
   const nJ = D.per_tingkat.reduce((a, x) => a + x.n_jawab, 0), nB = D.per_tingkat.reduce((a, x) => a + x.n_benar, 0);
   const totalTuntas = D.tuntas.length;
   const rata = D.per_tingkat.reduce((a, x) => a + (x.rata_detik || 0) * x.n_benar, 0) / Math.max(1, nB);
@@ -2479,8 +2483,9 @@ function gambarSiswa() {
       </div>
       <div class="kartu"><h2>Per tingkat</h2>
         ${D.per_tingkat.length ? `<div class="gulir"><table class="tabel" data-beku="1"><thead><tr><th>Tingkat</th><th class="angka">Level</th><th class="angka">Akurasi</th><th class="angka">Rata-rata</th></tr></thead><tbody>
-          ${D.per_tingkat.map((x) => `<tr><td>${esc(x.nama)}</td><td class="angka">${x.n_tuntas}/${x.n_level}</td>
-            <td class="angka">${Math.round(100 * x.n_benar / Math.max(1, x.n_jawab))}%</td><td class="angka">${x.rata_detik != null ? lamaTeks(x.rata_detik) : "–"}</td></tr>`).join("")}</tbody></table></div>` : '<p class="redup">Belum ada jawaban.</p>'}
+          ${D.per_tingkat.map((x) => `<tr${posKini(x.tingkat) ? ' class="pos-kini"' : ""}><td>${esc(x.nama)}${posKini(x.tingkat) ? ` <span class="lencana baik">posisi sekarang · Lv ${p.level}</span>` : ""}</td><td class="angka">${x.n_tuntas}/${x.n_level}</td>
+            <td class="angka">${Math.round(100 * x.n_benar / Math.max(1, x.n_jawab))}%</td><td class="angka">${x.rata_detik != null ? lamaTeks(x.rata_detik) : "–"}</td></tr>`).join("")}</tbody></table></div>
+          <p class="redup kecil">Level = level yang pernah dituntaskan di tingkat itu (riwayat, apa pun urutannya), bukan posisi sekarang.${p && !p.selesai && !D.per_tingkat.some((x) => posKini(x.tingkat)) ? ` Posisi sekarang: <b>${esc(p.nama_tingkat)} Level ${p.level}</b> (belum ada jawaban di tingkat ini).` : ""}</p>` : '<p class="redup">Belum ada jawaban.</p>'}
       </div>
     </div>
     <div class="kartu"><h2>Kesalahan terakhir</h2>
