@@ -744,7 +744,7 @@ body.lihat .ubah { display: none !important; }
         <p>Posisi, kemajuan, dan siswa yang perlu perhatian. Ketuk nama siswa untuk melihat analisisnya. <span id="kl-segar" class="kecil redup" role="status"></span></p></div></div>
       <div class="baris" id="baris-kelas">
         <select id="pil-kelas" style="max-width:220px" aria-label="Pilih kelompok"></select>
-        <select id="pil-urut" style="max-width:240px" aria-label="Urutkan">
+        <select id="pil-urut" class="hidden" style="max-width:240px" aria-label="Urutkan">
           <option value="perhatian">Urut: perlu perhatian dulu</option>
           <option value="nama">Urut: nama</option>
           <option value="maju">Urut: kemajuan tertinggi</option>
@@ -755,19 +755,32 @@ body.lihat .ubah { display: none !important; }
         <button class="btn-unduh utama" data-fmt="xlsx" id="btn-unduh-rekap" title="Rekap kemajuan dan sebaran per tingkat dalam satu buku kerja Excel berformat">Unduh rekap</button>
       </div>
       <div class="subtab" role="tablist" aria-label="Tampilan perkembangan">
-        <button role="tab" data-sub="siswa" class="on" aria-selected="true">Per Siswa</button>
-        <button role="tab" data-sub="kelompok" aria-selected="false">Per Kelompok</button>
+        <button role="tab" data-sub="rekap" class="on" aria-selected="true">Rekapitulasi</button>
+        <button role="tab" data-sub="siswa" aria-selected="false">Per Siswa</button>
         <button role="tab" data-sub="peringkat" aria-selected="false">Peringkat</button>
       </div>
-      <!-- Per Siswa: tabel siswa -->
-      <div id="pk-siswa">
-      <div class="kartu">
-        <div class="gulir"><table class="tabel" id="t-kelas" data-beku="2"></table></div>
-        <p class="redup kecil">Macet: sudah 3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih sejak pertemuan terakhir kelompoknya (hari pertemuan dari jadwal KBM Data Induk; kelompok tanpa jadwal: 7 hari terakhir). Ketuk nama untuk melihat analisisnya.</p>
-      </div>
-      </div>
-      <!-- Per Kelompok: ringkasan & sebaran kelompok terpilih, lalu perbandingan antarkelompok -->
-      <div id="pk-kelompok" class="hidden">
+      <!-- Rekapitulasi (22 Okt 2026): rapor kelompok terpilih, atau perbandingan bila "Semua kelompok" -->
+      <div id="pk-rekap">
+        <div class="baris rk-periode">
+          <div class="rk-seg" role="group" aria-label="Periode">
+            <button type="button" data-rkper="7" aria-pressed="true">7 hari</button>
+            <button type="button" data-rkper="30" aria-pressed="false">30 hari</button>
+            <button type="button" data-rkper="smt" aria-pressed="false">Semester ini</button>
+            <button type="button" data-rkper="pilih" aria-pressed="false" aria-expanded="false" aria-controls="rk-tgl">Pilih tanggal…</button>
+          </div>
+        </div>
+        <form id="rk-tgl" class="rk-tgl hidden" novalidate>
+          <label for="rk-dari">Dari<input type="date" id="rk-dari"></label>
+          <label for="rk-sampai">Sampai<input type="date" id="rk-sampai"></label>
+          <button type="submit" class="kecil">Terapkan</button>
+          <p class="kecil redup" id="rk-tgl-pesan" role="status" style="margin:0;flex-basis:100%"></p>
+        </form>
+        <p class="kecil redup" id="rk-periode" aria-live="polite" style="margin:4px 0 10px"></p>
+        <div id="rk-isi"><p class="redup">Memuat…</p></div>
+        <!-- Ringkasan keseluruhan (dulu sub-tab Per Kelompok, digabung 22 Okt 2026): angka sejak awal, tidak mengikuti periode -->
+        <div id="pk-kelompok" class="rk-keseluruhan">
+        <h2 style="margin:28px 0 2px">Ringkasan keseluruhan</h2>
+        <p class="redup kecil" style="margin:0 0 6px">Angka sejak awal latihan (tidak mengikuti pilihan periode di atas): ringkasan kelompok terpilih, sebaran posisi siswa, dan perbandingan kelompok.</p>
       <div class="ubin" id="k-ubin"></div>
       <div class="kartu">
         <h2>Sebaran posisi siswa</h2>
@@ -777,6 +790,15 @@ body.lihat .ubah { display: none !important; }
       <div class="kartu"><h2>Perbandingan kelompok</h2><div class="gulir"><table class="tabel" id="t-perkelompok" data-beku="1"></table></div>
         <p class="redup kecil">Ketuk baris kelompok untuk menampilkan ringkasan dan sebarannya di atas. Macet: 3 kali atau lebih mengulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih sejak pertemuan terakhir kelompoknya (hari pertemuan dari jadwal KBM Data Induk; kelompok tanpa jadwal: 7 hari terakhir).</p></div>
       </div>
+      </div>
+      <!-- Per Siswa: tabel siswa -->
+      <div id="pk-siswa" class="hidden">
+      <div class="kartu">
+        <div class="gulir"><table class="tabel" id="t-kelas" data-beku="2"></table></div>
+        <p class="redup kecil">Macet: sudah 3 kali atau lebih memulai ulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih sejak pertemuan terakhir kelompoknya (hari pertemuan dari jadwal KBM Data Induk; kelompok tanpa jadwal: 7 hari terakhir). Ketuk nama untuk melihat analisisnya.</p>
+      </div>
+      </div>
+      <!-- Per Kelompok: ringkasan & sebaran kelompok terpilih, lalu perbandingan antarkelompok -->
       <!-- Peringkat: sekolah / angkatan / kelompok, menurut periode -->
       <div id="pk-peringkat" class="hidden">
       <div class="baris">
@@ -1003,6 +1025,7 @@ body.lihat .ubah { display: none !important; }
 </div>
 
 <script src="assets/umum.js?v=11"></script>
+<script src="assets/rekap.js?v=1"></script>
 <script src="assets/bahas.js?v=4"></script>
 <script src="assets/simpan.js?v=3"></script>
 <script src="assets/kepala-excel.js?v=1"></script>
@@ -1077,7 +1100,8 @@ function bukaTab(v) {
   if (v === "atur") muatAtur();
   if (v === "admin") muatAdmin();
   if (v === "kelas" && SUB === "siswa" && REKAP_PADA && Date.now() - REKAP_PADA > 60000) muatKelas(true);
-  if (v === "kelas" && SUB === "kelompok") muatPerKelompok();
+  if (v === "kelas" && SUB === "rekap") muatPerKelompok();
+  if (v === "kelas" && SUB === "rekap") muatRekap(true);
   if (v === "kelas" && SUB === "peringkat" && !PR) muatPeringkat();
   if (v === "daftar") { muatDaftar(); muatSesi(); daftarT = setInterval(() => { if (!document.hidden) { muatDaftar(true); muatSesi(); } }, 30000); }
 }
@@ -1155,9 +1179,71 @@ async function muatKelas(diam) {
   if (dipilih && REKAP.some((r) => r.nisn === dipilih)) $("pil-siswa").value = dipilih;
   gambarKelas();
 }
-$("pil-kelas").onchange = muatKelas;
+$("pil-kelas").onchange = () => { muatKelas(); if (SUB === "rekap") muatRekap(); };
 $("pil-urut").onchange = () => gambarKelas();
-$("btn-muat").onclick = muatKelas;
+$("btn-muat").onclick = () => { muatKelas(); if (SUB === "rekap") muatRekap(); };
+
+/* ---------- Rekapitulasi perkembangan kelas (22 Okt 2026, RENCANA_REKAP_PERKEMBANGAN.md) ----------
+   Periode: 7 hari / 30 hari / Semester ini / Pilih tanggal; server (mtd_rekap_periode) mengunci rentang di dalam
+   semester berjalan dan tidak melewati hari ini, termasuk pembandingnya. Pilihan diingat per perangkat. */
+const isoTgl = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+let RK_PER = { kunci: "7" }, RK_SMT = null, RK_PADA = 0, RK_KUNCI = "";
+try { const v = JSON.parse(localStorage.getItem("mtd_rekap_periode") || "null"); if (v && v.kunci) RK_PER = v; } catch (e) { /* bawaan 7 hari */ }
+function rkRentang() {
+  const kini = new Date(), mundur = (n) => { const d = new Date(kini); d.setDate(d.getDate() - n); return isoTgl(d); };
+  if (RK_PER.kunci === "7") return { dari: mundur(6), sampai: isoTgl(kini), label: "7 hari terakhir" };
+  if (RK_PER.kunci === "30") return { dari: mundur(29), sampai: isoTgl(kini), label: "30 hari terakhir" };
+  if (RK_PER.kunci === "smt") return { dari: "1900-01-01", sampai: isoTgl(kini), label: "semester ini" };
+  return { dari: RK_PER.dari, sampai: RK_PER.sampai, label: "" };
+}
+function rkTombol() { document.querySelectorAll("[data-rkper]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.rkper === RK_PER.kunci))); }
+function rkSimpan() { try { localStorage.setItem("mtd_rekap_periode", JSON.stringify(RK_PER)); } catch (e) { /* tidak diingat */ } }
+async function muatRekap(bilaLama) {
+  const k = $("pil-kelas").value, r = rkRentang(), kunci = [k, r.dari, r.sampai].join("|");
+  if (bilaLama === true && kunci === RK_KUNCI && Date.now() - RK_PADA < 60000) return;
+  const isi = $("rk-isi");
+  if (!MODE_MD) { isi.innerHTML = '<p class="redup">Rekapitulasi tersedia untuk kelompok Matematika Dasar.</p>'; $("rk-periode").textContent = ""; return; }
+  if (k === "-") { isi.innerHTML = '<p class="redup">Siswa tanpa kelompok tidak punya rekapitulasi kelompok. Pilih satu kelompok, atau "Semua kelompok".</p>'; $("rk-periode").textContent = ""; return; }
+  if (isi.querySelector(".rk")) isi.style.opacity = ".5"; else isi.innerHTML = '<p class="redup">Memuat…</p>';
+  try {
+    const D = await rpc("mtd_rekap_periode", { p_pin: PIN, p_kelompok: k || null, p_dari: r.dari, p_sampai: r.sampai });
+    if ($("pil-kelas").value !== k) return;   // kelompok sudah diganti selama memuat
+    RK_SMT = D.semester; RK_PADA = Date.now(); RK_KUNCI = kunci;
+    D.label = r.label;
+    const tg = (x, thn) => new Date(x + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short", ...(thn ? { year: "numeric" } : {}) });
+    $("rk-periode").innerHTML = `Periode: <b>${tg(D.dari)} – ${tg(D.sampai, true)}</b> (${D.hari} hari)` +
+      (D.dipotong && RK_PER.kunci !== "smt" ? " · <b>dipotong di awal semester</b>" : "") +
+      (RK_PER.kunci === "smt" ? ` · semester ${esc(D.semester.nama)}` : D.lalu ? ` · dibandingkan dengan ${tg(D.lalu.dari)} – ${tg(D.lalu.sampai)}${D.lalu.hari < D.hari ? " (dipotong di awal semester)" : ""}` : " · belum ada pembanding (awal semester)");
+    if (k) REKAP_KELAS.rapor(isi, D, { satuan: "level", target: 80, bukaSiswa: (n) => bukaSiswa(n) });
+    else REKAP_KELAS.banding(isi, D, { satuan: "level", kelompokLbl: "kelompok", bukaKelompok: (g) => { $("pil-kelas").value = g; ssSet("mtd_kelas", g); muatKelas(true); muatRekap(); } });
+  } catch (e) { isi.innerHTML = `<p class="buruk-teks">Gagal memuat rekapitulasi: ${esc(e.message)}</p>`; }
+  finally { isi.style.opacity = ""; }
+}
+document.querySelectorAll("[data-rkper]").forEach((b) => b.onclick = () => {
+  const k = b.dataset.rkper, form = $("rk-tgl");
+  if (k === "pilih") {
+    const buka = form.classList.contains("hidden"); form.classList.toggle("hidden", !buka); b.setAttribute("aria-expanded", String(buka));
+    if (buka) { const r = rkRentang(), dr = r.dari < (RK_SMT ? RK_SMT.dari : r.dari) ? RK_SMT.dari : r.dari;
+      $("rk-dari").value = dr; $("rk-sampai").value = r.sampai;
+      if (RK_SMT) { ["rk-dari", "rk-sampai"].forEach((id) => { $(id).min = RK_SMT.dari; $(id).max = RK_SMT.sampai; }); }
+      $("rk-tgl-pesan").textContent = "Tanggal terisi periode yang sedang tampil; ubah salah satunya lalu tekan Terapkan."; $("rk-dari").focus(); }
+    return;
+  }
+  form.classList.add("hidden"); document.querySelector('[data-rkper="pilih"]').setAttribute("aria-expanded", "false");
+  RK_PER = { kunci: k }; rkTombol(); rkSimpan(); muatRekap();
+});
+$("rk-tgl").onsubmit = (e) => {
+  e.preventDefault(); const d = $("rk-dari").value, z = $("rk-sampai").value, pesan = $("rk-tgl-pesan");
+  if (!d || !z) { pesan.textContent = "Isi tanggal Dari dan Sampai."; return; }
+  if (z < d) { pesan.textContent = "Tanggal Sampai harus sesudah tanggal Dari."; $("rk-sampai").focus(); return; }
+  if (RK_SMT && (d < RK_SMT.dari || z > RK_SMT.sampai)) {
+    const tg = (x) => new Date(x + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" });
+    pesan.textContent = `Pilih tanggal di dalam semester ${RK_SMT.nama} (${tg(RK_SMT.dari)} – ${tg(RK_SMT.sampai)}). Semester lalu ada di halaman Arsip; semester berikutnya belum dimulai.`; return;
+  }
+  RK_PER = { kunci: "pilih", dari: d, sampai: z }; rkTombol(); rkSimpan();
+  $("rk-tgl").classList.add("hidden"); document.querySelector('[data-rkper="pilih"]').setAttribute("aria-expanded", "false"); muatRekap();
+};
+rkTombol();
 
 /* Level jalur umum: tingkat terbuka dan level terbuka saja (6 Oktober 2026). */
 const levelBuka = (t) => t.level.filter((l) => l.aktif !== false);
@@ -2845,18 +2931,20 @@ function gambarAtur() {
 }
 
 /* ----------------------------------------------------------- Perkembangan Siswa: Per Siswa / Per Kelompok */
-let SUB = "siswa";
+let SUB = "rekap";
 document.querySelectorAll(".subtab [data-sub]").forEach((b) => b.onclick = () => bukaSub(b.dataset.sub));
 function bukaSub(v) {
   SUB = v;
   document.querySelectorAll(".subtab [data-sub]").forEach((b) => { b.classList.toggle("on", b.dataset.sub === v); b.setAttribute("aria-selected", String(b.dataset.sub === v)); });
-  $("pk-siswa").classList.toggle("hidden", v !== "siswa"); $("pk-kelompok").classList.toggle("hidden", v !== "kelompok");
+  $("pk-rekap").classList.toggle("hidden", v !== "rekap");
+  $("pk-siswa").classList.toggle("hidden", v !== "siswa");
   $("pk-peringkat").classList.toggle("hidden", v !== "peringkat"); $("baris-kelas").classList.toggle("hidden", v === "peringkat");
   $("pil-urut").classList.toggle("hidden", v !== "siswa");
   // grafik sebaran digambar selebar wadahnya: gambar ulang setelah tab kelompok tampil
   if (v === "siswa" && REKAP_PADA && Date.now() - REKAP_PADA > 60000) muatKelas(true);
-  if (v === "kelompok") { if (REKAP.length) gambarKelas(); muatPerKelompok(); }
+  if (v === "rekap") { if (REKAP.length) gambarKelas(); muatPerKelompok(); }   // ringkasan keseluruhan di bawah Rekapitulasi
   if (v === "peringkat" && !PR) muatPeringkat();
+  if (v === "rekap") muatRekap(true);
 }
 // Sel posisi terendah/tertinggi kelompok (7 Oktober 2026): r = siswa di posisi itu, n = banyak siswa yang sama posisinya.
 const selPosisi = (r, n, L) => !r ? '<td class="posisi"><span class="redup">–</span></td>'
@@ -2890,7 +2978,7 @@ async function muatPerKelompok() {
     <tbody>${baris.join("") || '<tr><td colspan="12" class="kosong-data">Tidak ada siswa.</td></tr>'}</tbody>`;
   $("t-perkelompok").querySelectorAll("[data-kel]").forEach((tr) => tr.onclick = () => {
     if ([...$("pil-kelas").options].some((o) => o.value === tr.dataset.kel)) $("pil-kelas").value = tr.dataset.kel;
-    muatKelas();
+    muatKelas(); if (SUB === "rekap") { muatRekap(); $("rk-isi").scrollIntoView({ behavior: "smooth" }); }
   });
 }
 

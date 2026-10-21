@@ -282,6 +282,26 @@ diampu), sama dengan yang dipakai Tryout.
     **PIN kepala sekolah** (`tka_privat.pin_kepsek_matdas`, bukan PIN guru) dan
     mengetik KOSONGKAN. Data siswa, pengaturan, tingkat & level tetap.
 
+## Rekapitulasi perkembangan kelas (22 Okt 2026)
+
+Sub-tab Per Kelompok digabung ke Rekapitulasi (22 Okt 2026, keputusan user): kotak ringkasan, sebaran posisi, dan tabel
+perbandingan kini di bagian bawah Rekapitulasi dengan judul "Ringkasan keseluruhan" (angka sejak awal, tidak mengikuti periode;
+id `pk-kelompok` tetap). Sub-tab yang tersisa: Rekapitulasi, Per Siswa, Peringkat.
+
+Sub-tab pertama di Perkembangan Siswa (RENCANA_REKAP_PERKEMBANGAN.md di folder induk; contoh tampilan yang disetujui user:
+https://claude.ai/artifact/HjMzbMoujyt6mRRSc2AJ9U).
+
+- Data dari `mtd_rekap_periode(p_pin, p_kelompok, p_dari, p_sampai)` (migrasi `database_tryout/.../20261022090000_matdas_rekap_periode.sql`):
+  rentang dikunci di dalam semester berjalan (`tka_periode_batas`) dan tidak melewati hari ini; pembanding = rentang sama panjang
+  tepat sebelumnya (juga dipotong di awal semester). Kemajuan resmi saja (mandiri = kunci `M:` + NISN, tidak dihitung).
+  Hak akses sama dengan `mtd_rekap`. Admin satu semester ±0,5 dtk, rapor satu kelompok ±0,1 dtk (data 22 Okt 2026).
+- Satu kelompok dipilih → rapor: kalimat ringkas, 4 kotak angka (vs pembanding), peta posisi (lintasan tingkat, titik per siswa),
+  level per hari latihan + akurasi (target 80%), di mana siswa macet (rumus Macet halaman: percobaan ≥ 3 atau salah ≥ 8),
+  Perlu perhatian & Bintang. "Semua kelompok" → perbandingan: level per siswa + % berlatih, peta keaktifan per minggu.
+- Periode 7 hari / 30 hari / Semester ini / Pilih tanggal (diingat di localStorage `mtd_rekap_periode`).
+- Grafik digambar `assets/rekap.js` (SVG tanpa pustaka, gaya disisipkan sendiri; dipakai ulang English Reading).
+  Warna status lolos validator dataviz: #A8432E / #B7862A / #2F7A4C.
+
 ## Ujian bersama (ratusan siswa sekaligus)
 
 Diukur 4 Okt 2026 di server Supabase Tryout (paket gratis, Tokyo) dengan 800 siswa tiruan
