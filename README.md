@@ -73,6 +73,8 @@ perubahan lewat [`../database_tryout/`](../database_tryout/README.md)
    Kegiatan menandai siswa yang tergeser ≥ 2 kali sejak pertemuan terakhir).
    "Sedang berlatih" di Sesi Kegiatan = sesi berjalan dan ada soal baru dalam
    15 menit terakhir.
+   Perkembangan Siswa (Per Siswa) dimuat ulang diam-diam setiap tab dibuka lagi bila datanya
+   lebih dari 1 menit; jam pembaruan terakhir tertulis di bawah judul (21 Okt 2026).
    Papan peringkat (Tampilkan teratas) menghitung "siswa sudah menjawab" = minimal satu
    jawaban sejak sesi dibuka, jadi bisa kurang dari "sedang berlatih" selama ada siswa
    yang baru masuk dan belum menjawab soal pertamanya.

@@ -739,7 +739,7 @@ body.lihat .ubah { display: none !important; }
     <!-- Kemajuan per kelompok MD (sebelum kelompok pernah ditarik dari Data Induk: per kelas) -->
     <div id="p-kelas">
       <div class="kepala-hal"><div><span class="eyebrow">Pemantauan</span><h1 id="judul-kelas">Perkembangan Siswa</h1>
-        <p>Posisi, kemajuan, dan siswa yang perlu perhatian. Ketuk nama siswa untuk melihat analisisnya.</p></div></div>
+        <p>Posisi, kemajuan, dan siswa yang perlu perhatian. Ketuk nama siswa untuk melihat analisisnya. <span id="kl-segar" class="kecil redup" role="status"></span></p></div></div>
       <div class="baris" id="baris-kelas">
         <select id="pil-kelas" style="max-width:220px" aria-label="Pilih kelompok"></select>
         <select id="pil-urut" style="max-width:240px" aria-label="Urutkan">
@@ -1074,6 +1074,7 @@ function bukaTab(v) {
   if (v === "jalur") { muatProfil(); muatJalur(); muatSemua(); }
   if (v === "atur") muatAtur();
   if (v === "admin") muatAdmin();
+  if (v === "kelas" && SUB === "siswa" && REKAP_PADA && Date.now() - REKAP_PADA > 60000) muatKelas(true);
   if (v === "kelas" && SUB === "kelompok") muatPerKelompok();
   if (v === "kelas" && SUB === "peringkat" && !PR) muatPeringkat();
   if (v === "daftar") { muatDaftar(); muatSesi(); daftarT = setInterval(() => { if (!document.hidden) { muatDaftar(true); muatSesi(); } }, 30000); }
@@ -1134,14 +1135,22 @@ async function muatMandiri(L) {
 }
 const bobot = (r) => status(r).reduce((a, x) => a + x.bobot, 0);
 
-async function muatKelas() {
+// Dimuat saat masuk, ganti kelompok, Muat ulang, dan setiap tab dibuka lagi bila data > 1 menit (21 Okt 2026:
+// tabel sempat menampilkan posisi pagi hari sementara Analisis Siswa sudah terbaru). diam = tanpa "Memuat…".
+let REKAP_PADA = 0;
+async function muatKelas(diam) {
   const k = $("pil-kelas").value;
   ssSet("mtd_kelas", k);
-  $("t-kelas").innerHTML = '<tr><td class="kosong-data">Memuat…</td></tr>';
-  try { REKAP = await rpc("mtd_rekap", { p_pin: PIN, p_kelas: k || null }); await muatMandiri(REKAP); }
-  catch (e) { $("t-kelas").innerHTML = `<tr><td class="kosong-data">${esc(e.message)}</td></tr>`; return; }
+  if (diam !== true) $("t-kelas").innerHTML = '<tr><td class="kosong-data">Memuat…</td></tr>';
+  try { const R = await rpc("mtd_rekap", { p_pin: PIN, p_kelas: k || null }); await muatMandiri(R); if (k !== $("pil-kelas").value) return; REKAP = R; }
+  catch (e) {
+    if (diam === true) { $("kl-segar").innerHTML = `<b class="buruk-teks">Gagal memperbarui pukul ${jamDetik()}</b> (${esc(e.message)}); tekan Muat ulang.`; return; }
+    $("t-kelas").innerHTML = `<tr><td class="kosong-data">${esc(e.message)}</td></tr>`; return; }
+  REKAP_PADA = Date.now(); $("kl-segar").textContent = `Terakhir diperbarui pukul ${jamDetik()}.`;
+  const dipilih = $("pil-siswa").value;
   $("pil-siswa").innerHTML = '<option value="">— pilih siswa —</option>' +
     REKAP.map((r) => `<option value="${esc(r.nisn)}">${esc(r.nama)} (${esc(MODE_MD ? r.kelompok || "tanpa kelompok" : r.kelas)})</option>`).join("");
+  if (dipilih && REKAP.some((r) => r.nisn === dipilih)) $("pil-siswa").value = dipilih;
   gambarKelas();
 }
 $("pil-kelas").onchange = muatKelas;
@@ -2840,6 +2849,7 @@ function bukaSub(v) {
   $("pk-peringkat").classList.toggle("hidden", v !== "peringkat"); $("baris-kelas").classList.toggle("hidden", v === "peringkat");
   $("pil-urut").classList.toggle("hidden", v !== "siswa");
   // grafik sebaran digambar selebar wadahnya: gambar ulang setelah tab kelompok tampil
+  if (v === "siswa" && REKAP_PADA && Date.now() - REKAP_PADA > 60000) muatKelas(true);
   if (v === "kelompok") { if (REKAP.length) gambarKelas(); muatPerKelompok(); }
   if (v === "peringkat" && !PR) muatPeringkat();
 }
