@@ -1693,7 +1693,7 @@ function gambarTeratas(d) {
     `<span class="tr-pil">Sejak pukul ${jamTeks(d.dari)}</span>`;
   const tepat = d.total_jawab ? Math.round((100 * d.total_benar) / d.total_jawab) : 0;
   $("tr-angka").innerHTML = [
-    [`${d.n_berlatih}<small> / ${d.n_siswa}</small>`, "siswa sudah berlatih"],
+    [`${d.n_berlatih}<small> / ${d.n_siswa}</small>`, "siswa sudah menjawab"],
     [d.total_benar, "jawaban benar"],
     [d.total_tuntas, "level dituntaskan"],
     [`${tepat}<small>%</small>`, "ketepatan kelompok"],
