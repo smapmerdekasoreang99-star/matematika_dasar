@@ -1264,9 +1264,12 @@ function gambarKelas() {
 
   // sebaran per tingkat
   const baris = G.tingkat.filter((t) => t.aktif).map((t) => ({ label: t.nama, n: R.filter((r) => r.tingkat === t.kode && !r.selesai).length }));
+  // 22 Okt 2026: hanya rentang tingkat yang berisi siswa (± satu tingkat di kiri/kanan), sisanya disebut di catatan
+  const isi = baris.map((b, i) => (b.n ? i : -1)).filter((i) => i >= 0);
+  const tampil = isi.length ? baris.slice(Math.max(0, isi[0] - 1), Math.min(baris.length, isi[isi.length - 1] + 2)) : baris, sembunyi = baris.length - tampil.length;
   const tamat = R.filter((r) => r.selesai).length, belum = R.length - mulai.length;
-  if (tamat) baris.push({ label: "Tamat semua tingkat", n: tamat });
-  batangMendatar($("g-sebaran"), baris, "siswa", belum ? `${belum} siswa belum pernah masuk.` : "");
+  if (tamat) tampil.push({ label: "Tamat semua tingkat", n: tamat });
+  batangMendatar($("g-sebaran"), tampil, "siswa", [belum ? `${belum} siswa belum pernah masuk.` : "", sembunyi ? `${sembunyi} tingkat lain tanpa siswa tidak ditampilkan.` : ""].filter(Boolean).join(" "));
 
   const u = $("pil-urut").value;
   R.sort((a, b) => u === "nama" ? a.nama.localeCompare(b.nama)
