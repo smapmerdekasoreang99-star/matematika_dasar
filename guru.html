@@ -1898,6 +1898,7 @@ if (new URLSearchParams(location.search).get("simulasi") === "teratas") tampilTe
 setInterval(() => { if (BUKA && !document.hidden && !$("p-daftar").classList.contains("hidden")) gambarSesi(); }, 20000);
 
 /* ---- Kotak "Aturan dan tahapan yang berlaku" di Sesi Kegiatan */
+let IK_BUKA = false;
 function gambarInfoKelompok() {
   if (!G || !$("info-kel-isi") || typeof PROFIL === "undefined") return;
   const pilih = $("dl-kelompok").value, tk = $("dl-tingkat").value;
@@ -1928,8 +1929,11 @@ function gambarInfoKelompok() {
   });
   // Banyak kelompok sekaligus (admin, "Semua kelompok"): dilipat agar tabel siswa tetap dekat
   $("info-kel-isi").innerHTML = kel.length > 3
-    ? `<details class="ik-lipat"><summary>Tampilkan aturan dan tahapan ${kel.length} kelompok</summary>${baris.join("")}</details>`
+    ? `<details class="ik-lipat"${IK_BUKA ? " open" : ""}><summary>Tampilkan aturan dan tahapan ${kel.length} kelompok</summary>${baris.join("")}</details>`
     : baris.join("");
+  // Ingat kotak lipat terbuka/tertutup: isi digambar ulang tiap muat ulang data (30 detik), 27 Okt 2026
+  const ikD = $("info-kel-isi").querySelector(".ik-lipat");
+  if (ikD) ikD.ontoggle = () => { IK_BUKA = ikD.open; };
 }
 
 /* ----------------------------------------------------------- profil aturan khusus */
