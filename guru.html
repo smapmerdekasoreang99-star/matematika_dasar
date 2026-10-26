@@ -1900,8 +1900,9 @@ setInterval(() => { if (BUKA && !document.hidden && !$("p-daftar").classList.con
 /* ---- Kotak "Aturan dan tahapan yang berlaku" di Sesi Kegiatan */
 function gambarInfoKelompok() {
   if (!G || !$("info-kel-isi") || typeof PROFIL === "undefined") return;
-  const pilih = $("dl-kelompok").value;
-  const kel = pilih && pilih !== "-" ? [pilih] : (G.kelompok || []);
+  const pilih = $("dl-kelompok").value, tk = $("dl-tingkat").value;
+  // Saringan tingkat ikut berlaku seperti di kartu sesi (MD12-1 / 12-1 → 12), 26 Okt 2026
+  const kel = pilih && pilih !== "-" ? [pilih] : (G.kelompok || []).filter((k) => !tk || tingkatNama(k) === tk);
   $("info-kel").classList.toggle("hidden", !kel.length);
   if (!kel.length) return;
   const chip = (x, v, kls) => `<span class="ik-chip ${kls || ""}"><small>${x.l}</small><b>${esc(nilaiAturTeks(x, v))}</b></span>`;
