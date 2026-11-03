@@ -109,7 +109,7 @@ function uraiPilihan(teks) {
   return { premis: b[0] || "", tanya: b[1] || "", opsi: b.slice(2).map((o) => [o.slice(0, 1), o.slice(3)]) };
 }
 
-/* Soal bank tetap (Statistika) "BANK:<kode> <json>" → {kode, j, q, t, g, a, o: [[huruf, teks]], p}; null bila bukan soal bank. */
+/* Soal bank tetap (Statistika, Peluang) "BANK:<kode> <json>" → {kode, j, q, t, g, a, o: [[huruf, teks]], p}; null bila bukan soal bank. */
 function uraiBank(teks) {
   const m = String(teks || "").match(/^BANK:(\S+) ([\s\S]*)$/);
   if (!m) return null;
@@ -122,10 +122,11 @@ function bankTabelHtml(t) {
   return `<span class="bank-tabel-wadah"><table class="bank-tabel"><thead><tr>${t.header.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead>` +
     `<tbody>${t.rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></span>`;
 }
-/* Kalimat soal + tabel/diagram. Bila gambar gagal dimuat, datanya tampil sebagai tabel supaya soal tetap bisa dikerjakan. */
+/* Kalimat soal + tabel/diagram. Gambar di assets/<folder>/ (tanpa folder: statistika). Bila gambar gagal dimuat,
+   datanya tampil sebagai tabel supaya soal tetap bisa dikerjakan; diagram pohon tanpa tabel memberi pesan. */
 function bankSoalHtml(u) {
   const data = u.g
-    ? `<span class="bank-gambar"><img src="assets/statistika/${esc(u.g)}" alt="${esc(u.a || "Diagram")}" onerror="this.parentNode.classList.add('gagal')">${u.t ? `<span class="bank-cadangan">${bankTabelHtml(u.t)}</span>` : ""}</span>`
+    ? `<span class="bank-gambar"><img src="assets/${u.g.includes("/") ? esc(u.g) : "statistika/" + esc(u.g)}" alt="${esc(u.a || "Diagram")}" onerror="this.parentNode.classList.add('gagal')"><span class="bank-cadangan">${u.t ? bankTabelHtml(u.t) : "Gambar gagal dimuat. Periksa sinyal, lalu muat ulang halaman."}</span></span>`
     : u.t ? bankTabelHtml(u.t) : "";
   return `<span class="cerita">${esc(u.q)}</span>${data}`;
 }
@@ -134,6 +135,7 @@ function bankJawabHtml(u, nilai) {
   const v = String(nilai == null ? "" : nilai).trim().toUpperCase();
   if (!v) return '<span class="redup">(kosong)</span>';
   if (u.j === "isian") return `<span class="nm">${esc(bil(v))}</span>`;
+  if (u.j === "pecahan") return jawabHtml(v);
   if (u.j === "bs") return `<span class="bank-jawab">${u.p.map((_, i) => `<span>(${i + 1}) ${v[i] === "B" ? "Benar" : v[i] === "S" ? "Salah" : "-"}</span>`).join("")}</span>`;
   return `<span class="bank-jawab">${[...v].map((h) => { const o = u.o.find((x) => x[0] === h); return `<span><b>${esc(h)}.</b> ${esc(o ? o[1] : "")}</span>`; }).join("")}</span>`;
 }

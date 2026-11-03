@@ -179,6 +179,10 @@ Isi saat ini:
   dan uji coba guru). "Coba soal serupa" memakai soal sepola. Isi bank dibuat `database_tryout/alat/bank_statistika.js`
   dari JSON naskah, termasuk koreksi STAT-L8-003. Membuka tingkat/level kini ikut melanjutkan siswa tahapan umum yang
   sudah tamat.
+- **MD12**, Peluang (K12-07, 4 level, 3 Nov 2026): 400 soal bank tetap, cara kerja sama dengan Statistika. Isi dibuat
+  `database_tryout/alat/bank_soal.js`, diagram di `assets/peluang/` (kolom `gambar` memuat folder). Jenis baru
+  `pecahan`: isian berkunci pecahan dengan kotak pembilang dan penyebut; nilai sama tetapi belum sederhana dinilai
+  "Belum paling sederhana".
 - **MD11**, tahap B: Mengurutkan Bilangan (3 level; campuran bulat, desimal, pecahan,
   dan persen; siswa mengetuk bilangan sesuai urutan), Persentase dalam Kehidupan
   (6 level: diskon, diskon bertingkat, untung/rugi, pajak & tip, nilai & kehadiran,
