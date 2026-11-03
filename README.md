@@ -46,18 +46,16 @@ perubahan lewat [`../database_tryout/`](../database_tryout/README.md)
    **Latihan mandiri tidak harus sama dengan sesi:** siswa bebas memilih tingkat dan level di kartu
    **🏠 Latihan mandiri** (`mtd_materi_mandiri`, `mtd_pilih_mandiri`; hanya posisi mandiri yang pindah), serta jumlah
    soal per level (5/10/15/20) dan tampil jawaban benar (`mtd_pilihan_mandiri`, disimpan di `mtd_sesi.pilihan`).
-   **Pilihan per kelompok (3 Nov 2026, keputusan user: sama dengan sesi):** kolom **Latihan mandiri** di
-   Pengaturan & Tahapan bagian 3 berisi satu pilihan: **tahapan khusus**, Pengaturan Umum, Sama dengan sesi
-   kelompok, atau profil (`mtd_mandiri_kelompok_set`, `mtd_mandiri_kelompok.jalur`). Tahapan memakai penyusun yang
-   sama dengan sesi; posisinya tetap kunci `M:`. Saat masuk mandiri siswa ditempatkan di awal tahapan, sekali per
-   pemasangan (`mtd_sinkron_tahapan_mandiri`), dengan aturan dasar + profil langkah tahapan itu, bukan tahapan sesi
-   (`mtd_atur_tahapan_mandiri`). Selama tahapan berjalan siswa tidak memilih materi dan jumlah soal (kartu 🏠
-   disembunyikan, server menolak); sesudah selesai kartu muncul di halaman akhir dan siswa boleh berlatih materi lain
-   tanpa mengulang tahapan. Mengganti tahapan menutup latihan mandiri yang berjalan dan memindahkan siswa; melepasnya
-   membiarkan siswa di posisinya.
-   **Per siswa** (bilah massal, `mtd_mandiri_siswa`): aturan dan **saran** (tingkat · level + catatan). Saran hanya
-   anjuran: siswa melihatnya dengan tombol "Mulai dari saran" dan tetap boleh memilih materi lain. Kartu Analisis
-   menampilkan tahapan, saran, aturan mandiri, dan pilihan siswa (mis. "biasanya 5 soal").
+   **Tiga pilihan (3 Nov 2026, keputusan user):** kolom **Latihan mandiri** di Pengaturan & Tahapan bagian 3 dan di
+   bilah siswa terpilih (`mtd_mandiri_pilihan`; pilihan siswa mengalahkan pilihan kelompok):
+   **Lanjut dari sesi kegiatan** (bawaan, tanpa baris pengaturan): posisi mandiri mengejar posisi resmi saat masuk, yang
+   lebih maju di jalur yang sama dibiarkan (`mtd_sinkron_lanjut_sesi`), dengan tahapan dan aturan sesi; **Siswa bebas
+   memilih materi**, aturan Pengaturan Umum; **Tahapan khusus** buatan guru, ditempatkan di awal sekali per pemasangan
+   (`mtd_sinkron_tahapan_mandiri`) dengan aturan dasar + profil langkah tahapan itu (`mtd_atur_tahapan_mandiri`).
+   Kemajuan selalu kunci `M:`, tidak pernah menaikkan posisi resmi. Pada lanjut dari sesi dan tahapan khusus siswa tidak
+   memilih materi dan jumlah soal (kartu 🏠 disembunyikan, server menolak) sampai selesai; sesudah selesai kartu muncul
+   di halaman akhir. Mengganti pilihan menutup latihan mandiri yang berjalan. Profil atau saran lama tetap berjalan dan
+   tampil "Aturan lama" sampai guru memilih.
    **Pantauan:** Perkembangan Siswa → sub-tab **Latihan Mandiri** (`mtd_pantau_mandiri`, satu kelompok): status,
    posisi mandiri, kemajuan tahapan (x/y, dihitung sejak tahapan dipasang, `jalur_sejak`), hari, soal, akurasi, level
    tuntas, waktu, terakhir aktif; saringan, periode 7/30 hari/semester/pilih tanggal, unduh Excel, segar tiap menit.
