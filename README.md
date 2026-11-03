@@ -184,6 +184,8 @@ Isi saat ini:
   `pecahan`: isian berkunci pecahan dengan kotak pembilang dan penyebut; nilai sama tetapi belum sederhana dinilai
   "Belum paling sederhana". Gambar soal yang gagal dimuat dicoba ulang 2 kali otomatis, lalu menampilkan tabel datanya
   (atau pesan bila tanpa tabel) dengan tombol "Muat ulang gambar".
+- **MD12**, Aljabar (K12-10, 5 level, 3 Nov 2026): 500 soal bank tetap, cara kerja sama, gambar di `assets/aljabar/`
+  (35 berkas yang dirujuk naskah; zip naskah memuat 50 berkas lain yang tidak dipakai).
 - **MD12**, Bilangan (K12-09, 4 level, 3 Nov 2026): 400 soal bank tetap, cara kerja sama, diagram di `assets/bilangan/`.
   BLGN-L4-096 dikoreksi lewat `database_tryout/alat/koreksi_bilangan.json` (pembahasan 0,124).
 - **MD12**, Barisan dan Deret (K12-08, 5 level, 3 Nov 2026): 500 soal bank tetap, cara kerja sama. Diagram di
