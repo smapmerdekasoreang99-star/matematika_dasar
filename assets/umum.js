@@ -119,7 +119,7 @@ function uraiBank(teks) {
   } catch (e) { return null; }
 }
 function bankTabelHtml(t) {
-  return `<span class="bank-tabel-wadah"><table class="bank-tabel"><thead><tr>${t.header.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead>` +
+  return `<span class="bank-tabel-wadah"><table class="bank-tabel${t.header.length > 5 ? " bank-tabel-rapat" : ""}"><thead><tr>${t.header.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead>` +
     `<tbody>${t.rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></span>`;
 }
 /* Kalimat soal + tabel/diagram. Gambar di assets/<folder>/ (tanpa folder: statistika). Bila gambar gagal dimuat,

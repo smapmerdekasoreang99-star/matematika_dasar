@@ -199,6 +199,9 @@ table[data-beku] .fz-akhir { box-shadow: 4px 0 6px -4px rgba(29, 42, 58, .25); }
 .bank-tabel { border-collapse: collapse; margin: 0 auto; font-size: var(--h-m); font-weight: 400; font-variant-numeric: tabular-nums; }
 .bank-tabel th, .bank-tabel td { border: 1px solid var(--garis); padding: var(--j1) var(--j3); text-align: center; }
 .bank-tabel th { background: var(--kertas-3); font-weight: 700; }
+/* Tabel banyak kolom (ruang sampel dua dadu): isi sel tidak terlipat di layar HP */
+.bank-tabel-rapat { font-size: var(--h-xs); }
+.bank-tabel-rapat th, .bank-tabel-rapat td { padding: var(--j1) 3px; white-space: nowrap; }
 .bank-gambar { display: block; margin: var(--j3) 0; }
 .bank-gambar img { display: block; max-width: 100%; height: auto; margin: 0 auto; background: #fff; }
 .bank-cadangan { display: none; }
