@@ -171,6 +171,14 @@ Isi saat ini:
   kesetaraan & ingkaran). Pengecoh dibuat dari kesalahan logika umum (membalik
   implikasi, menyangkal tanpa membalik, kuantor keliru) dan dikenali sebagai jenis
   kesalahan; urutan pilihan diacak.
+- **MD12**, Statistika (K12-06, 8 level, 3 Nov 2026): soal **tetap** dari naskah guru, bukan buatan aturan.
+  Tabel `mtd_bank_soal` (800 soal, 100 per level, hanya lewat fungsi), aturan `{"jenis":"bank",…}`, bentuk `bank`
+  dengan jenis pg, kompleks (pilih semua yang benar), bs (benar/salah), dan isian (boleh koma). Yang belum pernah
+  muncul didahulukan menurut kode soal; urutan opsi diacak. Diagram di `assets/statistika/`, dan bila gagal dimuat
+  datanya tampil sebagai tabel. Pembahasan dari naskah diambil lewat `mtd_bank_pembahasan` (hanya latihan mandiri
+  dan uji coba guru). "Coba soal serupa" memakai soal sepola. Isi bank dibuat `database_tryout/alat/bank_statistika.js`
+  dari JSON naskah, termasuk koreksi STAT-L8-003. Membuka tingkat/level kini ikut melanjutkan siswa tahapan umum yang
+  sudah tamat.
 - **MD11**, tahap B: Mengurutkan Bilangan (3 level; campuran bulat, desimal, pecahan,
   dan persen; siswa mengetuk bilangan sesuai urutan), Persentase dalam Kehidupan
   (6 level: diskon, diskon bertingkat, untung/rugi, pajak & tip, nilai & kehadiran,
@@ -227,7 +235,9 @@ diampu), sama dengan yang dipakai Tryout.
 - **Daftar siswa**: semua anggota kelompok MD dengan NISN, NIS, rombel, dan
   status (*Sedang berlatih*, *Terkunci*, *Belum pernah masuk*), jumlah keluar
   halaman 7 hari terakhir, pencarian, **Unduh daftar** (.xlsx; *Semua kelompok* = satu lembar per kelompok), dan tombol **Buka kunci**.
-  Diperbarui otomatis tiap 30 detik.
+  Diperbarui otomatis tiap 30 detik; **Muat ulang** memperbarui daftar siswa dan kartu Sesi latihan.
+  Saringan *Sedang berlatih* juga menyaring kartu Sesi latihan: hanya kelompok yang sesinya dibuka
+  atau ada siswa berlatih (termasuk mandiri).
   Centang siswa (atau semua yang tampil, mis. satu tingkat/kelompok) untuk
   **Atur posisi** (tingkat & level awal berbeda per tingkat/kelompok/siswa; opsi
   *hanya yang belum pernah masuk*) atau **Hapus data latihan**.

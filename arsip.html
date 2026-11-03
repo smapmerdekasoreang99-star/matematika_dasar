@@ -6,7 +6,7 @@
 <title>Buka Arsip — SMA Plus Merdeka Soreang</title>
 <meta name="description" content="Membuka berkas arsip semester (SQLite) Matematika Dasar dan aplikasi lain untuk mencari rincian latihan siswa. Berkas dibaca di perangkat ini saja.">
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=10">
+<link rel="stylesheet" href="assets/matdas.css?v=11">
 <style>
 .pilih-berkas { display: grid; gap: var(--j3); justify-items: start; }
 .pilih-berkas input[type=file] { font-size: var(--h-m); }
@@ -51,7 +51,7 @@ td.soal-sel { white-space: nowrap; }
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="config.js?v=2"></script>
-<script src="assets/umum.js?v=11"></script>
+<script src="assets/umum.js?v=12"></script>
 <script src="assets/simpan.js?v=3"></script>
 <script src="assets/kepala-excel.js?v=1"></script>
 <script src="assets/excel.js?v=5"></script>
@@ -190,7 +190,7 @@ function gambarJawab(tambah) {
   const L = baris(`select * ${f.sql} order by waktu, id limit 200 offset ?`, [...f.p, HAL * 200]);
   const isi = L.map((x) => `<tr><td class="kecil">${esc(tglTeks(x.waktu, true))}</td><td class="kecil">${x.nisn.startsWith("M:") ? "mandiri" : "sesi"}</td>
     <td class="kecil">${esc(namaT(x.tingkat))} Lv ${x.level} · no ${x.nomor}</td><td class="soal-sel">${soalHtml(x.soal)}</td>
-    <td>${esc(x.jawaban)}</td><td>${esc(x.kunci)}</td><td class="${x.benar ? "benar" : "salah"}">${x.benar ? "benar" : esc(jenisLabel(x.jenis_salah))}</td>
+    <td>${uraiBank(x.soal) ? bankJawabHtml(uraiBank(x.soal), x.jawaban) : esc(x.jawaban)}</td><td>${uraiBank(x.soal) ? bankJawabHtml(uraiBank(x.soal), x.kunci) : esc(x.kunci)}</td><td class="${x.benar ? "benar" : "salah"}">${x.benar ? "benar" : esc(jenisLabel(x.jenis_salah))}</td>
     <td class="angka kecil">${x.detik} dtk</td></tr>`).join("");
   if (tambah) $("t-jawab").querySelector("tbody").insertAdjacentHTML("beforeend", isi);
   else $("t-jawab").innerHTML = `<thead><tr><th>Waktu</th><th>Jenis</th><th>Tingkat</th><th>Soal</th><th>Jawaban</th><th>Kunci</th><th>Hasil</th><th class="angka">Lama</th></tr></thead><tbody>${isi || '<tr><td colspan="8" class="redup">Tidak ada jawaban.</td></tr>'}</tbody>`;

@@ -193,3 +193,20 @@ table[data-beku] .fz-akhir { box-shadow: 4px 0 6px -4px rgba(29, 42, 58, .25); }
 .bh-cek { flex: none; width: 1.6em; height: 1.6em; border-radius: 50%; background: var(--hadir); color: #fff; font-size: var(--h-xs); font-weight: 800;
   display: inline-flex; align-items: center; justify-content: center; }
 .bahas sup { font-size: .7em; line-height: 0; }
+
+/* Soal bank tetap (Statistika): tabel, diagram, jawaban banyak bagian */
+.bank-tabel-wadah { display: block; overflow-x: auto; margin: var(--j3) 0; }
+.bank-tabel { border-collapse: collapse; margin: 0 auto; font-size: var(--h-m); font-weight: 400; font-variant-numeric: tabular-nums; }
+.bank-tabel th, .bank-tabel td { border: 1px solid var(--garis); padding: var(--j1) var(--j3); text-align: center; }
+.bank-tabel th { background: var(--kertas-3); font-weight: 700; }
+.bank-gambar { display: block; margin: var(--j3) 0; }
+.bank-gambar img { display: block; max-width: 100%; height: auto; margin: 0 auto; background: #fff; }
+.bank-cadangan { display: none; }
+.bank-gambar.gagal img { display: none; }
+.bank-gambar.gagal .bank-cadangan { display: block; }
+.bank-jawab { display: grid; gap: 2px; text-align: left; font-weight: 400; }
+.bs-daftar { display: grid; gap: var(--j2); width: 100%; text-align: left; }
+.bs-baris { display: grid; gap: var(--j2); padding: var(--j3); border: 1px solid var(--garis); border-radius: 8px; font-size: var(--h-n); font-weight: 500; line-height: 1.45; }
+.bs-pilih { display: grid; grid-template-columns: 1fr 1fr; gap: var(--j2); }
+.bs-pilih button { min-height: 44px; font-weight: 700; background: #fff; color: var(--tinta); border: 1px solid var(--garis); }
+.bs-pilih button[aria-checked="true"] { background: var(--gelap); color: var(--tinta-terang); border-color: var(--gelap); }

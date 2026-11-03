@@ -109,8 +109,40 @@ function uraiPilihan(teks) {
   return { premis: b[0] || "", tanya: b[1] || "", opsi: b.slice(2).map((o) => [o.slice(0, 1), o.slice(3)]) };
 }
 
+/* Soal bank tetap (Statistika) "BANK:<kode> <json>" → {kode, j, q, t, g, a, o: [[huruf, teks]], p}; null bila bukan soal bank. */
+function uraiBank(teks) {
+  const m = String(teks || "").match(/^BANK:(\S+) ([\s\S]*)$/);
+  if (!m) return null;
+  try {
+    const d = JSON.parse(m[2]);
+    return { ...d, kode: m[1], o: (d.o || []).map((t, i) => [String.fromCharCode(65 + i), t]), p: d.p || [] };
+  } catch (e) { return null; }
+}
+function bankTabelHtml(t) {
+  return `<span class="bank-tabel-wadah"><table class="bank-tabel"><thead><tr>${t.header.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead>` +
+    `<tbody>${t.rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></span>`;
+}
+/* Kalimat soal + tabel/diagram. Bila gambar gagal dimuat, datanya tampil sebagai tabel supaya soal tetap bisa dikerjakan. */
+function bankSoalHtml(u) {
+  const data = u.g
+    ? `<span class="bank-gambar"><img src="assets/statistika/${esc(u.g)}" alt="${esc(u.a || "Diagram")}" onerror="this.parentNode.classList.add('gagal')">${u.t ? `<span class="bank-cadangan">${bankTabelHtml(u.t)}</span>` : ""}</span>`
+    : u.t ? bankTabelHtml(u.t) : "";
+  return `<span class="cerita">${esc(u.q)}</span>${data}`;
+}
+/* Jawaban atau kunci soal bank → HTML: huruf + isi opsi, (1) Benar …, atau angka. */
+function bankJawabHtml(u, nilai) {
+  const v = String(nilai == null ? "" : nilai).trim().toUpperCase();
+  if (!v) return '<span class="redup">(kosong)</span>';
+  if (u.j === "isian") return `<span class="nm">${esc(bil(v))}</span>`;
+  if (u.j === "bs") return `<span class="bank-jawab">${u.p.map((_, i) => `<span>(${i + 1}) ${v[i] === "B" ? "Benar" : v[i] === "S" ? "Salah" : "-"}</span>`).join("")}</span>`;
+  return `<span class="bank-jawab">${[...v].map((h) => { const o = u.o.find((x) => x[0] === h); return `<span><b>${esc(h)}.</b> ${esc(o ? o[1] : "")}</span>`; }).join("")}</span>`;
+}
+
 function soalHtml(teks) {
   teks = String(teks || "");
+  const bk = uraiBank(teks);
+  if (bk) return bankSoalHtml(bk) + (bk.o.length ? `<span class="opsi-statis">${bk.o.map(([h, t]) => `<span><b>${h}.</b> ${esc(t)}</span>`).join("")}</span>` : "") +
+    (bk.p.length ? `<span class="opsi-statis">${bk.p.map((t, i) => `<span>(${i + 1}) ${esc(t)}</span>`).join("")}</span>` : "");
   if (/^Urutkan dari yang /.test(teks)) {                       // mengurutkan (tampilan baca saja)
     const u = uraiUrut(teks);
     return `<span class="cerita-tanya">Urutkan dari yang ${esc(u.arah)}:</span><span class="urut-statis">${u.items.map(bilHtml).join('<span class="koma-deret">,</span> ')}</span>`;
@@ -143,7 +175,11 @@ function soalHtml(teks) {
 }
 
 /* Teks soal tanpa HTML (unduhan CSV): garis bawah campuran jadi spasi. */
-const soalPolos = (teks) => String(teks || "").replace(/_/g, " ");
+const soalPolos = (teks) => {
+  const bk = uraiBank(teks);
+  if (bk) return [bk.kode, bk.q, ...bk.o.map(([h, t]) => `${h}. ${t}`), ...bk.p.map((t, i) => `(${i + 1}) ${t}`)].join(" ");
+  return String(teks || "").replace(/_/g, " ");
+};
 
 /* Kunci "p/q" (pecahan) atau "n" (bilangan) → HTML, bentuk paling sederhana;
    pecahan tak wajar ditampilkan juga sebagai pecahan campuran. */

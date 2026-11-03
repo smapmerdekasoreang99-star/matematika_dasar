@@ -18,7 +18,7 @@
 <meta property="og:image:alt" content="Logo SMA Plus Merdeka Soreang">
 <!-- /pratinjau -->
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=10">
+<link rel="stylesheet" href="assets/matdas.css?v=11">
 <script src="config.js?v=2"></script>
 <style>
 /* Tombol Panduan membaca data di kepala halaman (13 Okt 2026): PDF untuk dibuka, Word untuk dicetak/disunting */
@@ -898,7 +898,7 @@ body.lihat .ubah { display: none !important; }
     <div id="p-tingkat" class="hidden">
       <div class="kepala-hal"><div><span class="eyebrow">Materi</span><h1>Tahapan Level</h1>
         <p>Susunan MD10, MD11, dan MD12. Lihat contoh soal, coba kerjakan sendiri, atau tutup tingkat dan level yang belum dipakai.</p></div></div>
-      <p class="redup kecil">Soal dibuat acak oleh server dari aturan tiap level. Tekan <b>Contoh</b> untuk melihat 10 soal acak (centang <b>Tampilkan Jawaban</b> untuk kuncinya, <b>Mode Layar Penuh</b> untuk diproyeksikan), atau <b>Coba</b> untuk mengerjakannya sendiri seperti siswa (uji coba guru: terbuka di tab baru, tidak memakai akun siswa, tidak masuk rekap, tetap bisa walau Halaman Latihan ditutup). Tingkat atau level yang ditutup dilewati siswa yang memakai tahapan umum; siswa yang sedang berada di sana tetap menyelesaikannya. Tahapan Khusus tidak terpengaruh.</p>
+      <p class="redup kecil">Soal dibuat acak oleh server dari aturan tiap level (Statistika: diambil acak dari bank soal tetap, 100 soal per level). Tekan <b>Contoh</b> untuk melihat 10 soal acak (centang <b>Tampilkan Jawaban</b> untuk kuncinya, <b>Mode Layar Penuh</b> untuk diproyeksikan), atau <b>Coba</b> untuk mengerjakannya sendiri seperti siswa (uji coba guru: terbuka di tab baru, tidak memakai akun siswa, tidak masuk rekap, tetap bisa walau Halaman Latihan ditutup). Tingkat atau level yang ditutup dilewati siswa yang memakai tahapan umum; siswa yang sedang berada di sana tetap menyelesaikannya. Tahapan Khusus tidak terpengaruh.</p>
       <div id="t-tingkat"></div>
     </div>
 
@@ -1024,9 +1024,9 @@ body.lihat .ubah { display: none !important; }
   <div class="ctl-isi" id="ctl-isi"></div>
 </div>
 
-<script src="assets/umum.js?v=11"></script>
+<script src="assets/umum.js?v=12"></script>
 <script src="assets/rekap.js?v=1"></script>
-<script src="assets/bahas.js?v=4"></script>
+<script src="assets/bahas.js?v=5"></script>
 <script src="assets/simpan.js?v=3"></script>
 <script src="assets/kepala-excel.js?v=1"></script>
 <script src="assets/excel.js?v=5"></script>
@@ -1364,8 +1364,8 @@ function aturTingkat() {
   el.title = satu ? "Saringan tingkat hanya bisa dipakai saat memilih semua" : "";
 }
 $("dl-kelompok").onchange = () => { aturTingkat(); muatDaftar(); gambarSesi(); };
-$("dl-muat").onclick = () => muatDaftar();
-$("dl-status").onchange = () => gambarDaftar();
+$("dl-muat").onclick = () => { muatDaftar(); muatSesi(); };
+$("dl-status").onchange = () => { gambarDaftar(); gambarSesi(); };
 $("dl-tingkat").onchange = () => { gambarDaftar(); gambarSesi(); };
 // Siswa yang dicentang untuk aksi massal (bertahan saat daftar diperbarui otomatis)
 const PILIH = new Set();
@@ -1618,12 +1618,15 @@ function gambarSesi() {
   const pilih = $("dl-kelompok").value, tk = $("dl-tingkat").value, boleh = true;
   const terbuka = (k) => k.buka && sisaSesi(k) > 0;
   // Kelompok yang sedang dibuka diurutkan paling atas; saringan tingkat ikut berlaku (MD10-1 / 10-1 → 10)
-  const L = BUKA.kelompok.filter((k) => (!pilih || k.kelompok === pilih) && (!tk || tingkatNama(k.kelompok) === tk)).sort((a, b) => terbuka(b) - terbuka(a));
-  $("sesi-kartu").classList.toggle("hidden", !L.length);
-  if (L.some((k) => k.buka && sisaSesi(k) === 0)) { setTimeout(muatSesi, 1500); }
+  const K = BUKA.kelompok.filter((k) => (!pilih || k.kelompok === pilih) && (!tk || tingkatNama(k.kelompok) === tk)).sort((a, b) => terbuka(b) - terbuka(a));
+  // Saringan "Sedang berlatih" (3 Nov 2026): hanya kelompok yang sesinya dibuka atau ada siswa berlatih, termasuk mandiri
+  const hanyaBerlatih = $("dl-status").value === "online";
+  const L = hanyaBerlatih ? K.filter((k) => terbuka(k) || k.n_online || k.n_mandiri) : K;
+  $("sesi-kartu").classList.toggle("hidden", !K.length);
+  if (K.some((k) => k.buka && sisaSesi(k) === 0)) { setTimeout(muatSesi, 1500); }
   const LB = L.filter(terbuka);
   // Ringkasan bila beberapa kelompok tampil sekaligus (mis. admin, "Semua kelompok")
-  $("sesi-isi").innerHTML = (L.length > 1 ? `<p class="sesi-ringkas">${LB.length
+  $("sesi-isi").innerHTML = (hanyaBerlatih && !L.length ? '<p class="sesi-ringkas">Tidak ada kelompok yang sedang berlatih. Pilih <b>Semua status</b> untuk membuka sesi.</p>' : L.length > 1 ? `<p class="sesi-ringkas">${LB.length
       ? `<b>${LB.length} sesi sedang berlangsung:</b> ${LB.map((k) => `${esc(k.kelompok)} (${esc(k.oleh || "guru")}, sampai ${jamTeks(k.sampai)}, ${k.n_online} berlatih)`).join(" · ")}`
       : "Tidak ada sesi yang sedang berlangsung."}</p>` : "") +
     L.map((k) => {
@@ -2585,7 +2588,7 @@ function gambarSiswa() {
     <div class="kartu"><h2>Kesalahan terakhir</h2>
       ${D.salah_terakhir.length ? `<div class="gulir"><table class="tabel" data-beku="1"><thead><tr><th>Waktu</th><th>Tingkat</th><th>Soal</th><th>Jawaban siswa</th><th>Kunci</th><th>Jenis</th></tr></thead><tbody>
         ${D.salah_terakhir.map((x) => `<tr><td class="kecil">${tglTeks(x.waktu, true)}</td><td class="kecil">${esc(x.nama_tingkat)} Lv ${x.level}</td>
-          <td class="soal-sel">${soalHtml(x.soal)}</td><td class="soal-sel">${jawabHtml(x.jawaban)}</td><td class="soal-sel">${kunciHtml(x.kunci)}</td>
+          <td class="soal-sel">${soalHtml(x.soal)}</td><td class="soal-sel">${uraiBank(x.soal) ? bankJawabHtml(uraiBank(x.soal), x.jawaban) : jawabHtml(x.jawaban)}</td><td class="soal-sel">${uraiBank(x.soal) ? bankJawabHtml(uraiBank(x.soal), x.kunci) : kunciHtml(x.kunci)}</td>
           <td><span class="lencana">${esc(jenisLabel(x.jenis))}</span></td></tr>`).join("")}</tbody></table></div>` : '<p class="redup">Belum ada kesalahan.</p>'}
     </div>
     <div class="kartu"><h2>Riwayat level tuntas</h2>
@@ -2684,12 +2687,15 @@ function gambarTingkat() {
 function contohItem(s) {
   const jwb = (isi, panah = true) => `<span class="ct-jwb">${panah ? '<span class="redup">→</span> ' : ""}<span class="k">${isi}</span></span>`;
   const bh = !s.pembahasan ? bahasSoal({ soal: s.teks, kunci: s.kunci }) : null;
-  const bahas = Array.isArray(s.pembahasan) && s.pembahasan.length
+  const bahas = s.bentuk === "bank"
+    ? `<details class="ct-bahas bahas-lipat"><summary>📘 Cara mengerjakan</summary>${bahasHtml(bahasTeks(s.pembahasan))}</details>`
+    : Array.isArray(s.pembahasan) && s.pembahasan.length
     ? `<span class="ct-bahas"><ol>${s.pembahasan.map((x) => `<li>${esc(x)}</li>`).join("")}</ol></span>`
     : s.pembahasan ? `<span class="ct-bahas">${esc(s.pembahasan).replace(/\n/g, "<br>")}</span>`
     : bh ? `<details class="ct-bahas bahas-lipat"><summary>📘 Cara mengerjakan</summary>${bahasHtml(bh)}</details>` : "";
-  const baca = ["urut", "pilihan", "cerita"].includes(s.bentuk);
-  const isi = s.bentuk === "hilang" ? jwb(`<span class="kotak-soal">□</span> = ${kunciHtml(s.kunci)}`)
+  const baca = ["urut", "pilihan", "cerita", "bank"].includes(s.bentuk);
+  const isi = s.bentuk === "bank" ? jwb(`Kunci: ${bankJawabHtml(uraiBank(s.teks), s.kunci)}`, false)
+    : s.bentuk === "hilang" ? jwb(`<span class="kotak-soal">□</span> = ${kunciHtml(s.kunci)}`)
     : s.bentuk === "persamaan" ? jwb(`<i class="var">${esc(s.var || "x")}</i> = ${kunciHtml(s.kunci)}`)
     : s.bentuk === "notasi" ? `<span class="op">=</span> ${jwb(kunciHtml(s.kunci, "notasi"), false)}`
     : s.bentuk === "pilihan" ? jwb(`Kunci: ${esc(s.kunci)}`, false)

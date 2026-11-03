@@ -1153,7 +1153,7 @@ const BahasMatdas = (() => {
   }
   function susun(o) {
     const soal = String(o.soal || "").trim(), kunci = String(o.kunci == null ? "" : o.kunci).trim(), jenis = o.jenis || "";
-    if (!soal || !kunci) return null;
+    if (!soal || !kunci || soal.startsWith("BANK:")) return null;   // soal bank memakai pembahasan naskah (bahasTeks)
     const md12 = susunMD12(soal, kunci, jenis, o.jawaban);
     if (md12 !== undefined) return md12;
     const md11 = susunMD11(soal, kunci, jenis);
@@ -1203,7 +1203,17 @@ const BahasMatdas = (() => {
     return `<div class="bahas">${b.susun ? `<div class="bh-susun">${b.susun}</div>` : ""}<ol class="bh-langkah">${li}</ol></div>`;
   }
 
-  return { bahasSoal, bahasHtml };
+  /* Pembahasan tertulis dari naskah (soal bank) → langkah pendek dengan gaya yang sama. */
+  function bahasTeks(teks) {
+    const langkah = [];
+    String(teks || "").split("\n").forEach((baris) => {
+      if (/^•/.test(baris)) return langkah.push({ h: esc(baris), anak: true });
+      baris.split(/(?<=[.:])\s+(?=[A-Z(])/).forEach((k) => { if (k.trim()) langkah.push({ h: esc(k.trim()) }); });
+    });
+    return { langkah, susun: "" };
+  }
+
+  return { bahasSoal, bahasHtml, bahasTeks };
 })();
-const bahasSoal = BahasMatdas.bahasSoal, bahasHtml = BahasMatdas.bahasHtml;
+const bahasSoal = BahasMatdas.bahasSoal, bahasHtml = BahasMatdas.bahasHtml, bahasTeks = BahasMatdas.bahasTeks;
 if (typeof module !== "undefined") module.exports = BahasMatdas;
