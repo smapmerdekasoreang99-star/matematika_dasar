@@ -46,11 +46,22 @@ perubahan lewat [`../database_tryout/`](../database_tryout/README.md)
    **Latihan mandiri tidak harus sama dengan sesi:** siswa bebas memilih tingkat dan level di kartu
    **🏠 Latihan mandiri** (`mtd_materi_mandiri`, `mtd_pilih_mandiri`; hanya posisi mandiri yang pindah), serta jumlah
    soal per level (5/10/15/20) dan tampil jawaban benar (`mtd_pilihan_mandiri`, disimpan di `mtd_sesi.pilihan`).
-   Guru bisa memasang **aturan latihan mandiri** (profil aturan tersendiri) dan **saran latihan mandiri**
-   (tingkat · level + catatan) per kelompok di tabel Pengaturan & Tahapan atau per siswa lewat bilah massal
-   (`mtd_mandiri_kelompok`, `mtd_mandiri_siswa`). Saran hanya anjuran: siswa melihatnya dengan tombol
-   "Mulai dari saran" dan tetap boleh memilih materi lain. Kartu Analisis menampilkan saran, aturan mandiri, dan
-   pilihan siswa (mis. "biasanya 5 soal").
+   **Pilihan per kelompok (3 Nov 2026, keputusan user: sama dengan sesi):** kolom **Latihan mandiri** di
+   Pengaturan & Tahapan bagian 3 berisi satu pilihan: **tahapan khusus**, Pengaturan Umum, Sama dengan sesi
+   kelompok, atau profil (`mtd_mandiri_kelompok_set`, `mtd_mandiri_kelompok.jalur`). Tahapan memakai penyusun yang
+   sama dengan sesi; posisinya tetap kunci `M:`. Saat masuk mandiri siswa ditempatkan di awal tahapan, sekali per
+   pemasangan (`mtd_sinkron_tahapan_mandiri`), dengan aturan dasar + profil langkah tahapan itu, bukan tahapan sesi
+   (`mtd_atur_tahapan_mandiri`). Selama tahapan berjalan siswa tidak memilih materi dan jumlah soal (kartu 🏠
+   disembunyikan, server menolak); sesudah selesai kartu muncul di halaman akhir dan siswa boleh berlatih materi lain
+   tanpa mengulang tahapan. Mengganti tahapan menutup latihan mandiri yang berjalan dan memindahkan siswa; melepasnya
+   membiarkan siswa di posisinya.
+   **Per siswa** (bilah massal, `mtd_mandiri_siswa`): aturan dan **saran** (tingkat · level + catatan). Saran hanya
+   anjuran: siswa melihatnya dengan tombol "Mulai dari saran" dan tetap boleh memilih materi lain. Kartu Analisis
+   menampilkan tahapan, saran, aturan mandiri, dan pilihan siswa (mis. "biasanya 5 soal").
+   **Pantauan:** Perkembangan Siswa → sub-tab **Latihan Mandiri** (`mtd_pantau_mandiri`, satu kelompok): status,
+   posisi mandiri, kemajuan tahapan (x/y, dihitung sejak tahapan dipasang, `jalur_sejak`), hari, soal, akurasi, level
+   tuntas, waktu, terakhir aktif; saringan, periode 7/30 hari/semester/pilih tanggal, unduh Excel, segar tiap menit.
+   Sesi Kegiatan punya saringan **Sedang latihan mandiri**.
 2. Soal muncul satu per satu. Jawaban diketik lewat papan angka di layar.
    Untuk soal pecahan ada kotak bilangan bulat, pembilang, dan penyebut.
    Untuk pembagian bersisa ada kotak **hasil bagi** dan **sisa** (47 ÷ 5 = 9 sisa 2).

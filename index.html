@@ -926,7 +926,8 @@ $("btn-naik").onclick = () => {
    jawaban; saran guru (tingkat/level + catatan) ditampilkan dan bisa dipakai dengan satu ketukan. */
 let MATERI = null;
 async function gambarMandiri() {
-  const ada = !!(S && S.mode === "mandiri" && !S.uji);
+  // Tahapan dari guru (3 Nov 2026): selama berjalan, materi dan jumlah soal mengikuti tahapan, seperti sesi kelompok.
+  const ada = !!(S && S.mode === "mandiri" && !S.uji && !S.tahapan_guru);
   $("mandiri-kartu").classList.toggle("hidden", !ada);
   if (!ada) return;
   const a = S.atur || {}, p = S.pilihan || {};
@@ -1060,12 +1061,13 @@ $("btn-coba-kembali").onclick = () => selesaiCoba(true);
 function mulai(r) {
   S = r;
   CB = null; $("coba-pita").classList.add("hidden");
+  $("uji-pita").after($("mandiri-kartu"));   // selesai() bisa memindahkannya ke halaman akhir
   gambarMandiri();
   muatTinjau();
   ssSet(KUNCI_SESI, r.token);
   // Uji coba guru, atau latihan mandiri (kemajuan terpisah dari kemajuan resmi sesi kelompok)
   $("uji-pita").innerHTML = r.uji ? "<b>Uji coba guru</b> · jawaban tidak masuk rekap siswa. Tutup tab ini bila selesai."
-    : "<b>Latihan mandiri</b> · kemajuan di sini terpisah dari kemajuan resmi. Kemajuan resmi hanya bertambah saat sesi kelompok bersama guru.";
+    : `<b>Latihan mandiri</b> · ${r.tahapan_guru && r.jalur ? `mengikuti tahapan "${esc(r.jalur.nama)}" dari gurumu. Kemajuan` : "kemajuan"} di sini terpisah dari kemajuan resmi. Kemajuan resmi hanya bertambah saat sesi kelompok bersama guru.`;
   $("uji-pita").classList.toggle("hidden", !r.uji && r.mode !== "mandiri");
   akhirSesi = Date.now() + r.sisa_detik * 1000; cekWaktuPada = Date.now();
   $("jam").classList.remove("hidden"); $("btn-keluar").classList.remove("hidden");
@@ -1170,10 +1172,13 @@ function tergeser() {
 
 function selesai() {
   tutupSesi();
+  const mandiri = S.mode === "mandiri" && !S.uji;
   $("a-ikon").textContent = "🏆";
   $("a-judul").textContent = S.jalur ? "Tahapan latihan selesai" : "Semua level sudah tuntas";
-  $("a-isi").textContent = S.jalur ? `Selamat, ${S.nama}! Kamu sudah menuntaskan tahapan "${S.jalur.nama}". Tunggu arahan gurumu untuk latihan berikutnya.`
-    : `Selamat, ${S.nama}! Tingkat berikutnya akan dibuka guru. Tunggu kabar dari gurumu, ya.`;
+  $("a-isi").textContent = S.jalur ? `Selamat, ${S.nama}! Kamu sudah menuntaskan tahapan "${S.jalur.nama}". ${mandiri ? "Kamu boleh berlatih materi lain di bawah ini." : "Tunggu arahan gurumu untuk latihan berikutnya."}`
+    : `Selamat, ${S.nama}! Tingkat berikutnya akan dibuka guru. ${mandiri ? "Sementara itu kamu boleh berlatih materi lain di bawah ini." : "Tunggu kabar dari gurumu, ya."}`;
+  // Latihan mandiri yang selesai tidak buntu: pilihan materi ditampilkan di halaman akhir.
+  if (mandiri) { gambarMandiri(); $("v-akhir").appendChild($("mandiri-kartu")); $("mandiri-kartu").open = true; }
   tampil("v-akhir");
 }
 
