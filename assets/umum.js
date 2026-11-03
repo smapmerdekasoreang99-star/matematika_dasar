@@ -122,11 +122,28 @@ function bankTabelHtml(t) {
   return `<span class="bank-tabel-wadah"><table class="bank-tabel${t.header.length > 5 ? " bank-tabel-rapat" : ""}"><thead><tr>${t.header.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead>` +
     `<tbody>${t.rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></span>`;
 }
-/* Kalimat soal + tabel/diagram. Gambar di assets/<folder>/ (tanpa folder: statistika). Bila gambar gagal dimuat,
-   datanya tampil sebagai tabel supaya soal tetap bisa dikerjakan; diagram pohon tanpa tabel memberi pesan. */
+/* Gambar soal gagal dimuat: dicoba ulang 2 kali otomatis (1,5 dan 4 detik kemudian). Bila tetap gagal, datanya tampil
+   sebagai tabel supaya soal tetap bisa dikerjakan (gambar tanpa tabel memberi pesan), dengan tombol untuk mencoba lagi. */
+function bankMuatGambar(img) {
+  const asli = img.dataset.asli || (img.dataset.asli = img.getAttribute("src"));
+  img.src = asli + "?c=" + Date.now();
+}
+function bankGambarGagal(img) {
+  const n = +(img.dataset.coba || 0);
+  if (n >= 2) return img.parentNode.classList.add("gagal");
+  img.dataset.coba = n + 1;
+  setTimeout(() => { if (img.isConnected) bankMuatGambar(img); }, n === 0 ? 1500 : 4000);
+}
+function bankGambarUlang(tombol) {
+  const wadah = tombol.closest(".bank-gambar"), img = wadah.querySelector("img");
+  wadah.classList.remove("gagal");
+  img.dataset.coba = 0;
+  bankMuatGambar(img);
+}
+/* Kalimat soal + tabel/diagram. Gambar di assets/<folder>/ (tanpa folder: statistika). */
 function bankSoalHtml(u) {
   const data = u.g
-    ? `<span class="bank-gambar"><img src="assets/${u.g.includes("/") ? esc(u.g) : "statistika/" + esc(u.g)}" alt="${esc(u.a || "Diagram")}" onerror="this.parentNode.classList.add('gagal')"><span class="bank-cadangan">${u.t ? bankTabelHtml(u.t) : "Gambar gagal dimuat. Periksa sinyal, lalu muat ulang halaman."}</span></span>`
+    ? `<span class="bank-gambar"><img src="assets/${u.g.includes("/") ? esc(u.g) : "statistika/" + esc(u.g)}" alt="${esc(u.a || "Diagram")}" onerror="bankGambarGagal(this)"><span class="bank-cadangan">${u.t ? bankTabelHtml(u.t) : "Gambar belum termuat. Periksa sinyal, lalu tekan tombol di bawah."}<button type="button" class="bank-muat" onclick="bankGambarUlang(this)">Muat ulang gambar</button></span></span>`
     : u.t ? bankTabelHtml(u.t) : "";
   return `<span class="cerita">${esc(u.q)}</span>${data}`;
 }

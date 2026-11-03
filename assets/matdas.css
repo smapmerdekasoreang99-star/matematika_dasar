@@ -207,6 +207,7 @@ table[data-beku] .fz-akhir { box-shadow: 4px 0 6px -4px rgba(29, 42, 58, .25); }
 .bank-cadangan { display: none; }
 .bank-gambar.gagal img { display: none; }
 .bank-gambar.gagal .bank-cadangan { display: block; }
+.bank-muat { display: block; margin: var(--j2) auto 0; min-height: 40px; padding: var(--j1) var(--j4); font-size: var(--h-m); font-weight: 700; }
 .bank-jawab { display: grid; gap: 2px; text-align: left; font-weight: 400; }
 .bs-daftar { display: grid; gap: var(--j2); width: 100%; text-align: left; }
 .bs-baris { display: grid; gap: var(--j2); padding: var(--j3); border: 1px solid var(--garis); border-radius: 8px; font-size: var(--h-n); font-weight: 500; line-height: 1.45; }

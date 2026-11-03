@@ -182,7 +182,10 @@ Isi saat ini:
 - **MD12**, Peluang (K12-07, 4 level, 3 Nov 2026): 400 soal bank tetap, cara kerja sama dengan Statistika. Isi dibuat
   `database_tryout/alat/bank_soal.js`, diagram di `assets/peluang/` (kolom `gambar` memuat folder). Jenis baru
   `pecahan`: isian berkunci pecahan dengan kotak pembilang dan penyebut; nilai sama tetapi belum sederhana dinilai
-  "Belum paling sederhana".
+  "Belum paling sederhana". Gambar soal yang gagal dimuat dicoba ulang 2 kali otomatis, lalu menampilkan tabel datanya
+  (atau pesan bila tanpa tabel) dengan tombol "Muat ulang gambar".
+- **MD12**, Bilangan (K12-09, 4 level, 3 Nov 2026): 400 soal bank tetap, cara kerja sama, diagram di `assets/bilangan/`.
+  BLGN-L4-096 dikoreksi lewat `database_tryout/alat/koreksi_bilangan.json` (pembahasan 0,124).
 - **MD12**, Barisan dan Deret (K12-08, 5 level, 3 Nov 2026): 500 soal bank tetap, cara kerja sama. Diagram di
   `assets/barisan/`. BRSN-L5-007 dan BRSN-L5-034 dikoreksi lewat `database_tryout/alat/koreksi_barisan.json` (data 400, 600, 900, 1.350; kunci 5.275).
 - **MD11**, tahap B: Mengurutkan Bilangan (3 level; campuran bulat, desimal, pecahan,
