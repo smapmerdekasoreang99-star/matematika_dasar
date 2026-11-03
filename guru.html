@@ -1472,6 +1472,14 @@ async function muatDaftar(diam) {
     return;
   }
   if (ke !== daftarKe) return;
+  // Yang sedang latihan mandiri: kolom Posisi menampilkan posisi mandirinya (3 Nov 2026). Gagal = tetap posisi resmi.
+  const mandiriKini = D.filter((r) => r.online_mandiri).map((r) => r.nisn);
+  if (mandiriKini.length) {
+    try { const M = await rpc("mtd_rekap_mandiri", { p_pin: PIN, p_nisn: mandiriKini });
+      if (ke !== daftarKe) return;
+      D.forEach((r) => { r.pos_mandiri = (M[r.nisn] || {}).posisi || null; }); }
+    catch (e) { /* tetap posisi resmi */ }
+  }
   DAFTAR = D;
   $("dl-segar").textContent = `Terakhir diperbarui pukul ${jamDetik()}.`;
   gambarDaftar();
@@ -1535,7 +1543,8 @@ function gambarDaftar() {
       <td class="nisn">${esc(r.nisn)}</td><td class="nisn">${esc(r.nis || "–")}</td><td>${esc(r.kelas)}</td>
       ${semua && MODE_MD ? `<td>${esc(r.kelompok || "–")}</td>` : ""}
       <td>${statusDaftar(r)}${r.pindah_pt >= 2 ? `<span class="pindah-catat" title="Sesi siswa ini tertutup ${r.pindah_pt} kali karena NISN yang sama dipakai masuk di HP/tab lain (sejak pertemuan terakhir). Mungkin dua perangkat memakai satu NISN, atau teman salah mengetik NISN.">NISN dipakai di perangkat lain ${r.pindah_pt}×</span>` : ""}</td>
-      <td class="posisi">${r.tingkat ? `<span class="pos-nm">${esc(r.nama_tingkat)}</span><span class="pos-lv">Level ${r.level}</span>` : '<span class="redup">–</span>'}</td>
+      <td class="posisi">${r.online_mandiri && r.pos_mandiri ? `<span class="pos-nm">${esc(r.pos_mandiri.nama_tingkat)}</span><span class="pos-lv">Level ${r.pos_mandiri.level} · latihan mandiri</span>${r.tingkat ? `<span class="pos-lv">Resmi: ${esc(r.nama_tingkat)} · Level ${r.level}</span>` : ""}`
+        : r.tingkat ? `<span class="pos-nm">${esc(r.nama_tingkat)}</span><span class="pos-lv">Level ${r.level}</span>` : '<span class="redup">–</span>'}</td>
       <td class="angka">${r.keluar_pt || '<span class="redup">0</span>'}</td>
       <td>${r.terkunci ? `<button class="kecil" data-buka="${esc(r.nisn)}">Buka kunci</button>` : ""}</td></tr>`).join("")
       : `<tr><td colspan="11" class="kosong-data">${D.length ? "Tidak ada siswa yang cocok dengan pencarian." : "Tidak ada siswa."}</td></tr>`) + "</tbody>";
