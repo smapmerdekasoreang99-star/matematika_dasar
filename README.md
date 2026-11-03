@@ -183,6 +183,8 @@ Isi saat ini:
   `database_tryout/alat/bank_soal.js`, diagram di `assets/peluang/` (kolom `gambar` memuat folder). Jenis baru
   `pecahan`: isian berkunci pecahan dengan kotak pembilang dan penyebut; nilai sama tetapi belum sederhana dinilai
   "Belum paling sederhana".
+- **MD12**, Barisan dan Deret (K12-08, 5 level, 3 Nov 2026): 500 soal bank tetap, cara kerja sama. Diagram di
+  `assets/barisan/`. BRSN-L5-007 dan BRSN-L5-034 dikoreksi lewat `database_tryout/alat/koreksi_barisan.json` (data 400, 600, 900, 1.350; kunci 5.275).
 - **MD11**, tahap B: Mengurutkan Bilangan (3 level; campuran bulat, desimal, pecahan,
   dan persen; siswa mengetuk bilangan sesuai urutan), Persentase dalam Kehidupan
   (6 level: diskon, diskon bertingkat, untung/rugi, pajak & tip, nilai & kehadiran,
