@@ -1190,7 +1190,7 @@ $("btn-keluar").onclick = async () => {
   if (!ya) return;
   const uji = S && S.uji;
   try { await rpc("mtd_keluar", { p_token: S.token }); } catch (e) { /* tetap keluar */ }
-  tutupSesi(); S = null; tampil("v-masuk");
+  tutupSesi(); S = null; $("nisn").value = ""; tampil("v-masuk");   // perangkat bisa dipakai siswa lain: NISN baru tidak tersambung ke yang lama
   if (uji) { history.replaceState(null, "", location.pathname); window.close(); }
 };
 
