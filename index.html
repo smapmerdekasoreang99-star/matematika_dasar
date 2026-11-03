@@ -1205,13 +1205,16 @@ $("btn-masuk").onclick = async () => {
     const r = await rpc("mtd_masuk", { p_nisn: nisn, p_kode_akses: $("akses").value.trim() || null });
     mulai(r);
   } catch (e) {
-    m.textContent = e.message; m.classList.remove("hidden");
+    // NISN ikut ditampilkan supaya salah ketik atau NISN yang tersambung langsung terlihat.
+    m.textContent = /tidak terdaftar/i.test(e.message) ? `${e.message} NISN yang terbaca: ${nisn}.` : e.message; m.classList.remove("hidden");
     // Server meminta kode akses: munculkan kotaknya.
     if (/kode akses/i.test(e.message)) { $("akses-isian").classList.remove("hidden"); $("akses").focus(); }
   }
   finally { $("btn-masuk").disabled = false; }
 };
 $("nisn").addEventListener("keydown", (e) => { if (e.key === "Enter") $("btn-masuk").click(); });
+// Isi lama terpilih saat kotak disentuh: mengetik NISN lain menggantinya, tidak tersambung. Ditunda karena klik bisa membatalkan pilihan.
+$("nisn").addEventListener("focus", (e) => { const v = e.target.value; if (v) setTimeout(() => { if (e.target.value === v) e.target.select(); }); });
 // Masuk guru (seperti Tryout): tautan di bawah formulir siswa menukar formulir NISN dengan formulir PIN
 const tampilGuru = (guru) => {
   $("f-siswa").classList.toggle("hidden", guru); $("f-guru").classList.toggle("hidden", !guru); $("kaki-guru").classList.toggle("hidden", guru);

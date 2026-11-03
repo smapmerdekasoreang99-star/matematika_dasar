@@ -1537,10 +1537,10 @@ function gambarDaftar() {
   const ada = new Set(DAFTAR.map((r) => r.nisn));
   [...PILIH].forEach((n) => { if (!ada.has(n)) PILIH.delete(n); });
   const semuaDipilih = R.length > 0 && R.every((r) => PILIH.has(r.nisn));
-  $("t-daftar").innerHTML = `<thead><tr><th class="pilih ubah"><input type="checkbox" id="dl-semua" ${semuaDipilih ? "checked" : ""} title="Pilih semua yang tampil" aria-label="Pilih semua siswa yang tampil"></th><th>No</th><th>Nama</th><th>NISN</th><th>NIS</th><th>Rombel</th>${semua && MODE_MD ? "<th>Kelompok</th>" : ""}
+  $("t-daftar").innerHTML = `<thead><tr><th class="pilih ubah"><input type="checkbox" id="dl-semua" ${semuaDipilih ? "checked" : ""} title="Pilih semua yang tampil" aria-label="Pilih semua siswa yang tampil"></th><th>No</th><th>Nama</th><th>NISN</th><th>Rombel</th>${semua && MODE_MD ? "<th>Kelompok</th>" : ""}
     <th>Status</th><th>Posisi</th><th class="angka" title="Keluar halaman latihan yang dihitung, sejak pertemuan terakhir kelompoknya">Keluar hlm.</th><th></th></tr></thead><tbody>` +
     (R.length ? R.map((r, i) => `<tr class="klik ${PILIH.has(r.nisn) ? "dipilih" : ""}" data-n="${esc(r.nisn)}"><td class="pilih ubah"><input type="checkbox" data-pilih="${esc(r.nisn)}" ${PILIH.has(r.nisn) ? "checked" : ""} aria-label="Pilih ${esc(r.nama)}"></td><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>
-      <td class="nisn">${esc(r.nisn)}</td><td class="nisn">${esc(r.nis || "–")}</td><td>${esc(r.kelas)}</td>
+      <td class="nisn">${esc(r.nisn)}</td><td>${esc(r.kelas)}</td>
       ${semua && MODE_MD ? `<td>${esc(r.kelompok || "–")}</td>` : ""}
       <td>${statusDaftar(r)}${r.pindah_pt >= 2 ? `<span class="pindah-catat" title="Sesi siswa ini tertutup ${r.pindah_pt} kali karena NISN yang sama dipakai masuk di HP/tab lain (sejak pertemuan terakhir). Mungkin dua perangkat memakai satu NISN, atau teman salah mengetik NISN.">NISN dipakai di perangkat lain ${r.pindah_pt}×</span>` : ""}</td>
       <td class="posisi">${r.online_mandiri && r.pos_mandiri ? `<span class="pos-nm">${esc(r.pos_mandiri.nama_tingkat)}</span><span class="pos-lv">Level ${r.pos_mandiri.level} · latihan mandiri</span>${r.tingkat ? `<span class="pos-lv">Resmi: ${esc(r.nama_tingkat)} · Level ${r.level}</span>` : ""}`
