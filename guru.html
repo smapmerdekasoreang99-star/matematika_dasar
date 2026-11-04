@@ -1781,7 +1781,7 @@ function gambarSesi() {
   $("sesi-isi").querySelectorAll("[data-uw]").forEach((b) => b.onclick = () => ubahWaktu(b.dataset.kel, +b.dataset.uw, b));
   $("sesi-isi").querySelectorAll("[data-tutup]").forEach((b) => b.onclick = async () => {
     const k = cari(b.dataset.tutup);
-    if (!confirm(`Tutup sesi ${k.kelompok} sekarang?\n\n${k.n_online ? `${k.n_online} siswa yang sedang berlatih akan dikeluarkan. ` : ""}Kemajuan siswa tetap tersimpan.${k.kode ? ` Kode ${k.kode} tidak berlaku lagi.` : ""} Siswa hanya bisa masuk lagi saat sesi dibuka.`)) return;
+    if (!confirm(`Tutup sesi ${k.kelompok} sekarang?\n\n${k.n_online ? `${k.n_online} siswa yang sedang berlatih akan dikeluarkan. ` : ""}Kemajuan siswa tetap tersimpan.${k.kode ? ` Kode ${k.kode} tidak berlaku lagi.` : ""} Siswa hanya bisa masuk lagi saat sesi dibuka${(G.atur || {}).mandiri === false ? "" : "; selama sesi ditutup siswa yang masuk menggunakan mode latihan mandiri"}.`)) return;
     try { const r = await rpc("mtd_tutup_kelompok", { p_pin: PIN, p_kelompok: [k.kelompok] }); toast(`Sesi ${k.kelompok} ditutup${r.dikeluarkan ? `, ${r.dikeluarkan} siswa dikeluarkan` : ""}`); muatSesi(); muatKelas(); }
     catch (e) { toast(e.message); }
   });
