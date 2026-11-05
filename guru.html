@@ -18,7 +18,7 @@
 <meta property="og:image:alt" content="Logo SMA Plus Merdeka Soreang">
 <!-- /pratinjau -->
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=15">
+<link rel="stylesheet" href="assets/matdas.css?v=16">
 <script src="config.js?v=2"></script>
 <style>
 /* Tombol Panduan membaca data di kepala halaman (13 Okt 2026): PDF untuk dibuka, Word untuk dicetak/disunting */
@@ -756,7 +756,7 @@ body.lihat .ubah { display: none !important; }
         <select id="pil-urut" class="hidden" style="max-width:240px" aria-label="Urutkan">
           <option value="perhatian">Urut: perlu perhatian dulu</option>
           <option value="nama">Urut: nama</option>
-          <option value="maju">Urut: kemajuan tertinggi</option>
+          <option value="maju">Urut: posisi tertinggi</option>
           <option value="aktif">Urut: terakhir aktif</option>
         </select>
         <span class="tumbuh"></span>
@@ -858,7 +858,7 @@ body.lihat .ubah { display: none !important; }
         <p class="redup kecil" id="pr-kaki">Hanya kemajuan resmi (sesi kelompok); latihan mandiri tidak ikut. Nilai yang sama mendapat peringkat yang sama. Ketuk nama untuk melihat analisisnya.</p></div>
       <div class="kartu" id="pr-banding-kartu"><h2 id="pr-banding-judul">Perbandingan</h2>
         <div class="gulir"><table class="tabel" id="t-pr-banding" data-beku="1"></table></div>
-        <p class="redup kecil">Ketuk baris untuk melihat peringkat di dalamnya. Rata-rata level tuntas dihitung dari siswa yang sudah mulai.</p></div>
+        <p class="redup kecil">Ketuk baris untuk melihat peringkat di dalamnya. Rata-rata posisi dihitung dari siswa yang sudah mulai.</p></div>
       </div>
     </div>
 
@@ -1063,7 +1063,7 @@ body.lihat .ubah { display: none !important; }
   <div class="ctl-isi" id="ctl-isi"></div>
 </div>
 
-<script src="assets/umum.js?v=17"></script>
+<script src="assets/umum.js?v=18"></script>
 <script src="assets/rekap.js?v=1"></script>
 <script src="assets/bahas.js?v=5"></script>
 <script src="assets/simpan.js?v=3"></script>
@@ -1372,12 +1372,14 @@ function gambarKelas() {
   const R = REKAP.slice();
   const mulai = R.filter((r) => r.tingkat), jumlah = jumlahLevelUmum();
   const rata = mulai.length ? mulai.reduce((a, r) => a + r.lewat, 0) / mulai.length : 0;
+  const rataTuntas = mulai.length ? mulai.reduce((a, r) => a + (r.dituntaskan || 0), 0) / mulai.length : 0;
   const macet = R.filter((r) => status(r).some((s) => s.t === "Macet")).length;
   const diam = R.filter((r) => r.tingkat && !aktifPertemuan(r)).length;
   const aktif7 = R.filter(aktifPertemuan).length;
   $("k-ubin").innerHTML = ubinHtml([
     [R.length, "siswa", "siswa"], [mulai.length, "sudah mulai", "mulai", "baik"], [aktif7, "berlatih pertemuan terakhir", "aktif", "baik"],
-    [rata.toLocaleString("id-ID", { maximumFractionDigits: 1 }), `rata-rata level tuntas (dari ${jumlah})`, "level", "emas"],
+    [rata.toLocaleString("id-ID", { maximumFractionDigits: 1 }), `rata-rata posisi di urutan (dari ${jumlah})`, "level", "emas"],
+    [rataTuntas.toLocaleString("id-ID", { maximumFractionDigits: 1 }), "rata-rata level dituntaskan", "level", "baik"],
     [macet, "macet", "macet", macet ? "buruk" : "redup-ubin"], [diam, "tidak berlatih pertemuan terakhir", "diam", diam ? "emas" : "redup-ubin"],
   ]);
 
@@ -1396,16 +1398,16 @@ function gambarKelas() {
     : u === "aktif" ? hariSejak(a.terakhir) - hariSejak(b.terakhir)
     : bobot(b) - bobot(a) || a.lewat - b.lewat || a.nama.localeCompare(b.nama));
   const semua = !$("pil-kelas").value;
-  $("t-kelas").innerHTML = `<thead><tr><th>No</th><th>Nama</th>${semua ? `<th>${MODE_MD ? "Kelompok" : "Kelas"}</th>` : ""}<th>Posisi sekarang</th><th>Kemajuan</th>
+  $("t-kelas").innerHTML = `<thead><tr><th>No</th><th>Nama</th>${semua ? `<th>${MODE_MD ? "Kelompok" : "Kelas"}</th>` : ""}<th>Posisi sekarang</th><th title="Letak siswa di urutan level. Level yang dilewati karena asesmen diagnostik ikut terhitung.">Posisi di urutan</th><th class="angka" title="Level yang benar-benar diselesaikan siswa di Matematika Dasar">Level dituntaskan</th>
     <th class="angka" title="Level tuntas sejak pertemuan terakhir kelompoknya">Tuntas pertemuan terakhir</th><th class="angka">Akurasi</th><th class="angka">Waktu latihan</th><th>Terakhir</th><th title="Latihan di luar sesi kelompok, 7 hari terakhir; tidak menaikkan posisi resmi">Latihan mandiri (7 hari)</th><th>Catatan</th></tr></thead><tbody>` +
     (R.length ? R.map((r, i) => {
       const ak = r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) + "%" : "–";
       return `<tr class="klik" data-n="${esc(r.nisn)}"><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>${semua ? `<td>${esc(MODE_MD ? r.kelompok || "–" : r.kelas)}</td>` : ""}
         <td class="posisi">${r.tingkat ? `<span class="pos-nm">${esc(r.nama_tingkat)}</span><span class="pos-lv">Level ${r.level}</span>` : '<span class="redup">–</span>'}</td>
-        <td><div class="maju"><div class="batang"><i style="width:${100 * r.lewat / Math.max(1, jumlah)}%"></i></div><span>${r.lewat}/${jumlah}</span></div></td>
+        <td><div class="maju"><div class="batang"><i style="width:${100 * r.lewat / Math.max(1, jumlah)}%"></i></div><span>${r.lewat}/${jumlah}</span></div></td><td class="angka">${r.dituntaskan || 0}</td>
         <td class="angka">${r.tuntas_pt}</td><td class="angka">${ak}</td><td class="angka">${r.detik ? lamaTeks(r.detik) : "–"}</td>
         <td>${sejakTeks(r.terakhir)}</td><td class="posisi">${mandiriHtml(r)}</td><td><span class="lencana-daftar">${status(r).map((s) => `<span class="lencana ringkas ${s.c}" title="${esc(s.t)}">${esc(s.t)}</span>`).join("")}</span></td></tr>`;
-    }).join("") : '<tr><td colspan="11" class="kosong-data">Tidak ada siswa.</td></tr>') + "</tbody>";
+    }).join("") : '<tr><td colspan="12" class="kosong-data">Tidak ada siswa.</td></tr>') + "</tbody>";
   $("t-kelas").querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = () => bukaSiswa(tr.dataset.n));
 }
 
@@ -1433,14 +1435,14 @@ $("btn-unduh-rekap").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () 
         ["Tidak berlatih pertemuan terakhir", R.filter((r) => r.tingkat && !aktifPertemuan(r)).length]],
       kolom: [{ t: "No", w: 5, rata: "center" }, { t: "Nama", w: 30, tebal: true }, { t: "NISN", w: 13, rata: "center" },
         { t: "Kelompok MD", w: 12, rata: "center" }, { t: "Rombel", w: 9, rata: "center" }, { t: "Tingkat sekarang", w: 26 },
-        { t: "Level", w: 7, rata: "center" }, { t: `Level tuntas /${jumlah}`, w: 11, rata: "center" }, { t: "Kemajuan", w: 10, rata: "center", fmt: '0"%"' },
+        { t: "Level", w: 7, rata: "center" }, { t: `Posisi di urutan /${jumlah}`, w: 11, rata: "center" }, { t: "Posisi (persen)", w: 10, rata: "center", fmt: '0"%"' }, { t: "Level dituntaskan", w: 11, rata: "center" },
         { t: "Soal dijawab", w: 9, rata: "center" }, { t: "Benar", w: 8, rata: "center" }, { t: "Akurasi", w: 9, rata: "center", fmt: '0"%"', cf: CF_PERSEN },
         { t: "Menit latihan", w: 9, rata: "center" }, { t: "Pertemuan diikuti", w: 10, rata: "center" }, { t: "Tuntas pertemuan terakhir", w: 10, rata: "center" },
         { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 },
         { t: "Mandiri: hari (7 hari)", w: 10, rata: "center" }, { t: "Mandiri: soal (7 hari)", w: 10, rata: "center" }, { t: "Mandiri: akurasi", w: 10, rata: "center", fmt: '0"%"' },
         { t: "Mandiri: posisi", w: 24 }, { t: "Catatan", w: 24, bungkus: true, size: 9 }],
       baris: R.map((r, i) => [i + 1, r.nama, r.nisn, r.kelompok, r.kelas, r.tingkat ? (r.selesai ? selesaiTeks(r) : r.nama_tingkat) : "Belum mulai",
-        r.tingkat && !r.selesai ? r.level : "", r.lewat, Math.round(100 * r.lewat / Math.max(1, jumlah)), r.n_jawab, r.n_benar,
+        r.tingkat && !r.selesai ? r.level : "", r.lewat, Math.round(100 * r.lewat / Math.max(1, jumlah)), r.dituntaskan || 0, r.n_jawab, r.n_benar,
         r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", Math.round(r.detik / 60), r.pt_total ? `${r.pt_hadir}/${r.pt_total}` : `${r.hari} kali`, r.tuntas_pt, waktuXL(r.terakhir),
         r.mandiri ? r.mandiri.hari7 : "", r.mandiri ? r.mandiri.jawab7 : "", r.mandiri && r.mandiri.jawab7 ? Math.round(100 * r.mandiri.benar7 / r.mandiri.jawab7) : "",
         r.mandiri && r.mandiri.posisi ? `${r.mandiri.posisi.nama_tingkat} · Level ${r.mandiri.posisi.level}` : "",
@@ -2577,7 +2579,7 @@ function catatanOtomatis(D) {
   if (!p) return ["Siswa ini belum pernah masuk Matematika Dasar."];
   const nJ = D.per_tingkat.reduce((a, x) => a + x.n_jawab, 0), nB = D.per_tingkat.reduce((a, x) => a + x.n_benar, 0);
   if (p.selesai) c.push("Sudah menuntaskan semua level yang tersedia.");
-  else c.push(`Sedang di <b>${esc(p.nama_tingkat)} level ${p.level}</b> (${esc(p.ket || "")}), percobaan ke-${Math.max(1, p.percobaan)}. Sudah ${p.lewat} dari ${p.total} level terlewati.`);
+  else c.push(`Sedang di <b>${esc(p.nama_tingkat)} level ${p.level}</b> (${esc(p.ket || "")}), percobaan ke-${Math.max(1, p.percobaan)}. Posisinya ${p.lewat} dari ${p.total} level di urutan, dengan ${p.dituntaskan || 0} level benar-benar dituntaskan.`);
   if (!p.selesai && p.percobaan >= 3) c.push(`Sudah ${p.percobaan} kali memulai ulang level ini. Perlu pendampingan pada materi <b>${esc(p.nama_tingkat)}</b>.`);
   const sl = D.jenis_salah.filter((x) => x.jenis !== "lain" && x.jenis !== "kosong");
   if (sl.length) {
@@ -2704,7 +2706,7 @@ function gambarSiswa() {
       <div class="baris"><span class="avatar" aria-hidden="true">${esc(D.siswa.nama.split(/\s+/).slice(0, 2).map((x) => x[0]).join("").toUpperCase())}</span><div class="tumbuh"><h1 style="margin:0">${esc(D.siswa.nama)}</h1><div class="redup">${D.siswa.kelompok ? esc(D.siswa.kelompok) + " · " : ""}Rombel ${esc(D.siswa.kelas)} · NISN ${esc(D.siswa.nisn)}</div></div>
       ${p && p.jalur ? `<span class="lencana emas" title="Tahapan khusus">Tahapan: ${esc((JALUR.find((x) => x.id === p.jalur) || {}).nama || "khusus")}</span>` : ""}
       ${p ? `<span class="lencana ${p.selesai ? "baik" : "biru"}">${p.selesai ? "Tamat" : `${esc(p.nama_tingkat)} · Level ${p.level}`}</span>` : '<span class="lencana">Belum mulai</span>'}</div>
-      ${p ? `<div class="maju" style="margin-top:var(--j3)"><div class="batang"><i style="width:${100 * p.lewat / Math.max(1, p.total)}%"></i></div><span>${p.lewat} dari ${p.total} level</span></div>` : ""}
+      ${p ? `<div class="maju" style="margin-top:var(--j3)"><div class="batang"><i style="width:${100 * p.lewat / Math.max(1, p.total)}%"></i></div><span>Posisi ${p.lewat} dari ${p.total} · dituntaskan ${p.dituntaskan || 0} level</span></div>` : ""}
     </div>
     <div class="ubin">${ubinHtml([
       [totalTuntas, "level dituntaskan sendiri", "level", "baik"],
@@ -3140,7 +3142,7 @@ async function muatPerKelompok() {
   });
   // Judul kolom dua baris supaya tabel tidak terlalu lebar
   $("t-perkelompok").innerHTML = `<thead><tr><th>Kelompok</th><th class="angka">Siswa</th><th class="angka">Sudah<br>mulai</th><th class="angka">Siswa berlatih<br>pertemuan terakhir</th><th>Pertemuan<br>terakhir</th>
-    <th class="angka">Rata-rata<br>level tuntas</th><th title="Siswa yang paling belakang (sudah mulai). Arahkan penunjuk ke sel untuk melihat namanya.">Posisi<br>terendah</th><th title="Siswa yang paling depan. Arahkan penunjuk ke sel untuk melihat namanya.">Posisi<br>tertinggi</th><th class="angka">Akurasi</th><th class="angka">Macet</th><th class="angka">Tidak<br>aktif</th><th>Sesi<br>latihan</th></tr></thead>
+    <th class="angka">Rata-rata<br>posisi</th><th title="Siswa yang paling belakang (sudah mulai). Arahkan penunjuk ke sel untuk melihat namanya.">Posisi<br>terendah</th><th title="Siswa yang paling depan. Arahkan penunjuk ke sel untuk melihat namanya.">Posisi<br>tertinggi</th><th class="angka">Akurasi</th><th class="angka">Macet</th><th class="angka">Tidak<br>aktif</th><th>Sesi<br>latihan</th></tr></thead>
     <tbody>${baris.join("") || '<tr><td colspan="12" class="kosong-data">Tidak ada siswa.</td></tr>'}</tbody>`;
   $("t-perkelompok").querySelectorAll("[data-kel]").forEach((tr) => tr.onclick = () => {
     if ([...$("pil-kelas").options].some((o) => o.value === tr.dataset.kel)) $("pil-kelas").value = tr.dataset.kel;
@@ -3167,7 +3169,7 @@ const periodePr = () => PR.periode.kode === "semua" ? "seluruh waktu" : PR.perio
 const JENIS_PR = {
   tinggi: { nama: "Level tertinggi", kolom: "lewat", ikut: (r) => r.tingkat,
     banding: (a, b) => b.lewat - a.lewat || a.hari_total - b.hari_total || sampaiPr(a) - sampaiPr(b),
-    ket: () => "Level tuntas sekarang (posisi resmi). Bila sama, yang sampai dengan lebih sedikit hari berlatih di atas, lalu yang lebih dulu mencapai level itu. Tidak bergantung periode." },
+    ket: () => "Posisi sekarang di urutan level, bukan banyak level yang dituntaskan. Bila sama, yang sampai dengan lebih sedikit hari berlatih di atas, lalu yang lebih dulu mencapai level itu. Tidak bergantung periode." },
   cepat: { nama: "Paling cepat naik", kolom: "tuntas", ikut: (r) => r.tuntas > 0,
     banding: (a, b) => b.tuntas - a.tuntas || a.hari - b.hari || a.detik - b.detik,
     ket: (p) => `Banyak level yang dituntaskan selama ${p}. Bila sama, yang memakai lebih sedikit hari lalu lebih sedikit waktu di atas.` },
@@ -3191,7 +3193,8 @@ const JENIS_PR = {
 // [kunci, judul, isi sel, kelas sel]
 const KOLOM_PR = [
   ["posisi", "Posisi sekarang", (r) => r.tingkat ? `<span class="pos-nm">${esc(r.selesai ? selesaiTeks(r) : r.nama_tingkat)}</span>${r.selesai ? "" : `<span class="pos-lv">Level ${r.level}</span>`}` : '<span class="redup">Belum mulai</span>', "posisi"],
-  ["lewat", "Level tuntas", (r) => `${r.lewat}<span class="redup">/${PR.jumlah_level}</span>`, "angka"],
+  ["lewat", "Posisi<br>di urutan", (r) => `${r.lewat}<span class="redup">/${PR.jumlah_level}</span>`, "angka"],
+  ["dituntaskan", "Level<br>dituntaskan", (r) => r.dituntaskan || '<span class="redup">0</span>', "angka"],
   ["tuntas", "Naik<br>(periode)", (r) => r.tuntas || '<span class="redup">0</span>', "angka"],
   ["laju", "Level per<br>hari berlatih", (r) => r.hari ? angkaId(lajuPr(r), 2) : "–", "angka"],
   ["hari", "Hari<br>berlatih", (r) => r.hari || '<span class="redup">0</span>', "angka"],
@@ -3272,7 +3275,7 @@ function gambarPeringkat() {
   const nJ = L.reduce((t, r) => t + r.n_jawab, 0), nB = L.reduce((t, r) => t + r.n_benar, 0);
   $("pr-ubin").innerHTML = ubinHtml([
     [L.length, "siswa", "siswa"], [L.filter((r) => r.hari > 0).length, `berlatih · ${PR.periode.nama.toLowerCase()}`, "aktif", "baik"],
-    [angkaId(mulai.length ? mulai.reduce((t, r) => t + r.lewat, 0) / mulai.length : 0), "rata-rata level tuntas", "level", "emas"],
+    [angkaId(mulai.length ? mulai.reduce((t, r) => t + r.lewat, 0) / mulai.length : 0), "rata-rata posisi di urutan", "level", "emas"],
     [L.reduce((t, r) => t + r.tuntas, 0), "level dituntaskan dalam periode", "ulang"],
     j.kolom === "mandiri" ? [L.filter((r) => r.m_hari > 0).length, "berlatih mandiri dalam periode", "aktif"]
       : [nJ ? Math.round(100 * nB / nJ) + "%" : "–", "akurasi dalam periode", "akurasi"],
@@ -3302,11 +3305,11 @@ function gambarPeringkat() {
   if (!B) return;
   $("pr-banding-judul").textContent = B.judul;
   $("t-pr-banding").innerHTML = `<thead><tr><th>${B.judul.replace("Perbandingan ", "").replace(/^./, (x) => x.toUpperCase())}</th><th class="angka">Siswa</th><th class="angka">Berlatih<br>(periode)</th>
-    <th class="angka">Rata-rata<br>level tuntas</th><th class="angka" title="Level dituntaskan dalam periode dibagi banyak siswa">Naik per siswa<br>(periode)</th><th class="angka">Akurasi<br>(periode)</th>
+    <th class="angka">Rata-rata<br>posisi</th><th class="angka" title="Level dituntaskan dalam periode dibagi banyak siswa">Naik per siswa<br>(periode)</th><th class="angka">Akurasi<br>(periode)</th>
     <th>Level tertinggi</th><th>Paling cepat naik</th></tr></thead><tbody>`
     + B.baris.map((g) => `<tr class="klik" data-c="${esc(g.k)}"><td><b>${esc(g.label)}</b></td><td class="angka">${g.n}</td><td class="angka">${g.berlatih}</td>
       <td class="angka">${angkaId(g.rataLevel)}</td><td class="angka">${angkaId(g.naik)}</td><td class="angka">${g.akurasi == null ? "–" : g.akurasi + "%"}</td>
-      <td class="posisi">${juaraHtml(g.tinggi, (r) => `${r.lewat} level tuntas`)}</td><td class="posisi">${juaraHtml(g.cepat, (r) => `naik ${r.tuntas} level`)}</td></tr>`).join("") + "</tbody>";
+      <td class="posisi">${juaraHtml(g.tinggi, (r) => `posisi ${r.lewat}`)}</td><td class="posisi">${juaraHtml(g.cepat, (r) => `naik ${r.tuntas} level`)}</td></tr>`).join("") + "</tbody>";
   $("t-pr-banding").querySelectorAll("tr[data-c]").forEach((tr) => tr.onclick = () => {
     if (![...$("pr-cakupan").options].some((o) => o.value === tr.dataset.c)) return;
     $("pr-cakupan").value = tr.dataset.c; ssSet("mtd_pr_cakupan", tr.dataset.c); gambarPeringkat();
@@ -3328,7 +3331,7 @@ $("pr-unduh").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
     info: [["Cakupan", cak], ["Periode", PR.periode.nama], ["Jenis peringkat", j.nama], ["Masuk peringkat", `${H.length} dari ${L.length} siswa`]],
     kolom: [{ t: "Peringkat", w: 9, rata: "center", tebal: true }, { t: "Nama", w: 30, tebal: true }, { t: "NISN", w: 13, rata: "center" },
       { t: "Kelompok MD", w: 12, rata: "center" }, { t: "Rombel", w: 9, rata: "center" }, { t: "Posisi sekarang", w: 30 },
-      { t: `Level tuntas /${PR.jumlah_level}`, w: 11, rata: "center" }, { t: "Naik dalam periode", w: 10, rata: "center" },
+      { t: `Posisi di urutan /${PR.jumlah_level}`, w: 11, rata: "center" }, { t: "Level dituntaskan", w: 11, rata: "center" }, { t: "Naik dalam periode", w: 10, rata: "center" },
       { t: "Level per hari berlatih", w: 11, rata: "center", fmt: "0.00" }, { t: "Hari berlatih", w: 9, rata: "center" },
       { t: "Soal dijawab", w: 9, rata: "center" }, { t: "Akurasi", w: 9, rata: "center", fmt: '0"%"', cf: CF_PERSEN },
       { t: "Menit latihan", w: 9, rata: "center" }, { t: "Tertahan di level (hari)", w: 11, rata: "center" },
@@ -3336,17 +3339,17 @@ $("pr-unduh").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
       { t: "Hari berlatih mandiri", w: 10, rata: "center" }, { t: "Soal mandiri", w: 9, rata: "center" },
       { t: "Akurasi mandiri", w: 9, rata: "center", fmt: '0"%"', cf: CF_PERSEN }, { t: "Menit mandiri", w: 9, rata: "center" },
       { t: "Level tuntas mandiri", w: 10, rata: "center" }, { t: "Terakhir mandiri", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }],
-    baris: H.map(({ r, no }) => [no, r.nama, r.nisn, r.kelompok || "", r.kelas, posisiPr(r), r.lewat, r.tuntas, r.hari ? Math.round(100 * lajuPr(r)) / 100 : "",
+    baris: H.map(({ r, no }) => [no, r.nama, r.nisn, r.kelompok || "", r.kelas, posisiPr(r), r.lewat, r.dituntaskan || 0, r.tuntas, r.hari ? Math.round(100 * lajuPr(r)) / 100 : "",
       r.hari, r.n_jawab, r.n_jawab ? Math.round(100 * akurasiPr(r)) : "", Math.round(r.detik / 60), r.tingkat && !r.selesai ? hariDiLevel(r) : "", waktuXL(r.terakhir),
       r.m_hari || 0, r.m_jawab || 0, r.m_jawab ? Math.round(100 * r.m_benar / r.m_jawab) : "", Math.round((r.m_detik || 0) / 60), r.m_tuntas || 0, waktuXL(r.m_terakhir)]),
     catatan: [catatan] }];
   if (B) lembar.push({ nama: "Perbandingan", judul: B.judul, sub: `${cak} · ${PR.periode.nama}`, beku: 1,
     kolom: [{ t: B.judul.replace("Perbandingan ", ""), w: 16, tebal: true }, { t: "Siswa", w: 8, rata: "center" }, { t: "Berlatih dalam periode", w: 11, rata: "center" },
-      { t: "Rata-rata level tuntas", w: 11, rata: "center", fmt: "0.0" }, { t: "Naik per siswa (periode)", w: 11, rata: "center", fmt: "0.0" },
+      { t: "Rata-rata posisi", w: 11, rata: "center", fmt: "0.0" }, { t: "Naik per siswa (periode)", w: 11, rata: "center", fmt: "0.0" },
       { t: "Akurasi (periode)", w: 10, rata: "center", fmt: '0"%"', cf: CF_PERSEN }, { t: "Level tertinggi", w: 30, bungkus: true }, { t: "Paling cepat naik", w: 30, bungkus: true }],
     baris: B.baris.map((g) => [g.label, g.n, g.berlatih, Math.round(10 * g.rataLevel) / 10, Math.round(10 * g.naik) / 10, g.akurasi ?? "",
-      g.tinggi.length ? `${juaraTeks(g.tinggi)} (${g.tinggi[0].lewat} level)` : "", g.cepat.length ? `${juaraTeks(g.cepat)} (naik ${g.cepat[0].tuntas} level)` : ""]),
-    catatan: ["Rata-rata level tuntas dihitung dari siswa yang sudah mulai. Naik per siswa = level yang dituntaskan dalam periode dibagi banyak siswa."] });
+      g.tinggi.length ? `${juaraTeks(g.tinggi)} (posisi ${g.tinggi[0].lewat})` : "", g.cepat.length ? `${juaraTeks(g.cepat)} (naik ${g.cepat[0].tuntas} level)` : ""]),
+    catatan: ["Rata-rata posisi dihitung dari siswa yang sudah mulai, termasuk level yang dilewati karena asesmen diagnostik. Naik per siswa = level yang dituntaskan dalam periode dibagi banyak siswa."] });
   await unduhBukuXLSX({ namaBerkas: nama, judulBuku: "Peringkat", lembar });
   return nama;
 });

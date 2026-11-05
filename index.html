@@ -18,7 +18,7 @@
 <meta property="og:image:alt" content="Logo SMA Plus Merdeka Soreang">
 <!-- /pratinjau -->
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=15">
+<link rel="stylesheet" href="assets/matdas.css?v=16">
 <script src="config.js?v=2"></script>
 <style>
 /* ---- Masuk ---- */
@@ -392,7 +392,7 @@ details.peta[open] summary::before { transform: rotate(90deg); }
 <div class="benar-kilat" id="kilat" aria-hidden="true">Benar ✓</div>
 <div class="toast" id="toast" role="status"></div>
 
-<script src="assets/umum.js?v=17"></script>
+<script src="assets/umum.js?v=18"></script>
 <script src="assets/bahas.js?v=5"></script>
 <script>window.MTD_SIAP = false;</script>
 <script>
@@ -419,7 +419,7 @@ function isiPosisi() {
   $("p-tingkat").textContent = p.nama;
   $("p-level").innerHTML = `<b>Level ${p.level}</b> dari ${p.n_level}${p.ket ? " · " + esc(p.ket) : ""}`;
   $("p-batang").style.width = (100 * S.ringkas.lewat / Math.max(1, S.ringkas.total)) + "%";
-  $("p-ke").textContent = `${S.ringkas.lewat} dari ${S.ringkas.total} level tuntas`;
+  $("p-ke").textContent = `Posisi ${S.ringkas.lewat} dari ${S.ringkas.total} level`;
   let t = "";
   for (let i = 1; i <= nb; i++) t += i < S.nomor && salahNo.has(i) ? '<i class="x">✕</i>' : `<i class="${i < S.nomor ? "ok" : i === S.nomor ? "kini" : ""}">${i < S.nomor ? "✓" : i}</i>`;
   $("p-titik").innerHTML = t;
@@ -438,7 +438,7 @@ function isiPosisi() {
   }
   $("hd-sub").textContent = [S.nama, S.kelompok || S.kelas, S.uji ? "" : S.mode === "mandiri" ? "Latihan mandiri" : "Sesi kelompok"].filter(Boolean).join(" · ");
   // peta
-  $("peta-ringkas").textContent = `· ${S.ringkas.lewat} dari ${S.ringkas.total} level tuntas`;
+  $("peta-ringkas").textContent = `· posisi ${S.ringkas.lewat} dari ${S.ringkas.total} level`;
   $("peta-batang").style.width = (100 * S.ringkas.lewat / Math.max(1, S.ringkas.total)) + "%";
   $("peta-daftar").innerHTML = peta.map((x, i) =>
     `<li class="${x.status}"><span class="st">${x.status === "tuntas" ? "✓" : i + 1}</span>` +
