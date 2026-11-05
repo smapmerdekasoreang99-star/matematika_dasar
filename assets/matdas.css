@@ -142,6 +142,10 @@ table[data-beku] .fz-kol { position: sticky; z-index: 1; }
 table[data-beku] td.fz-kol { background-color: var(--kertas-2); }
 table[data-beku] th.fz-kol { z-index: 3; }
 table[data-beku] .fz-akhir { box-shadow: 4px 0 6px -4px rgba(29, 42, 58, .25); }
+/* Layar sempit: kolom identitas dipersempit dan boleh turun baris, supaya kolom lain masih terlihat saat digeser */
+@media (max-width: 640px) {
+  table[data-beku="1"] tr > td:nth-child(1), table[data-beku="2"] tr > td:nth-child(-n+2), table[data-beku="3"] tr > td:nth-child(-n+3) { max-width: 36vw; white-space: normal; overflow-wrap: break-word; }
+}
 
 /* ---- Pembahasan langkah demi langkah (19 Okt 2026, assets/bahas.js) ---- */
 .bahas-lipat { margin-top: var(--j3); border: 1px solid var(--garis); border-radius: var(--r2); background: var(--kertas-2); text-align: left; }

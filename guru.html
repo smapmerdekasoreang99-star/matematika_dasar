@@ -18,7 +18,7 @@
 <meta property="og:image:alt" content="Logo SMA Plus Merdeka Soreang">
 <!-- /pratinjau -->
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=16">
+<link rel="stylesheet" href="assets/matdas.css?v=17">
 <script src="config.js?v=2"></script>
 <style>
 /* Tombol Panduan membaca data di kepala halaman (13 Okt 2026): PDF untuk dibuka, Word untuk dicetak/disunting */
@@ -90,7 +90,7 @@
 .tip b { color: #fff; }
 
 .catatan { margin: 0; padding-left: 1.2em; }
-#t-kelas td:nth-child(2), #t-daftar td:nth-child(3) { white-space: nowrap; }
+@media (min-width: 641px) { #t-kelas td:nth-child(2), #t-daftar td:nth-child(3) { white-space: nowrap; } }
 /* Pengaturan &amp; Tahapan Khusus */
 .khusus-bagian { margin: var(--j5) 0; }
 .khusus-kepala { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--j3); flex-wrap: wrap; border-bottom: 1px solid var(--garis-2); padding-bottom: var(--j2); margin-bottom: var(--j2); }
@@ -1063,7 +1063,7 @@ body.lihat .ubah { display: none !important; }
   <div class="ctl-isi" id="ctl-isi"></div>
 </div>
 
-<script src="assets/umum.js?v=18"></script>
+<script src="assets/umum.js?v=19"></script>
 <script src="assets/rekap.js?v=1"></script>
 <script src="assets/bahas.js?v=5"></script>
 <script src="assets/simpan.js?v=3"></script>

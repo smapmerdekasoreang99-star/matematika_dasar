@@ -323,8 +323,14 @@ function sejakTeks(iso) {
     if (!n || !baris.length) return;
     const kepala = baris[0].cells, kiri = [];
     let x = 0;
-    for (let i = 0; i < Math.min(n, kepala.length); i++) { kiri.push(x); x += kepala[i].getBoundingClientRect().width; }
+    const batas = (t.parentElement ? t.parentElement.clientWidth : 0) * 0.7;   // sisakan ruang untuk kolom yang digeser
+    for (let i = 0; i < Math.min(n, kepala.length); i++) {
+      const lebar = kepala[i].getBoundingClientRect().width;
+      if (i && batas && x + lebar > batas) break;
+      kiri.push(x); x += lebar;
+    }
     if (!x) return;                                    // tabel tersembunyi: dihitung saat tampil
+    for (const c of t.querySelectorAll(".fz-kol")) if (c.cellIndex >= kiri.length) { c.classList.remove("fz-kol", "fz-akhir"); c.style.left = ""; }
     for (const r of baris) {
       for (let i = 0; i < kiri.length && i < r.cells.length; i++) {
         const c = r.cells[i];
