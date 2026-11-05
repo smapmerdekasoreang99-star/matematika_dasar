@@ -145,7 +145,7 @@ function bankSoalHtml(u) {
   const data = u.g
     ? `<span class="bank-gambar"><img src="assets/${u.g.includes("/") ? esc(u.g) : "statistika/" + esc(u.g)}" alt="${esc(u.a || "Diagram")}" onerror="bankGambarGagal(this)"><span class="bank-cadangan">${u.t ? bankTabelHtml(u.t) : "Gambar belum termuat. Periksa sinyal, lalu tekan tombol di bawah."}<button type="button" class="bank-muat" onclick="bankGambarUlang(this)">Muat ulang gambar</button></span></span>`
     : u.t ? bankTabelHtml(u.t) : "";
-  return `<span class="cerita">${esc(u.q)}</span>${data}`;
+  return `<span class="cerita bank-baris">${esc(u.q)}</span>${data}`;
 }
 /* Jawaban atau kunci soal bank → HTML: huruf + isi opsi, (1) Benar …, atau angka. */
 function bankJawabHtml(u, nilai) {

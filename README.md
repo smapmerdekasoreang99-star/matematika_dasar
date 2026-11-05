@@ -197,6 +197,9 @@ Isi saat ini:
   (35 berkas yang dirujuk naskah; zip naskah memuat 50 berkas lain yang tidak dipakai).
 - **MD12**, Bilangan (K12-09, 4 level, 3 Nov 2026): 400 soal bank tetap, cara kerja sama, diagram di `assets/bilangan/`.
   BLGN-L4-096 dikoreksi lewat `database_tryout/alat/koreksi_bilangan.json` (pembahasan 0,124).
+- **MD12**, Penarikan Kesimpulan level 5 (K12-05, 5 Nov 2026): 90 soal bank tetap, sedangkan level 1–4 tetap buatan aturan. Dibuat `database_tryout/alat/bank_penarikan_kesimpulan.js`
+  (dari naskah 100 soal: 9 kembar dan nomor 10 dibuang; koreksi tercatat di alat itu; huruf opsi dibuang dari pembahasan karena opsi diacak), lalu `alat/bank_soal.js`.
+  Baris baru naskah soal bank kini tampil (`.bank-baris`). Dipasang tertutup.
 - **MD12**, Barisan dan Deret (K12-08, 5 level, 3 Nov 2026): 500 soal bank tetap, cara kerja sama. Diagram di
   `assets/barisan/`. BRSN-L5-007 dan BRSN-L5-034 dikoreksi lewat `database_tryout/alat/koreksi_barisan.json` (data 400, 600, 900, 1.350; kunci 5.275).
 - **MD11**, tahap B: Mengurutkan Bilangan (3 level; campuran bulat, desimal, pecahan,

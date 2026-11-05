@@ -195,6 +195,8 @@ table[data-beku] .fz-akhir { box-shadow: 4px 0 6px -4px rgba(29, 42, 58, .25); }
 .bahas sup { font-size: .7em; line-height: 0; }
 
 /* Soal bank tetap (Statistika): tabel, diagram, jawaban banyak bagian */
+/* Baris baru naskah soal bank tetap terlihat, mis. premis 1, premis 2, lalu kalimat tanya. */
+.cerita.bank-baris { white-space: pre-line; }
 .bank-tabel-wadah { display: block; overflow-x: auto; margin: var(--j3) 0; }
 .bank-tabel { border-collapse: collapse; margin: 0 auto; font-size: var(--h-m); font-weight: 400; font-variant-numeric: tabular-nums; }
 .bank-tabel th, .bank-tabel td { border: 1px solid var(--garis); padding: var(--j1) var(--j3); text-align: center; }
