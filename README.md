@@ -197,6 +197,8 @@ Isi saat ini:
   (35 berkas yang dirujuk naskah; zip naskah memuat 50 berkas lain yang tidak dipakai).
 - **MD12**, Bilangan (K12-09, 4 level, 3 Nov 2026): 400 soal bank tetap, cara kerja sama, diagram di `assets/bilangan/`.
   BLGN-L4-096 dikoreksi lewat `database_tryout/alat/koreksi_bilangan.json` (pembahasan 0,124).
+- **MD12**, Pola Gambar (K12-04 level 7–8, 5 Nov 2026): 198 soal bank tetap, level 1–6 tetap buatan aturan. Opsi berupa gambar disimpan `gambar:pola_gambar/<berkas>` (`bankOpsiIsi` di umum.js),
+  1.180 PNG di `assets/pola_gambar/`. Dibuat `database_tryout/alat/bank_pola_gambar.js` lalu `alat/bank_soal.js`; PGBR-L1-073 dan 074 kembar dibuang. Dipasang tertutup.
 - **MD12**, Penarikan Kesimpulan level 5 (K12-05, 5 Nov 2026): 90 soal bank tetap, sedangkan level 1–4 tetap buatan aturan. Dibuat `database_tryout/alat/bank_penarikan_kesimpulan.js`
   (dari naskah 100 soal: 9 kembar dan nomor 10 dibuang; koreksi tercatat di alat itu; huruf opsi dibuang dari pembahasan karena opsi diacak), lalu `alat/bank_soal.js`.
   Baris baru naskah soal bank kini tampil (`.bank-baris`). Dipasang tertutup.

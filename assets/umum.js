@@ -140,6 +140,12 @@ function bankGambarUlang(tombol) {
   img.dataset.coba = 0;
   bankMuatGambar(img);
 }
+/* Isi satu opsi soal bank: teks, atau gambar bila berbentuk "gambar:<folder>/<berkas>" (Pola Gambar). */
+const bankOpsiGambar = (t) => String(t).startsWith("gambar:");
+const bankAdaOpsiGambar = (opsi) => opsi.some(([, t]) => bankOpsiGambar(t));
+function bankOpsiIsi(t) {
+  return bankOpsiGambar(t) ? `<img class="opsi-gbr" src="assets/${esc(String(t).slice(7))}" alt="Pilihan gambar" onerror="bankGambarGagal(this)">` : esc(t);
+}
 /* Kalimat soal + tabel/diagram. Gambar di assets/<folder>/ (tanpa folder: statistika). */
 function bankSoalHtml(u) {
   const data = u.g
@@ -154,13 +160,13 @@ function bankJawabHtml(u, nilai) {
   if (u.j === "isian") return `<span class="nm">${esc(bil(v))}</span>`;
   if (u.j === "pecahan") return jawabHtml(v);
   if (u.j === "bs") return `<span class="bank-jawab">${u.p.map((_, i) => `<span>(${i + 1}) ${v[i] === "B" ? "Benar" : v[i] === "S" ? "Salah" : "-"}</span>`).join("")}</span>`;
-  return `<span class="bank-jawab">${[...v].map((h) => { const o = u.o.find((x) => x[0] === h); return `<span><b>${esc(h)}.</b> ${esc(o ? o[1] : "")}</span>`; }).join("")}</span>`;
+  return `<span class="bank-jawab">${[...v].map((h) => { const o = u.o.find((x) => x[0] === h); return `<span><b>${esc(h)}.</b> ${o ? bankOpsiIsi(o[1]) : ""}</span>`; }).join("")}</span>`;
 }
 
 function soalHtml(teks) {
   teks = String(teks || "");
   const bk = uraiBank(teks);
-  if (bk) return bankSoalHtml(bk) + (bk.o.length ? `<span class="opsi-statis">${bk.o.map(([h, t]) => `<span><b>${h}.</b> ${esc(t)}</span>`).join("")}</span>` : "") +
+  if (bk) return bankSoalHtml(bk) + (bk.o.length ? `<span class="opsi-statis${bankAdaOpsiGambar(bk.o) ? " opsi-statis-gambar" : ""}">${bk.o.map(([h, t]) => `<span><b>${h}.</b> ${bankOpsiIsi(t)}</span>`).join("")}</span>` : "") +
     (bk.p.length ? `<span class="opsi-statis">${bk.p.map((t, i) => `<span>(${i + 1}) ${esc(t)}</span>`).join("")}</span>` : "");
   if (/^Urutkan dari yang /.test(teks)) {                       // mengurutkan (tampilan baca saja)
     const u = uraiUrut(teks);
@@ -196,7 +202,7 @@ function soalHtml(teks) {
 /* Teks soal tanpa HTML (unduhan CSV): garis bawah campuran jadi spasi. */
 const soalPolos = (teks) => {
   const bk = uraiBank(teks);
-  if (bk) return [bk.kode, bk.q, ...bk.o.map(([h, t]) => `${h}. ${t}`), ...bk.p.map((t, i) => `(${i + 1}) ${t}`)].join(" ");
+  if (bk) return [bk.kode, bk.q, ...bk.o.map(([h, t]) => `${h}. ${bankOpsiGambar(t) ? "(gambar)" : t}`), ...bk.p.map((t, i) => `(${i + 1}) ${t}`)].join(" ");
   return String(teks || "").replace(/_/g, " ");
 };
 

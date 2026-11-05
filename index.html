@@ -18,7 +18,7 @@
 <meta property="og:image:alt" content="Logo SMA Plus Merdeka Soreang">
 <!-- /pratinjau -->
 <link rel="stylesheet" href="assets/dasar.css?v=1">
-<link rel="stylesheet" href="assets/matdas.css?v=14">
+<link rel="stylesheet" href="assets/matdas.css?v=15">
 <script src="config.js?v=2"></script>
 <style>
 /* ---- Masuk ---- */
@@ -167,6 +167,7 @@
 .satuan-jawab { font-size: 22px; font-weight: 700; color: var(--tinta-2); margin: 0 6px; }
 .jawab.jawab-opsi { display: block; background: transparent; padding: 0; }
 .opsi-daftar { display: grid; gap: var(--j2); text-align: left; }
+.opsi-daftar-gambar { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
 .opsi { display: flex; gap: var(--j3); align-items: flex-start; width: 100%; text-align: left; font-size: var(--h-n); font-weight: 500; line-height: 1.45;
   background: #fff; color: var(--tinta); border: 1.5px solid var(--garis-2); border-radius: var(--r2); padding: var(--j3) var(--j4); min-height: 0; }
 .opsi:hover { background: var(--kertas-3); color: var(--tinta); border-color: var(--gelap); }
@@ -391,7 +392,7 @@ details.peta[open] summary::before { transform: rotate(90deg); }
 <div class="benar-kilat" id="kilat" aria-hidden="true">Benar ✓</div>
 <div class="toast" id="toast" role="status"></div>
 
-<script src="assets/umum.js?v=16"></script>
+<script src="assets/umum.js?v=17"></script>
 <script src="assets/bahas.js?v=5"></script>
 <script>window.MTD_SIAP = false;</script>
 <script>
@@ -555,8 +556,8 @@ function gambarJawab() {
     : A.nt
     ? `${k("a", A.a, "lebar-isi")}<span class="op">× 10</span><span class="pangkat-wadah">${A.nneg ? '<span class="neg-tanda kecil">−</span>' : ""}${k("n", A.n, "kecil pangkat")}</span>`
     : A.pl
-    ? `<div class="opsi-daftar" role="${A.multi ? "group" : "radiogroup"}" aria-label="Pilihan jawaban">${A.opsi.map(([h, t]) =>
-        `<button type="button" class="opsi" role="${A.multi ? "checkbox" : "radio"}" aria-checked="${A.multi ? A.v.includes(h) : A.v === h}" data-opsi="${h}"><b>${h}</b><span>${esc(t)}</span></button>`).join("")}</div>`
+    ? `<div class="opsi-daftar${bankAdaOpsiGambar(A.opsi) ? " opsi-daftar-gambar" : ""}" role="${A.multi ? "group" : "radiogroup"}" aria-label="Pilihan jawaban">${A.opsi.map(([h, t]) =>
+        `<button type="button" class="opsi" role="${A.multi ? "checkbox" : "radio"}" aria-checked="${A.multi ? A.v.includes(h) : A.v === h}" data-opsi="${h}"><b>${h}</b><span>${bankOpsiIsi(t)}</span></button>`).join("")}</div>`
     : A.bs
     ? `<div class="bs-daftar">${A.items.map((t, i) => `<div class="bs-baris"><span>(${i + 1}) ${esc(t)}</span><span class="bs-pilih" role="radiogroup" aria-label="Pernyataan ${i + 1}">${[["B", "Benar"], ["S", "Salah"]].map(([h, l]) =>
         `<button type="button" role="radio" aria-checked="${A.vals[i] === h}" data-bs="${i}" data-nilai="${h}">${l}</button>`).join("")}</span></div>`).join("")}</div>`
