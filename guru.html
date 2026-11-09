@@ -75,6 +75,7 @@
 .ubin > div { background: var(--kertas-2); border: 1px solid var(--garis); border-radius: var(--r3); padding: var(--j3) var(--j4); }
 .ubin .n { font-family: "Fraunces", Georgia, serif; font-size: 28px; font-weight: 700; color: var(--gelap); line-height: 1.1; font-variant-numeric: tabular-nums; }
 .ubin .l { font-size: var(--h-s); color: var(--tinta-2); }
+.ubin .l .dari { color: var(--tinta-3); white-space: nowrap; }
 
 .maju { display: flex; align-items: center; gap: var(--j2); min-width: 150px; }
 .maju .batang { flex: 1; }
@@ -1527,15 +1528,16 @@ function saringDaftar() {
 }
 
 function gambarDaftar() {
-  const D = DAFTAR, semua = !$("dl-kelompok").value;
+  // Kotak ringkasan mengikuti saringan tingkat, pencarian, dan status (9 Nov 2026, permintaan user).
+  const R = saringDaftar(), D = R, semua = !$("dl-kelompok").value;
+  const disaring = !!($("dl-tingkat").value || $("dl-status").value || $("dl-cari").value.trim());
   const n = (f) => D.filter(f).length, kunci = n((r) => r.terkunci);
   const keluar7 = D.reduce((a, r) => a + (r.keluar_pt || 0), 0);
   $("dl-ubin").innerHTML = ubinHtml([
-    [D.length, MODE_MD ? "siswa di daftar" : "siswa", "siswa"], [n((r) => r.online && !r.online_mandiri), "sedang berlatih di sesi", "aktif", "baik"],
+    [D.length, disaring ? `siswa sesuai saringan <span class="dari">dari ${DAFTAR.length}</span>` : MODE_MD ? "siswa di daftar" : "siswa", "siswa"], [n((r) => r.online && !r.online_mandiri), "sedang berlatih di sesi", "aktif", "baik"],
     [n((r) => !r.tingkat), "belum pernah masuk", "diam", "emas"], [n((r) => r.selesai), "sudah selesai", "level", n((r) => r.selesai) ? "baik" : "redup-ubin"], [kunci, "terkunci (keluar halaman)", "kunci", kunci ? "buruk" : "redup-ubin"],
     [keluar7, "keluar halaman, pertemuan terakhir", "keluar", keluar7 ? "emas" : "redup-ubin"],
   ]);
-  const R = saringDaftar();
   const ada = new Set(DAFTAR.map((r) => r.nisn));
   [...PILIH].forEach((n) => { if (!ada.has(n)) PILIH.delete(n); });
   const semuaDipilih = R.length > 0 && R.every((r) => PILIH.has(r.nisn));
