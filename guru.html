@@ -1219,7 +1219,9 @@ async function muatKelas(diam) {
   if (dipilih && REKAP.some((r) => r.nisn === dipilih)) $("pil-siswa").value = dipilih;
   gambarKelas();
 }
-$("pil-kelas").onchange = () => { muatKelas(); if (SUB === "rekap") muatRekap(); if (SUB === "mandiri") muatPantau(); };
+// Baris kelompok terpilih di "Perbandingan kelompok" ikut disorot (9 Nov 2026).
+const tandaiKelompok = () => $("t-perkelompok").querySelectorAll("tr[data-kel]").forEach((tr) => tr.classList.toggle("dipilih", tr.dataset.kel === $("pil-kelas").value));
+$("pil-kelas").onchange = () => { tandaiKelompok(); muatKelas(); if (SUB === "rekap") muatRekap(); if (SUB === "mandiri") muatPantau(); };
 $("pil-urut").onchange = () => gambarKelas();
 $("btn-muat").onclick = () => { muatKelas(); if (SUB === "rekap") muatRekap(); if (SUB === "mandiri") muatPantau(); };
 
@@ -1255,7 +1257,7 @@ async function muatRekap(bilaLama) {
       (D.dipotong && RK_PER.kunci !== "smt" ? " · <b>dipotong di awal semester</b>" : "") +
       (RK_PER.kunci === "smt" ? ` · semester ${esc(D.semester.nama)}` : D.lalu ? ` · dibandingkan dengan ${tg(D.lalu.dari)} – ${tg(D.lalu.sampai)}${D.lalu.hari < D.hari ? " (dipotong di awal semester)" : ""}` : " · belum ada pembanding (awal semester)");
     if (k) REKAP_KELAS.rapor(isi, D, { satuan: "level", target: 80, bukaSiswa: (n) => bukaSiswa(n) });
-    else REKAP_KELAS.banding(isi, D, { satuan: "level", kelompokLbl: "kelompok", bukaKelompok: (g) => { $("pil-kelas").value = g; ssSet("mtd_kelas", g); muatKelas(true); muatRekap(); } });
+    else REKAP_KELAS.banding(isi, D, { satuan: "level", kelompokLbl: "kelompok", bukaKelompok: (g) => { $("pil-kelas").value = g; ssSet("mtd_kelas", g); tandaiKelompok(); muatKelas(true); muatRekap(); } });
   } catch (e) { isi.innerHTML = `<p class="buruk-teks">Gagal memuat rekapitulasi: ${esc(e.message)}</p>`; }
   finally { isi.style.opacity = ""; }
 }
@@ -1316,15 +1318,17 @@ const pmSaring = (r, v) => !v || (v === "online" ? r.online : v === "belum" ? r.
   : v === "jalan" ? r.mulai_tahapan && !r.selesai_tahapan : v === "selesai" ? r.selesai_tahapan : !r.n_jawab);
 const pmPosisi = (r) => !r.posisi ? "" : r.posisi.selesai ? `${r.posisi.nama_tingkat} · Level ${r.posisi.level} (selesai)` : `${r.posisi.nama_tingkat} · Level ${r.posisi.level}`;
 function gambarPantau() {
-  const D = PM, S = D.siswa, h = D.tahapan, ada = S.some((r) => r.tahapan_nama), n = (f) => S.filter(f).length;
+  // Kotak ringkasan mengikuti saringan siswa (9 Nov 2026), sama seperti tabel di bawahnya.
+  const D = PM, h = D.tahapan, ada = D.siswa.some((r) => r.tahapan_nama), sv = $("pm-saring").value;
+  const S = D.siswa.filter((r) => pmSaring(r, sv)), n = (f) => S.filter(f).length;
   const tg = (x, thn) => new Date(x + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short", ...(thn ? { year: "numeric" } : {}) });
   $("pm-periode").innerHTML = `Periode: <b>${tg(D.dari)} – ${tg(D.sampai, true)}</b> (${D.hari} hari)` + (D.dipotong && PM_PER.kunci !== "smt" ? " · <b>dipotong di awal semester</b>" : "") +
     (h ? ` · tahapan mandiri: <b>${esc(h.nama)}</b> (${h.n_level} level)` : D.pilihan === "bebas" ? " · siswa bebas memilih materi" : D.pilihan === "lama" ? " · aturan lama; ganti di Pengaturan &amp; Tahapan, bagian 3" : " · lanjut dari sesi kegiatan");
   const selesai = n((r) => r.selesai_tahapan), belum = n((r) => r.tahapan_nama && !r.mulai_tahapan && !r.selesai_tahapan), diam = n((r) => !r.n_jawab);
-  $("pm-ubin").innerHTML = ubinHtml([[S.length, "siswa", "siswa"], [n((r) => r.online), "sedang berlatih", "aktif", "baik"],
+  $("pm-ubin").innerHTML = ubinHtml([[S.length, sv ? `siswa sesuai saringan <span class="dari">dari ${D.siswa.length}</span>` : "siswa", "siswa"], [n((r) => r.online), "sedang berlatih", "aktif", "baik"],
     ...(ada ? [[n((r) => r.mulai_tahapan && !r.selesai_tahapan), "sedang di tahapan", "mulai"], [selesai, "tahapan selesai", "level", selesai ? "baik" : "redup-ubin"], [belum, "belum mulai tahapan", "diam", belum ? "emas" : "redup-ubin"]] : []),
     [diam, "tidak berlatih dalam periode", "diam", diam ? "emas" : "redup-ubin"]]);
-  const L = S.filter((r) => pmSaring(r, $("pm-saring").value));
+  const L = S;
   $("pm-tabel").innerHTML = `<thead><tr><th>No</th><th>Nama</th><th>Status</th><th>Posisi mandiri</th><th>Jalur</th><th>Kegiatan</th><th class="angka">Akurasi</th><th class="angka">Level tuntas</th><th class="angka">Waktu</th><th>Terakhir</th></tr></thead><tbody>` +
     (L.length ? L.map((r, i) => { const st = pmStatus(r);
       return `<tr class="klik" data-n="${esc(r.nisn)}"><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td><td><span class="lencana ringkas ${st.c}">${esc(st.t)}</span></td>
@@ -3113,7 +3117,7 @@ function bukaSub(v) {
   // grafik sebaran digambar selebar wadahnya: gambar ulang setelah tab kelompok tampil
   if (v === "siswa" && REKAP_PADA && Date.now() - REKAP_PADA > 60000) muatKelas(true);
   if (v === "rekap") { if (REKAP.length) gambarKelas(); muatPerKelompok(); }   // ringkasan keseluruhan di bawah Rekapitulasi
-  if (v === "peringkat" && !PR) muatPeringkat();
+  if (v === "peringkat") { if (!PR) muatPeringkat(); else { samakanCakupanPr(); gambarPeringkat(); } }
   if (v === "rekap") muatRekap(true);
 }
 // Sel posisi terendah/tertinggi kelompok (7 Oktober 2026): r = siswa di posisi itu, n = banyak siswa yang sama posisinya.
@@ -3135,7 +3139,7 @@ async function muatPerKelompok() {
     const urut = [...mulai].sort((a, b) => a.lewat - b.lewat), rendah = urut[0], tinggi = urut[urut.length - 1];
     const sama = (x) => urut.filter((r) => r.lewat === x.lewat && !!r.selesai === !!x.selesai);
     const sesi = BUKA && BUKA.kelompok.find((x) => x.kelompok === k), buka = sesi && sesi.buka && sisaSesi(sesi) > 0;
-    return `<tr class="klik" data-kel="${esc(k)}"><td><b>${esc(k)}</b></td><td class="angka">${L.length}</td><td class="angka">${mulai.length}</td><td class="angka">${aktif7}</td>
+    return `<tr class="klik${k === $("pil-kelas").value ? " dipilih" : ""}" data-kel="${esc(k)}"><td><b>${esc(k)}</b></td><td class="angka">${L.length}</td><td class="angka">${mulai.length}</td><td class="angka">${aktif7}</td>
       <td class="kecil">${ptk ? esc(tglTeks(ptk)) : '<span class="redup" title="Jadwal pertemuan kelompok ini belum ada. Tarik guru dari Data Induk (admin); bila tetap kosong, isi jadwal KBM kelompok ini di Data Induk. Sementara dihitung 7 hari terakhir.">Belum ada jadwal</span>'}</td>
       <td class="angka">${rata.toLocaleString("id-ID", { maximumFractionDigits: 1 })}</td>${selPosisi(rendah, rendah ? sama(rendah).length : 0, rendah ? sama(rendah) : [])}${selPosisi(tinggi, tinggi ? sama(tinggi).length : 0, tinggi ? sama(tinggi) : [])}<td class="angka">${nJ ? Math.round(100 * nB / nJ) + "%" : "–"}</td>
       <td class="angka">${macet ? `<span class="lencana buruk">${macet}</span>` : '<span class="redup">0</span>'}</td>
@@ -3148,7 +3152,7 @@ async function muatPerKelompok() {
     <tbody>${baris.join("") || '<tr><td colspan="12" class="kosong-data">Tidak ada siswa.</td></tr>'}</tbody>`;
   $("t-perkelompok").querySelectorAll("[data-kel]").forEach((tr) => tr.onclick = () => {
     if ([...$("pil-kelas").options].some((o) => o.value === tr.dataset.kel)) $("pil-kelas").value = tr.dataset.kel;
-    muatKelas(); if (SUB === "rekap") { muatRekap(); $("rk-isi").scrollIntoView({ behavior: "smooth" }); }
+    tandaiKelompok(); muatKelas(); if (SUB === "rekap") { muatRekap(); $("rk-isi").scrollIntoView({ behavior: "smooth" }); }
   });
 }
 
@@ -3238,10 +3242,22 @@ async function muatPeringkat() {
   $("t-peringkat").innerHTML = '<tr><td class="kosong-data">Memuat…</td></tr>';
   try { PR = await rpc("mtd_peringkat", { p_pin: PIN, p_periode: $("pr-periode").value }); }
   catch (e) { $("t-peringkat").innerHTML = `<tr><td class="kosong-data">${esc(e.message)}</td></tr>`; return; }
-  isiPeriodePr(); isiCakupanPr(); gambarPeringkat();
+  isiPeriodePr(); isiCakupanPr(); samakanCakupanPr(); gambarPeringkat();
+}
+// Cakupan peringkat mengikuti pilihan kelompok di atas (9 Nov 2026): kelompok tertentu → kelompok itu;
+// "Semua kelompok" → semua, kecuali guru sedang memilih satu angkatan (angkatan tetap).
+function samakanCakupanPr() {
+  const k = $("pil-kelas").value, el = $("pr-cakupan");
+  const mau = k && k !== "-" ? "k:" + k : el.value.startsWith("k:") ? "" : el.value;
+  if ([...el.options].some((o) => o.value === mau)) el.value = mau;
 }
 $("pr-periode").onchange = () => { ssSet("mtd_pr_periode", $("pr-periode").value); muatPeringkat(); };
-$("pr-cakupan").onchange = () => { ssSet("mtd_pr_cakupan", $("pr-cakupan").value); gambarPeringkat(); };
+$("pr-cakupan").onchange = () => {
+  const c = $("pr-cakupan").value; ssSet("mtd_pr_cakupan", c); gambarPeringkat();
+  // Sebaliknya: memilih kelompok (atau semua) di peringkat ikut mengganti pilihan kelompok tab lain.
+  const k = c.startsWith("k:") ? c.slice(2) : c === "" ? "" : null;
+  if (k !== null && k !== $("pil-kelas").value && [...$("pil-kelas").options].some((o) => o.value === k)) { $("pil-kelas").value = k; ssSet("mtd_kelas", k); tandaiKelompok(); muatKelas(true); }
+};
 $("pr-jenis").onchange = () => { ssSet("mtd_pr_jenis", $("pr-jenis").value); gambarPeringkat(); };
 $("pr-n").onchange = () => gambarPeringkat();
 $("pr-muat").onclick = () => muatPeringkat();
