@@ -398,6 +398,18 @@ details.peta[open] summary::before { transform: rotate(90deg); }
 <script>
 "use strict";
 const KUNCI_SESI = "mtd_token", KUNCI_NISN = "mtd_nisn";
+/* Penanda perangkat (10 Nov 2026): id acak yang diingat browser ini + ciri singkat HP/browser. Dikirim saat masuk supaya
+   server bisa membedakan "masuk ulang di HP yang sama" (mis. browser tertutup lalu dibuka lagi) dari NISN yang dipakai di
+   perangkat lain. Bukan data pribadi: tidak memuat NISN, dan sama untuk siapa pun yang memakai browser ini. */
+const PERANGKAT = (() => {
+  const acak = () => { try { return [...crypto.getRandomValues(new Uint8Array(8))].map((b) => b.toString(16).padStart(2, "0")).join(""); } catch (e) { return Math.random().toString(16).slice(2, 18); } };
+  let id = null;
+  try { id = localStorage.getItem("mtd_perangkat"); if (!/^[0-9a-f]{8,32}$/.test(id || "")) { id = acak(); localStorage.setItem("mtd_perangkat", id); } } catch (e) { id = acak(); }
+  const ua = navigator.userAgent || "";
+  const os = /Android\s*([\d.]+)?/.test(ua) ? "Android " + (ua.match(/Android\s*(\d+)/) || [, ""])[1] : /iPhone|iPad|iPod/.test(ua) ? "iOS" : /Windows/.test(ua) ? "Windows" : /Mac OS X/.test(ua) ? "Mac" : /Linux/.test(ua) ? "Linux" : "Lainnya";
+  const br = /SamsungBrowser/.test(ua) ? "Samsung Internet" : /EdgA?\//.test(ua) ? "Edge" : /OPR\/|Opera/.test(ua) ? "Opera" : /Firefox\/|FxiOS/.test(ua) ? "Firefox" : /CriOS|Chrome\//.test(ua) ? "Chrome" : /Safari\//.test(ua) ? "Safari" : "Browser lain";
+  return (id + "|" + os.trim() + " · " + br).slice(0, 120);
+})();
 let S = null;                 // paket terakhir dari server
 let A = null;                 // isian jawaban
 // Mode "Lanjut nomor berikutnya": nomor yang dijawab salah di level ini (hanya untuk titik kemajuan; hilang bila halaman dimuat ulang)
@@ -1095,7 +1107,7 @@ function aturAkhir(detik) {
 async function cekWaktu() {
   if (!S || !S.token || cekWaktuJalan) return;
   cekWaktuJalan = true; cekWaktuPada = Date.now();
-  try { const r = await rpc("mtd_sisa_waktu", { p_token: S.token }); if (r.ok) aturAkhir(r.sisa_detik); else if (r.alasan === "sesi_kelompok") keSesiKelompok(); else if (r.alasan === "perangkat_lain") tergeser(); else if (r.alasan === "ditutup") habis("ditutup"); else if (akhirSesi) akhirSesi = Date.now() - 1000; }
+  try { const r = await rpc("mtd_sisa_waktu", { p_token: S.token }); if (r.ok) aturAkhir(r.sisa_detik); else if (r.alasan === "sesi_kelompok") keSesiKelompok(); else if (r.alasan === "perangkat_lain" || r.alasan === "masuk_ulang") tergeser(r.alasan); else if (r.alasan === "ditutup") habis("ditutup"); else if (akhirSesi) akhirSesi = Date.now() - 1000; }
   catch (e) { /* jaringan: tetap pakai hitungan di HP */ }
   finally { cekWaktuJalan = false; }
 }
@@ -1143,7 +1155,7 @@ async function berakhirKarena() {
     try {
       const r = await rpc("mtd_sisa_waktu", { p_token: S.token });
       if (r.alasan === "sesi_kelompok") return keSesiKelompok();
-      if (r.alasan === "perangkat_lain") return tergeser();
+      if (r.alasan === "perangkat_lain" || r.alasan === "masuk_ulang") return tergeser(r.alasan);
       if (r.alasan === "ditutup") return habis("ditutup");
     }
     catch (e) { /* tetap ke layar waktu habis */ }
@@ -1161,10 +1173,16 @@ function habis(sebab) {
   $("a-isi").textContent = isi;
   tampil("v-akhir");
 }
-function tergeser() {
+function tergeser(alasan) {
   const isi = posisiTeks(S);
   tutupSesi();
   $("a-ikon").textContent = "📱";
+  if (alasan === "masuk_ulang") {
+    // Masuk lagi dari HP/browser yang sama (mis. di tab lain): bukan masalah, cukup pakai satu tab saja.
+    $("a-judul").textContent = "Latihan dibuka lagi di tab lain";
+    $("a-isi").textContent = "NISN-mu baru saja dipakai masuk lagi di HP ini, di tab atau jendela lain, jadi latihan di tab ini ditutup. Lanjutkan di tab yang baru, cukup satu tab saja. " + isi;
+    return tampil("v-akhir");
+  }
   $("a-judul").textContent = "NISN-mu dipakai masuk di perangkat lain";
   $("a-isi").textContent = "Satu NISN hanya bisa dipakai di satu HP atau satu tab. Baru saja NISN ini dipakai masuk di tempat lain, jadi latihan di sini ditutup. "
     + "Bila itu bukan kamu, periksa NISN yang kamu ketik dan beri tahu guru. " + isi;
@@ -1203,7 +1221,7 @@ $("btn-masuk").onclick = async () => {
   if (!nisn) { m.textContent = "Isi NISN dulu."; m.classList.remove("hidden"); $("nisn").focus(); return; }
   $("btn-masuk").disabled = true;
   try {
-    const r = await rpc("mtd_masuk", { p_nisn: nisn, p_kode_akses: $("akses").value.trim() || null });
+    const r = await rpc("mtd_masuk", { p_nisn: nisn, p_kode_akses: $("akses").value.trim() || null, p_perangkat: PERANGKAT });
     mulai(r);
   } catch (e) {
     // NISN ikut ditampilkan supaya salah ketik atau NISN yang tersambung langsung terlihat.

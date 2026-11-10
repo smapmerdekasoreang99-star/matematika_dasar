@@ -1310,12 +1310,29 @@ function pmRentang() {
   if (PM_PER.kunci === "smt") return { dari: "1900-01-01", sampai: isoTgl(kini) };
   return { dari: PM_PER.dari, sampai: PM_PER.sampai };
 }
+/* 10 Nov 2026: "Semua kelompok" dan "Semua tingkat …" juga bisa (dulu hanya satu kelompok, sehingga saringan tampak tidak bekerja).
+   Server tetap dipanggil per kelompok (mtd_pantau_mandiri), paling banyak 4 sekaligus, lalu digabung dengan kolom Kelompok. */
+const pmKelompokDipilih = () => { const k = $("pil-kelas").value, t = pilTingkat();
+  if (k === "-") return [];
+  if (t) return (G.kelompok || []).filter((x) => tingkatNama(x) === t);
+  return k ? [k] : (G.kelompok || []).slice(); };
+async function pmAmbilSemua(daftar, r) {
+  const hasil = new Array(daftar.length); let i = 0;
+  const kerja = async () => { while (i < daftar.length) { const n = i++;
+    hasil[n] = await rpc("mtd_pantau_mandiri", { p_pin: PIN, p_kelompok: daftar[n], p_dari: r.dari, p_sampai: r.sampai }); } };
+  await Promise.all(Array.from({ length: Math.min(4, daftar.length) }, kerja));
+  if (hasil.length === 1) return hasil[0];
+  const sama = (f) => hasil.every((d) => f(d) === f(hasil[0]));
+  return { ...hasil[0], gabungan: true, kelompok: pilTingkat() ? `Semua tingkat ${pilTingkat()}` : "Semua kelompok", n_kelompok: hasil.length,
+    tahapan: sama((d) => d.tahapan && d.tahapan.nama) ? hasil[0].tahapan : null, pilihan: sama((d) => d.pilihan) ? hasil[0].pilihan : "campur",
+    siswa: hasil.flatMap((d, n) => d.siswa.map((x) => ({ ...x, kelompok: daftar[n] }))) };
+}
 async function muatPantau(diam) {
-  const k = $("pil-kelas").value, t = $("pm-tabel"), r = pmRentang();
-  if (!k || k === "-" || pilTingkat()) { PM = null; $("pm-ubin").innerHTML = ""; $("pm-periode").textContent = "";
-    t.innerHTML = '<tbody><tr><td class="kosong-data">Pilih satu kelompok untuk melihat latihan mandirinya.</td></tr></tbody>'; return; }
-  if (diam !== true) t.innerHTML = '<tbody><tr><td class="kosong-data">Memuat…</td></tr></tbody>';
-  try { const D = await rpc("mtd_pantau_mandiri", { p_pin: PIN, p_kelompok: k, p_dari: r.dari, p_sampai: r.sampai });
+  const k = $("pil-kelas").value, t = $("pm-tabel"), r = pmRentang(), daftar = pmKelompokDipilih();
+  if (!daftar.length) { PM = null; $("pm-ubin").innerHTML = ""; $("pm-periode").textContent = "";
+    t.innerHTML = '<tbody><tr><td class="kosong-data">Siswa tanpa kelompok MD tidak punya pantauan latihan mandiri. Pilih kelompok lain.</td></tr></tbody>'; return; }
+  if (diam !== true) t.innerHTML = `<tbody><tr><td class="kosong-data">Memuat${daftar.length > 1 ? ` ${daftar.length} kelompok` : ""}…</td></tr></tbody>`;
+  try { const D = await pmAmbilSemua(daftar, r);
     if ($("pil-kelas").value !== k) return;   // kelompok sudah diganti selama memuat
     PM = D; gambarPantau(); }
   catch (e) { if (diam !== true) t.innerHTML = `<tbody><tr><td class="kosong-data">Gagal memuat: ${esc(e.message)}</td></tr></tbody>`; }
@@ -1335,20 +1352,21 @@ function gambarPantau() {
   const S = D.siswa.filter((r) => pmSaring(r, sv)), n = (f) => S.filter(f).length;
   const tg = (x, thn) => new Date(x + "T00:00:00").toLocaleDateString("id-ID", { day: "numeric", month: "short", ...(thn ? { year: "numeric" } : {}) });
   $("pm-periode").innerHTML = `Periode: <b>${tg(D.dari)} – ${tg(D.sampai, true)}</b> (${D.hari} hari)` + (D.dipotong && PM_PER.kunci !== "smt" ? " · <b>dipotong di awal semester</b>" : "") +
-    (h ? ` · tahapan mandiri: <b>${esc(h.nama)}</b> (${h.n_level} level)` : D.pilihan === "bebas" ? " · siswa bebas memilih materi" : D.pilihan === "lama" ? " · aturan lama; ganti di Pengaturan &amp; Tahapan, bagian 3" : " · lanjut dari sesi kegiatan");
+    (D.gabungan ? ` · <b>${D.n_kelompok} kelompok</b>` : "") +
+    (h ? ` · tahapan mandiri: <b>${esc(h.nama)}</b> (${h.n_level} level)` : D.pilihan === "campur" ? " · aturan latihan mandiri berbeda per kelompok" : D.pilihan === "bebas" ? " · siswa bebas memilih materi" : D.pilihan === "lama" ? " · aturan lama; ganti di Pengaturan &amp; Tahapan, bagian 3" : " · lanjut dari sesi kegiatan");
   const selesai = n((r) => r.selesai_tahapan), belum = n((r) => r.tahapan_nama && !r.mulai_tahapan && !r.selesai_tahapan), diam = n((r) => !r.n_jawab);
   $("pm-ubin").innerHTML = ubinHtml([[S.length, sv ? `siswa sesuai saringan <span class="dari">dari ${D.siswa.length}</span>` : "siswa", "siswa"], [n((r) => r.online), "sedang berlatih", "aktif", "baik"],
     ...(ada ? [[n((r) => r.mulai_tahapan && !r.selesai_tahapan), "sedang di tahapan", "mulai"], [selesai, "tahapan selesai", "level", selesai ? "baik" : "redup-ubin"], [belum, "belum mulai tahapan", "diam", belum ? "emas" : "redup-ubin"]] : []),
     [diam, "tidak berlatih dalam periode", "diam", diam ? "emas" : "redup-ubin"]]);
   const L = S;
-  $("pm-tabel").innerHTML = `<thead><tr><th>No</th><th>Nama</th><th>Status</th><th>Posisi mandiri</th><th>Jalur</th><th>Kegiatan</th><th class="angka">Akurasi</th><th class="angka">Level tuntas</th><th class="angka">Waktu</th><th>Terakhir</th></tr></thead><tbody>` +
+  $("pm-tabel").innerHTML = `<thead><tr><th>No</th><th>Nama</th>${D.gabungan ? "<th>Kelompok</th>" : ""}<th>Status</th><th>Posisi mandiri</th><th>Jalur</th><th>Kegiatan</th><th class="angka">Akurasi</th><th class="angka">Level tuntas</th><th class="angka">Waktu</th><th>Terakhir</th></tr></thead><tbody>` +
     (L.length ? L.map((r, i) => { const st = pmStatus(r);
-      return `<tr class="klik" data-n="${esc(r.nisn)}"><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td><td><span class="lencana ringkas ${st.c}">${esc(st.t)}</span></td>
+      return `<tr class="klik" data-n="${esc(r.nisn)}"><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>${D.gabungan ? `<td>${esc(r.kelompok)}</td>` : ""}<td><span class="lencana ringkas ${st.c}">${esc(st.t)}</span></td>
         <td class="posisi">${r.posisi ? `<span class="pos-nm">${esc(r.posisi.nama_tingkat)}</span><span class="pos-lv">Level ${r.posisi.level}${r.posisi.selesai ? " · selesai" : ""}</span>` : '<span class="redup">–</span>'}</td>
         <td class="pm-tahap">${r.tahapan_nama ? `<div class="maju"><div class="batang"><i style="width:${100 * Math.min(r.n_tuntas, r.n_level) / Math.max(1, r.n_level)}%"></i></div><span>${r.n_tuntas}/${r.n_level}</span></div>${r.tahapan_nama !== (h && h.nama) ? `<small>${esc(r.tahapan_nama)}</small>` : ""}` : r.pilihan === "sesi" ? `Lanjut dari sesi${r.resmi ? `<small>resmi: ${esc(r.resmi.nama_tingkat)} · Level ${r.resmi.level}${r.resmi.selesai ? " (selesai)" : ""}</small>` : ""}` : r.saran ? `<small>Saran ${esc(r.saran.nama_tingkat)} · Level ${r.saran.level}</small>` : "Bebas memilih"}</td>
         <td class="pm-sel">${r.hari} hari · ${r.n_jawab} soal${r.pilih_soal ? `<small title="Jumlah soal per level yang biasa dipilih siswa">biasa memilih ${r.pilih_soal} soal per level</small>` : ""}</td>
         <td class="angka">${r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) + "%" : "–"}</td><td class="angka">${r.tuntas_periode}</td><td class="angka">${r.detik ? lamaTeks(r.detik) : "–"}</td><td>${r.terakhir ? sejakTeks(r.terakhir) : "–"}</td></tr>`; }).join("")
-      : '<tr><td colspan="10" class="kosong-data">Tidak ada siswa.</td></tr>') + "</tbody>";
+      : `<tr><td colspan="${D.gabungan ? 11 : 10}" class="kosong-data">Tidak ada siswa.</td></tr>`) + "</tbody>";
   $("pm-tabel").querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = () => bukaSiswa(tr.dataset.n));
 }
 $("pm-saring").onchange = () => { if (PM) gambarPantau(); };
@@ -1367,16 +1385,16 @@ $("pm-tgl").onsubmit = (e) => {
   PM_PER = { kunci: "pilih", dari: d, sampai: z }; document.querySelectorAll("[data-pmper]").forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.pmper === "pilih")));
   $("pm-tgl").classList.add("hidden"); document.querySelector('[data-pmper="pilih"]').setAttribute("aria-expanded", "false"); muatPantau();
 };
-setInterval(() => { if (SUB === "mandiri" && PM && !document.hidden && $("pk-mandiri").offsetParent) muatPantau(true); }, 60000);
+setInterval(() => { if (SUB === "mandiri" && PM && !PM.gabungan && !document.hidden && $("pk-mandiri").offsetParent) muatPantau(true); }, 60000);
 $("pm-unduh").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
-  if (!PM) throw new Error("Pilih satu kelompok dulu.");
+  if (!PM) throw new Error("Pilih kelompok dulu.");
   const D = PM, h = D.tahapan, nama = `Pantau_Mandiri_${potongNama(D.kelompok)}_${tglBerkas()}.xlsx`;
-  await unduhBukuXLSX({ namaBerkas: nama, judulBuku: "Pantau Latihan Mandiri", lembar: [{ nama: "Latihan Mandiri", judul: "Pantau Latihan Mandiri", sub: `Kelompok ${D.kelompok}`,
-    info: [["Periode", `${D.dari} s.d. ${D.sampai}`], ["Latihan mandiri", h ? `Tahapan ${h.nama} (${h.n_level} level)` : D.pilihan === "bebas" ? "Bebas memilih materi" : D.pilihan === "lama" ? "Aturan lama" : "Lanjut dari sesi kegiatan"], ["Jumlah siswa", `${D.siswa.length} siswa`]],
-    kolom: [{ t: "No", w: 5, rata: "center" }, { t: "Nama", w: 30, tebal: true }, { t: "NISN", w: 13, rata: "center" }, { t: "Rombel", w: 9, rata: "center" }, { t: "Status", w: 24 }, { t: "Posisi mandiri", w: 30 },
+  await unduhBukuXLSX({ namaBerkas: nama, judulBuku: "Pantau Latihan Mandiri", lembar: [{ nama: "Latihan Mandiri", judul: "Pantau Latihan Mandiri", sub: D.gabungan ? `${D.kelompok} (${D.n_kelompok} kelompok)` : `Kelompok ${D.kelompok}`,
+    info: [["Periode", `${D.dari} s.d. ${D.sampai}`], ["Latihan mandiri", h ? `Tahapan ${h.nama} (${h.n_level} level)` : D.pilihan === "campur" ? "Berbeda per kelompok" : D.pilihan === "bebas" ? "Bebas memilih materi" : D.pilihan === "lama" ? "Aturan lama" : "Lanjut dari sesi kegiatan"], ["Jumlah siswa", `${D.siswa.length} siswa`]],
+    kolom: [{ t: "No", w: 5, rata: "center" }, { t: "Nama", w: 30, tebal: true }, { t: "NISN", w: 13, rata: "center" }, { t: "Rombel", w: 9, rata: "center" }, ...(D.gabungan ? [{ t: "Kelompok", w: 11, rata: "center" }] : []), { t: "Status", w: 24 }, { t: "Posisi mandiri", w: 30 },
       { t: "Jalur", w: 24 }, { t: "Tuntas tahapan", w: 10, rata: "center" }, { t: "Hari", w: 7, rata: "center" }, { t: "Soal", w: 8, rata: "center" }, { t: "Akurasi", w: 9, rata: "center", fmt: '0"%"', cf: CF_PERSEN },
       { t: "Level tuntas (periode)", w: 10, rata: "center" }, { t: "Menit", w: 8, rata: "center" }, { t: "Pilihan soal per level", w: 10, rata: "center" }, { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }],
-    baris: D.siswa.map((r, i) => [i + 1, r.nama, r.nisn, r.kelas, pmStatus(r).t, pmPosisi(r), r.tahapan_nama || (r.pilihan === "sesi" ? "Lanjut dari sesi" : "Bebas memilih"), r.tahapan_nama ? `${r.n_tuntas}/${r.n_level}` : "", r.hari, r.n_jawab, r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", r.tuntas_periode, Math.round(r.detik / 60), r.pilih_soal || "", waktuXL(r.terakhir)]),
+    baris: D.siswa.map((r, i) => [i + 1, r.nama, r.nisn, r.kelas, ...(D.gabungan ? [r.kelompok] : []), pmStatus(r).t, pmPosisi(r), r.tahapan_nama || (r.pilihan === "sesi" ? "Lanjut dari sesi" : "Bebas memilih"), r.tahapan_nama ? `${r.n_tuntas}/${r.n_level}` : "", r.hari, r.n_jawab, r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", r.tuntas_periode, Math.round(r.detik / 60), r.pilih_soal || "", waktuXL(r.terakhir)]),
     catatan: ["Latihan tanpa pengawasan guru, terpisah dari kemajuan resmi. Kemajuan tahapan dihitung sejak tahapan dipasang."] }] });
   return nama;
 });
@@ -1562,7 +1580,7 @@ function gambarDaftar() {
     (R.length ? R.map((r, i) => `<tr class="klik ${PILIH.has(r.nisn) ? "dipilih" : ""}" data-n="${esc(r.nisn)}"><td class="pilih ubah"><input type="checkbox" data-pilih="${esc(r.nisn)}" ${PILIH.has(r.nisn) ? "checked" : ""} aria-label="Pilih ${esc(r.nama)}"></td><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>
       <td class="nisn">${esc(r.nisn)}</td><td>${esc(r.kelas)}</td>
       ${semua && MODE_MD ? `<td>${esc(r.kelompok || "–")}</td>` : ""}
-      <td>${statusDaftar(r)}${r.pindah_pt >= 2 ? `<span class="pindah-catat" title="Sesi siswa ini tertutup ${r.pindah_pt} kali karena NISN yang sama dipakai masuk di HP/tab lain (sejak pertemuan terakhir). Mungkin dua perangkat memakai satu NISN, atau teman salah mengetik NISN.">NISN dipakai di perangkat lain ${r.pindah_pt}×</span>` : ""}</td>
+      <td>${statusDaftar(r)}${r.pindah_pt >= 2 ? `<span class="pindah-catat" title="Sesi siswa ini tertutup ${r.pindah_pt} kali karena NISN yang sama dipakai masuk di perangkat (HP/browser) lain sejak pertemuan terakhir. Mungkin dua perangkat memakai satu NISN, atau teman salah mengetik NISN. Masuk ulang di HP dan browser yang sama (mis. browser tertutup lalu dibuka lagi) tidak dihitung sejak 10 Nov 2026.">NISN dipakai di perangkat lain ${r.pindah_pt}×</span>` : ""}</td>
       <td class="posisi">${r.online_mandiri && r.pos_mandiri ? `<span class="pos-nm">${esc(r.pos_mandiri.nama_tingkat)}</span><span class="pos-lv">Level ${r.pos_mandiri.level} · latihan mandiri</span>${r.tingkat ? `<span class="pos-lv">Resmi: ${esc(r.nama_tingkat)} · Level ${r.level}</span>` : ""}`
         : r.tingkat ? `<span class="pos-nm">${esc(r.nama_tingkat)}</span><span class="pos-lv">Level ${r.level}</span>` : '<span class="redup">–</span>'}</td>
       <td class="angka">${r.keluar_pt || '<span class="redup">0</span>'}</td>
