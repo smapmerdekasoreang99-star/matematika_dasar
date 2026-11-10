@@ -837,7 +837,7 @@ body.lihat .ubah { display: none !important; }
         </form>
         <p class="kecil redup" id="pm-periode" aria-live="polite" style="margin:4px 0 10px"></p>
         <div class="ubin" id="pm-ubin"></div>
-        <div class="gulir seksi-tabel"><table class="tabel" id="pm-tabel"></table></div>
+        <div class="gulir seksi-tabel"><table class="tabel" id="pm-tabel" data-beku="2"></table></div>
         <p class="redup kecil">Latihan tanpa pengawasan guru, terpisah dari kemajuan resmi. Kemajuan tahapan dihitung sejak tahapan dipasang. Ketuk nama untuk melihat analisisnya.</p>
       </div>
       <!-- Peringkat: sekolah / angkatan / kelompok, menurut periode -->
@@ -1359,6 +1359,8 @@ function gambarPantau() {
     ...(ada ? [[n((r) => r.mulai_tahapan && !r.selesai_tahapan), "sedang di tahapan", "mulai"], [selesai, "tahapan selesai", "level", selesai ? "baik" : "redup-ubin"], [belum, "belum mulai tahapan", "diam", belum ? "emas" : "redup-ubin"]] : []),
     [diam, "tidak berlatih dalam periode", "diam", diam ? "emas" : "redup-ubin"]]);
   const L = S;
+  // Tabel bergulir dua arah (10 Nov 2026): judul tetap di atas; No, Nama (dan Kelompok bila gabungan) tetap di kiri.
+  $("pm-tabel").dataset.beku = D.gabungan ? "3" : "2";
   $("pm-tabel").innerHTML = `<thead><tr><th>No</th><th>Nama</th>${D.gabungan ? "<th>Kelompok</th>" : ""}<th>Status</th><th>Posisi mandiri</th><th>Jalur</th><th>Kegiatan</th><th class="angka">Akurasi</th><th class="angka">Level tuntas</th><th class="angka">Waktu</th><th>Terakhir</th></tr></thead><tbody>` +
     (L.length ? L.map((r, i) => { const st = pmStatus(r);
       return `<tr class="klik" data-n="${esc(r.nisn)}"><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>${D.gabungan ? `<td>${esc(r.kelompok)}</td>` : ""}<td><span class="lencana ringkas ${st.c}">${esc(st.t)}</span></td>
