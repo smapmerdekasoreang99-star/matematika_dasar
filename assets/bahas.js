@@ -695,7 +695,17 @@ const BahasMatdas = (() => {
     } else return null;
     if (!samaQ(hasil, k)) return null;
     const dk = desTeks(hasil.p, hasil.q);
-    L.push({ h: `Jadi hasilnya ${hasil.q === 1 ? N(hasil.p) : !kunci.includes("/") && dk ? N(dk) : `${P(hasil.p, hasil.q)}${dk && dk.length <= 8 ? ` = ${N(dk)}` : ""}`}` });
+    // Bentuk hasil mengikuti kunci server (mtd_soal_notasi): desimal pendek (≤ 3 angka di belakang koma) → desimal,
+    // selain itu cukup sampai pecahan. Keterangannya ditulis agar siswa tahu mengapa.
+    const dec = hasil.q !== 1 && !kunci.includes("/") && dk;
+    if (dec) {
+      L.push({ h: `Desimalnya pendek (pembagiannya habis), jadi hasilnya ditulis desimal: ${P(hasil.p, hasil.q)}${sama}${N(hasil.p)} ÷ ${N(hasil.q)}${sama}${N(dk)}. Menjawab ${P(hasil.p, hasil.q)} juga benar.` });
+    } else if (hasil.q !== 1 && hasil.p > 0) {
+      const t = Math.floor(hasil.p * 10000 / hasil.q), kira = `${Math.floor(t / 10000)},${String(t % 10000).padStart(4, "0")}…`;
+      L.push({ h: dk ? `Cukup sampai pecahan, karena desimalnya panjang, lebih dari 3 angka di belakang koma (${N(hasil.p)} ÷ ${N(hasil.q)}${sama}${N(dk)}).`
+        : `Cukup sampai pecahan, karena desimalnya berulang tanpa henti (${N(hasil.p)} ÷ ${N(hasil.q)}${sama}${kira}).` });
+    }
+    L.push({ h: `Jadi hasilnya ${hasil.q === 1 ? N(hasil.p) : dec ? N(dk) : P(hasil.p, hasil.q)}` });
     return { langkah: L, susun: "", hasil };
   }
 
