@@ -137,16 +137,29 @@
     const rentang = akhir - awal;
     const W = 1000, ml = 8, mr = 8, gap = 2, x = (p) => ml + ((Math.min(Math.max(p, awal), akhir - 1) - awal + 0.5) / rentang) * (W - ml - mr);
     const kol = new Map(); S.slice().sort((a, b) => a.lewat - b.lewat).forEach((s) => { const k = s.selesai ? akhir - 1 : s.lewat; if (!kol.has(k)) kol.set(k, []); kol.get(k).push(s); });
-    const tumpuk = Math.max(...[...kol.values()].map((v) => v.length)), r = Math.max(3, Math.min(7, (230 / tumpuk - gap) / 2)), top = 14, base = top + tumpuk * (2 * r + gap), H = base + 62;
-    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
-    const pendek = seg.length > 6;
-    seg.forEach((t, i) => {
+    const tumpuk = Math.max(...[...kol.values()].map((v) => v.length)), r = Math.max(3, Math.min(7, (230 / tumpuk - gap) / 2)), top = 14, base = top + tumpuk * (2 * r + gap);
+    // Label tingkat: nama lengkap, dipecah per kata agar muat; label yang bertabrakan dengan tetangganya
+    // turun ke baris berikutnya dan diberi garis penunjuk ke lintasannya (tingkat dengan sedikit level sempit).
+    const fsN = seg.length > 6 ? 12 : 13.5, fsK = 11.5, cwN = fsN * 0.6, cwK = fsK * 0.55, jarak = 12;
+    const bungkus = (s, maks) => { const out = []; let b = ""; s.split(/\s+/).forEach((k) => { if (b && (b + " " + k).length > maks) { out.push(b); b = k; } else b = b ? b + " " + k : k; }); if (b) out.push(b); return out; };
+    const lbl = seg.map((t) => {
       const a0 = Math.max(t.awal - 1, awal), a1 = Math.min(t.awal - 1 + t.n_level, akhir), x0 = ml + ((a0 - awal) / rentang) * (W - ml - mr), w = ((a1 - a0) / rentang) * (W - ml - mr);
+      const ket = zoom && (a0 > t.awal - 1 || a1 < t.awal - 1 + t.n_level) ? `level ${a0 - t.awal + 2}–${a1 - t.awal + 1} dari ${t.n_level}` : `${t.n_level} level`;
+      const baris = bungkus(t.nama, Math.max(9, Math.floor(Math.max(w - 8, 64) / cwN)));
+      const lebar = Math.max(ket.length * cwK, ...baris.map((b) => b.length * cwN));
+      const cx = Math.min(Math.max(x0 + w / 2, ml + lebar / 2), W - mr - lebar / 2);
+      return { t, x0, w, ket, baris, lebar, cx, tinggi: baris.length * fsN * 1.2 + fsK + 6 };
+    });
+    const ujung = []; lbl.forEach((L) => { let b = 0; while (ujung[b] != null && ujung[b] + jarak > L.cx - L.lebar / 2) b++; L.baris_ke = b; ujung[b] = L.cx + L.lebar / 2; });
+    const tBaris = Math.max(...lbl.map((L) => L.tinggi)) + 6, y0 = base + (zoom ? 30 : 24), H = y0 + ujung.length * tBaris + 4;
+    svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+    lbl.forEach((L) => {
+      const { t, x0, w } = L, yT = y0 + L.baris_ke * tBaris;
       svg.append(el("rect", { x: x0 + 1, y: base + 6, width: Math.max(2, w - 2), height: 10, rx: 5, fill: "var(--rk-lintas)" }));
-      const nama = pendek && w < 150 ? t.nama.split(" ")[0] : t.nama;
-      svg.append(el("text", { x: x0 + w / 2, y: base + (zoom ? 40 : 34), "font-size": pendek ? 12 : 13.5, "text-anchor": "middle", class: "rk-kuat" }, nama));
-      svg.append(el("text", { x: x0 + w / 2, y: base + (zoom ? 55 : 50), "font-size": 11.5, "text-anchor": "middle" }, zoom && (a0 > t.awal - 1 || a1 < t.awal - 1 + t.n_level) ? `level ${a0 - t.awal + 2}–${a1 - t.awal + 1} dari ${t.n_level}` : `${t.n_level} level`));
-      const g = el("g"); g.append(el("rect", { class: "rk-hit", x: x0, y: base, width: w, height: 58, "data-tip": `<b>${esc(t.nama)}</b> · ${t.n_level} level<br>${S.filter((s) => s.tingkat === t.kode && !s.selesai).length} siswa di tingkat ini` })); svg.append(g);
+      if (L.baris_ke > 0) svg.append(el("path", { d: `M${x0 + w / 2} ${base + 18} V${yT - 4} H${L.cx}`, fill: "none", stroke: "var(--garis-2)", "stroke-width": 1, "stroke-dasharray": "2 2" }));
+      L.baris.forEach((b, i) => svg.append(el("text", { x: L.cx, y: yT + fsN * (i + 1) * 1.2 - fsN * 0.2, "font-size": fsN, "text-anchor": "middle", class: "rk-kuat" }, b)));
+      svg.append(el("text", { x: L.cx, y: yT + L.baris.length * fsN * 1.2 + fsK + 2, "font-size": fsK, "text-anchor": "middle" }, L.ket));
+      const g = el("g"); g.append(el("rect", { class: "rk-hit", x: x0, y: base, width: w, height: H - base, "data-tip": `<b>${esc(t.nama)}</b> · ${t.n_level} level<br>${S.filter((s) => s.tingkat === t.kode && !s.selesai).length} siswa di tingkat ini` })); svg.append(g);
     });
     if (zoom) for (let p = awal; p < akhir; p++) { const t = J.find((u) => p >= u.awal - 1 && p < u.awal - 1 + u.n_level); if (t) svg.append(el("text", { x: x(p), y: base + 24, "font-size": 10.5, "text-anchor": "middle" }, "L" + (p - t.awal + 2))); }
     const warna = (s) => s.naik >= 2 ? "var(--rk-t)" : s.naik === 1 ? "var(--rk-s)" : "var(--rk-r)";
