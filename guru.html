@@ -385,6 +385,42 @@ span.ab-asal.a-umum { background: var(--kertas-3); color: var(--tinta-2); box-sh
 /* Kolom posisi: nama tingkat lalu level di bawahnya */
 #t-perkelompok th { vertical-align: bottom; line-height: 1.45; } #t-perkelompok td.posisi { min-width: 160px; }
 td.posisi { min-width: 200px; } td.posisi .pos-nm { display: block; font-weight: 600; line-height: 1.35; } td.posisi .pos-lv { display: block; font-size: var(--h-xs); color: var(--tinta-2); }
+/* Daftar siswa per batang sebaran (12 Nov 2026) */
+.sb-panel { margin-top: var(--j4); border: 1px solid var(--garis); border-radius: 14px; background: var(--kertas-2); box-shadow: inset 4px 0 0 var(--sakit); overflow: hidden; }
+.sb-kepala { display: grid; grid-template-columns: 1fr auto; gap: var(--j2) var(--j3); align-items: start; padding: var(--j3) var(--j4) var(--j3) calc(var(--j4) + 4px); border-bottom: 1px solid var(--garis); background: var(--kertas); }
+.sb-judul h3 { margin: 2px 0 0; font-size: 17px; line-height: 1.3; color: var(--tinta); overflow-wrap: anywhere; }
+.sb-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--sakit-tua); }
+.sb-chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.sb-chip { display: inline-flex; align-items: baseline; gap: 4px; padding: 4px 10px; border-radius: var(--r-bulat); background: var(--kertas-3); border: 1px solid var(--garis); font-size: var(--h-s); color: var(--tinta-2); white-space: nowrap; }
+.sb-chip b { color: var(--tinta); font-variant-numeric: tabular-nums; }
+.sb-chip.baik { background: var(--hadir-muda); border-color: transparent; color: var(--hadir-tua); } .sb-chip.baik b { color: var(--hadir-tua); }
+.sb-chip.emas { background: var(--emas-muda); border-color: transparent; color: var(--emas-teks); } .sb-chip.emas b { color: var(--emas-teks); }
+.sb-chip.buruk { background: var(--absen-muda); border-color: transparent; color: var(--absen-tua); } .sb-chip.buruk b { color: var(--absen-tua); }
+.sb-panel .gulir { padding: var(--j2) var(--j3) 0; }
+.sb-panel .fz-wadah { max-height: min(520px, calc(100vh - 180px)); }
+.sb-tabel { width: 100%; }
+.sb-tabel td { padding-top: 9px; padding-bottom: 9px; white-space: nowrap; }
+.sb-tabel tbody tr:nth-child(even) td { background-color: var(--kertas); }
+.sb-tabel tbody tr:hover td { background-color: var(--sakit-muda); }
+.sb-tabel tr.sb-grup td { border-top: 2px solid var(--garis-2); }
+.sb-tabel .sb-no { width: 1%; text-align: right; color: var(--tinta-3); font-variant-numeric: tabular-nums; }
+.sb-tag { display: inline-block; padding: 2px 8px; border-radius: 6px; background: var(--sakit-muda); color: var(--sakit-tua); font-size: var(--h-xs); font-weight: 700; letter-spacing: .02em; }
+.sb-rombel { color: var(--tinta-2); font-variant-numeric: tabular-nums; }
+.sb-tabel td.sb-nama { white-space: normal; min-width: 180px; max-width: 280px; font-weight: 600; color: var(--tinta); line-height: 1.35; }
+.sb-nisn { font-variant-numeric: tabular-nums; color: var(--tinta-2); letter-spacing: .02em; }
+.sb-lv { display: inline-block; padding: 2px 10px; border-radius: var(--r-bulat); background: var(--kertas-3); border: 1px solid var(--garis); font-size: var(--h-s); font-weight: 700; color: var(--tinta); font-variant-numeric: tabular-nums; }
+.sb-lv.tamat { background: var(--hadir-muda); border-color: transparent; color: var(--hadir-tua); }
+.sb-level small { display: block; margin-top: 2px; font-size: var(--h-xs); color: var(--tinta-3); }
+.sb-ak { display: flex; align-items: center; gap: var(--j2); min-width: 140px; }
+.sb-ak .batang { flex: 1; min-width: 70px; }
+.sb-ak b { min-width: 3.2em; text-align: right; font-variant-numeric: tabular-nums; }
+.sb-ak.baik .batang i { background: var(--hadir); } .sb-ak.baik b { color: var(--hadir-tua); }
+.sb-ak.emas .batang i { background: var(--emas); } .sb-ak.emas b { color: var(--emas-teks); }
+.sb-ak.buruk .batang i { background: var(--absen); } .sb-ak.buruk b { color: var(--absen-tua); }
+.sb-catatan { margin: 0; padding: var(--j2) var(--j4) var(--j3) calc(var(--j4) + 4px); font-size: var(--h-xs); color: var(--tinta-3); line-height: 1.5; }
+.sb-titik { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin: 0 4px 0 2px; }
+.sb-titik.baik { background: var(--hadir); } .sb-titik.emas { background: var(--emas); } .sb-titik.buruk { background: var(--absen); }
+@media (max-width: 560px) { .sb-kepala { padding: var(--j3); } .sb-panel .gulir { padding: var(--j2) var(--j2) 0; } .sb-tabel td.sb-nama { min-width: 150px; } }
 .massal .m-kepala { display: flex; align-items: center; gap: var(--j3); flex-wrap: wrap; }
 .massal .m-baris { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: var(--j3); align-items: start; }
 .massal .m-jarak { width: var(--j5); }
@@ -809,6 +845,7 @@ body.lihat .ubah { display: none !important; }
         <h2>Sebaran posisi siswa</h2>
         <p class="redup kecil" style="margin-top:0">Banyak siswa yang sedang berada di tiap tingkat.</p>
         <div class="grafik" id="g-sebaran"></div>
+        <div id="g-sebaran-daftar"></div>
       </div>
       <div class="kartu"><h2>Perbandingan kelompok</h2><div class="gulir"><table class="tabel" id="t-perkelompok" data-beku="1"></table></div>
         <p class="redup kecil">Ketuk baris kelompok untuk menampilkan ringkasan dan sebarannya di atas. Macet: 3 kali atau lebih mengulang level yang sama, atau 8 kali salah di level itu. Tidak aktif: tidak berlatih sejak pertemuan terakhir kelompoknya (hari pertemuan dari jadwal KBM Data Induk; kelompok tanpa jadwal: 7 hari terakhir).</p></div>
@@ -1433,13 +1470,15 @@ function gambarKelas() {
   ]);
 
   // sebaran per tingkat
-  const baris = G.tingkat.filter((t) => t.aktif).map((t) => ({ label: t.nama, n: R.filter((r) => r.tingkat === t.kode && !r.selesai).length }));
+  const baris = G.tingkat.filter((t) => t.aktif).map((t) => ({ label: t.nama, kode: t.kode, n: R.filter((r) => r.tingkat === t.kode && !r.selesai).length }));
   // 22 Okt 2026: hanya rentang tingkat yang berisi siswa (± satu tingkat di kiri/kanan), sisanya disebut di catatan
   const isi = baris.map((b, i) => (b.n ? i : -1)).filter((i) => i >= 0);
   const tampil = isi.length ? baris.slice(Math.max(0, isi[0] - 1), Math.min(baris.length, isi[isi.length - 1] + 2)) : baris, sembunyi = baris.length - tampil.length;
   const tamat = R.filter((r) => r.selesai).length, belum = R.length - mulai.length;
-  if (tamat) tampil.push({ label: "Tamat semua tingkat", n: tamat });
-  batangMendatar($("g-sebaran"), tampil, "siswa", [belum ? `${belum} siswa belum pernah masuk.` : "", sembunyi ? `${sembunyi} tingkat lain tanpa siswa tidak ditampilkan.` : ""].filter(Boolean).join(" "));
+  if (tamat) tampil.push({ label: "Tamat semua tingkat", n: tamat, kode: "~tamat" });
+  batangMendatar($("g-sebaran"), tampil, "siswa", [belum ? `${belum} siswa belum pernah masuk.` : "", sembunyi ? `${sembunyi} tingkat lain tanpa siswa tidak ditampilkan.` : "", "Ketuk batang untuk melihat daftar siswanya."].filter(Boolean).join(" "),
+    { pilih: SEBARAN_PILIH, onPilih: (d) => { SEBARAN_PILIH = SEBARAN_PILIH === d.kode ? null : d.kode; gambarKelas(); } });
+  gambarDaftarSebaran(R, tampil);
 
   const u = $("pil-urut").value;
   R.sort((a, b) => u === "nama" ? a.nama.localeCompare(b.nama)
@@ -1458,6 +1497,55 @@ function gambarKelas() {
         <td>${sejakTeks(r.terakhir)}</td><td class="posisi">${mandiriHtml(r)}</td><td><span class="lencana-daftar">${status(r).map((s) => `<span class="lencana ringkas ${s.c}" title="${esc(s.t)}">${esc(s.t)}</span>`).join("")}</span></td></tr>`;
     }).join("") : '<tr><td colspan="12" class="kosong-data">Tidak ada siswa.</td></tr>') + "</tbody>";
   $("t-kelas").querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = () => bukaSiswa(tr.dataset.n));
+}
+
+/* Daftar siswa pada batang sebaran yang dipilih (12 Nov 2026): Kelompok, Rombel,
+   Nama, NISN, Level terakhir, Akurasi; urut kelompok lalu nama. Kepala panel
+   meringkas tingkat itu; tiap kelompok dipisah garis supaya mudah dipindai.
+   Ketuk batang yang sama atau Tutup untuk menyembunyikan. */
+let SEBARAN_PILIH = null;
+const akurasiSiswa = (r) => r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : null;
+const kelasAkurasi = (p) => p == null ? "" : p >= 80 ? "baik" : p >= 60 ? "emas" : "buruk";
+function gambarDaftarSebaran(R, tampil) {
+  const w = $("g-sebaran-daftar"), d = tampil.find((b) => b.kode === SEBARAN_PILIH);
+  if (!d || !d.n) { SEBARAN_PILIH = null; w.innerHTML = ""; return; }
+  const tamat = d.kode === "~tamat";
+  const sis = R.filter((r) => tamat ? r.selesai : r.tingkat === d.kode && !r.selesai).sort(urutKelompok);
+  const jw = sis.reduce((a, r) => a + (r.n_jawab || 0), 0), bn = sis.reduce((a, r) => a + (r.n_benar || 0), 0);
+  const rata = jw ? Math.round(100 * bn / jw) : null;
+  const lv = sis.map((r) => r.level).filter((x) => x != null);
+  const grup = (r) => MODE_MD ? r.kelompok || "–" : r.kelas || "–";
+  const nGrup = new Set(sis.map(grup)).size;
+  const chip = (isi, judul, c = "") => `<span class="sb-chip ${c}" title="${esc(judul)}">${isi}</span>`;
+  const lvMin = lv.length ? Math.min(...lv) : null, lvMaks = lv.length ? Math.max(...lv) : null;
+  let lalu = null;
+  const baris = sis.map((r, i) => {
+    const p = akurasiSiswa(r), awalGrup = i > 0 && grup(r) !== lalu; lalu = grup(r);
+    const level = tamat
+      ? `<span class="sb-lv tamat">Tamat</span>${r.level ? `<small>${esc(r.nama_tingkat || "")} · Level ${r.level}</small>` : ""}`
+      : `<span class="sb-lv">Level ${esc(r.level ?? "–")}</span>`;
+    const ak = p == null ? `<span class="redup kecil">belum menjawab</span>`
+      : `<div class="sb-ak ${kelasAkurasi(p)}"><div class="batang"><i style="width:${p}%"></i></div><b>${p}%</b></div>`;
+    return `<tr class="klik${awalGrup ? " sb-grup" : ""}" data-n="${esc(r.nisn)}" title="Buka analisis ${esc(r.nama)}">
+      <td class="sb-no">${i + 1}</td>${MODE_MD ? `<td><span class="sb-tag">${esc(r.kelompok || "–")}</span></td>` : ""}
+      <td class="sb-rombel">${esc(r.kelas || "–")}</td><td class="sb-nama">${esc(r.nama)}</td><td class="sb-nisn">${esc(r.nisn || "–")}</td>
+      <td class="sb-level">${level}</td><td class="sb-akurasi">${ak}</td></tr>`;
+  }).join("");
+  w.innerHTML = `<section class="sb-panel" aria-label="Daftar siswa ${esc(d.label)}">
+    <header class="sb-kepala">
+      <div class="sb-judul"><span class="sb-eyebrow">Daftar siswa</span><h3>${esc(d.label)}</h3></div>
+      <button type="button" class="garis kecil" id="g-sebaran-tutup" aria-label="Tutup daftar siswa">Tutup ✕</button>
+      <div class="sb-chips">${chip(`<b>${sis.length}</b> siswa`, "Jumlah siswa")}${chip(`<b>${nGrup}</b> ${MODE_MD ? "kelompok" : "rombel"}`, MODE_MD ? "Banyak kelompok" : "Banyak rombel")}${
+        lvMin != null && !tamat ? chip(`Level <b>${lvMin === lvMaks ? lvMin : `${lvMin}–${lvMaks}`}</b>`, "Rentang level siswa di tingkat ini") : ""}${
+        rata != null ? chip(`Akurasi rata-rata <b>${rata}%</b>`, "Jawaban benar ÷ seluruh jawaban siswa di tingkat ini", kelasAkurasi(rata)) : ""}</div>
+    </header>
+    <div class="gulir"><table class="tabel sb-tabel" data-beku="${MODE_MD ? 4 : 3}"><thead><tr><th class="sb-no">No</th>${MODE_MD ? "<th>Kelompok</th>" : ""}<th>Rombel</th><th>Nama siswa</th><th>NISN</th><th>Level terakhir</th><th>Akurasi</th></tr></thead>
+    <tbody>${baris}</tbody></table></div>
+    <p class="sb-catatan">Urut ${MODE_MD ? "kelompok" : "rombel"} lalu nama · ketuk baris untuk membuka analisis siswa · Akurasi = jawaban benar ÷ seluruh jawaban sejak awal latihan
+      (<span class="sb-titik baik"></span>≥ 80% · <span class="sb-titik emas"></span>60–79% · <span class="sb-titik buruk"></span>&lt; 60%).</p>
+  </section>`;
+  w.querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = () => bukaSiswa(tr.dataset.n));
+  $("g-sebaran-tutup").onclick = () => { SEBARAN_PILIH = null; gambarKelas(); $("g-sebaran").scrollIntoView({ block: "nearest" }); };
 }
 
 /* Teks pilihan kelompok/kelas yang sedang dipilih, untuk kop dan nama berkas. */
@@ -2586,7 +2674,7 @@ function tipPasang(wadah) {
   };
 }
 
-function batangMendatar(wadah, data, satuan, catatan) {
+function batangMendatar(wadah, data, satuan, catatan, opsi = {}) {
   // Digambar selebar wadahnya (1 satuan SVG = 1 px) supaya teks tetap 12–13 px di layar mana pun.
   const W = Math.max(300, wadah.clientWidth || 720), hp = W < 560, labelW = hp ? Math.round(W * 0.46) : Math.min(320, Math.round(W * 0.34)), fs = hp ? 11.5 : 13;
   // Label yang terlalu panjang dipendekkan supaya tidak keluar dari kartu (nama lengkap ada di tooltip).
@@ -2596,7 +2684,8 @@ function batangMendatar(wadah, data, satuan, catatan) {
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sebaran siswa per tingkat"><defs><linearGradient id="gb" x1="0" x2="1"><stop offset="0" stop-color="#2F5D7C"/><stop offset="1" stop-color="#3E7FA6"/></linearGradient></defs>`;
   data.forEach((d, i) => {
     const y = i * (tinggi + jarak), w = d.n ? Math.max(4, lebar * d.n / maks) : 0;
-    s += `<g class="bt" data-i="${i}"><rect x="0" y="${y - 2}" width="${W}" height="${tinggi + 4}" fill="transparent"/>
+    const dipilih = opsi.pilih != null && d.kode === opsi.pilih, bisa = opsi.onPilih && d.n;
+    s += `<g class="bt" data-i="${i}"${bisa ? ` role="button" tabindex="0" aria-pressed="${dipilih}" style="cursor:pointer"` : ""}><rect x="0" y="${y - 2}" width="${W}" height="${tinggi + 4}" rx="6" fill="${dipilih ? "#EAF1F6" : "transparent"}"${dipilih ? ` stroke="#3E7FA6" stroke-width="1.5"` : ""}/>
       <text x="${labelW - 10}" y="${y + tinggi / 2 + 5}" text-anchor="end" font-size="${fs}" fill="#5E5548"><title>${esc(d.label)}</title>${esc(pendek(d.label))}</text>
       <rect x="${labelW}" y="${y + 3}" width="${lebar}" height="${tinggi - 6}" rx="4" fill="#F6F2E8"/>
       ${w ? `<path d="M${labelW},${y + 3} h${w - 4} a4,4 0 0 1 4,4 v${tinggi - 14} a4,4 0 0 1 -4,4 h${-(w - 4)} z" fill="url(#gb)"/>` : ""}
@@ -2609,6 +2698,11 @@ function batangMendatar(wadah, data, satuan, catatan) {
     g.onmousemove = (e) => { const d = data[g.dataset.i], r = wadah.getBoundingClientRect();
       tip.show(`${esc(d.label)}<br><b>${d.n} ${satuan}</b>`, e.clientX - r.left, e.clientY - r.top); };
     g.onmouseleave = () => tip.hide();
+    const d = data[g.dataset.i];
+    if (opsi.onPilih && d.n) {
+      g.onclick = () => { tip.hide(); opsi.onPilih(d); };
+      g.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); opsi.onPilih(d); } };
+    }
   });
 }
 
