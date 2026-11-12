@@ -396,7 +396,8 @@ td.posisi { min-width: 200px; } td.posisi .pos-nm { display: block; font-weight:
 .sb-chip.baik { background: var(--hadir-muda); border-color: transparent; color: var(--hadir-tua); } .sb-chip.baik b { color: var(--hadir-tua); }
 .sb-chip.emas { background: var(--emas-muda); border-color: transparent; color: var(--emas-teks); } .sb-chip.emas b { color: var(--emas-teks); }
 .sb-chip.buruk { background: var(--absen-muda); border-color: transparent; color: var(--absen-tua); } .sb-chip.buruk b { color: var(--absen-tua); }
-.sb-panel .gulir { padding: var(--j2) var(--j3) 0; }
+.sb-panel .gulir { padding: 0; margin: var(--j2) var(--j3) 0; }
+.sb-tabel thead th { border-radius: 0 !important; box-shadow: 0 1px 0 var(--garis), 0 4px 6px -4px rgba(29, 42, 58, .18); }   /* kepala menutup penuh saat digulir */
 .sb-panel .fz-wadah { max-height: min(520px, calc(100vh - 180px)); }
 .sb-tabel { width: 100%; }
 .sb-tabel td { padding-top: 9px; padding-bottom: 9px; white-space: nowrap; }
@@ -420,7 +421,7 @@ td.posisi { min-width: 200px; } td.posisi .pos-nm { display: block; font-weight:
 .sb-catatan { margin: 0; padding: var(--j2) var(--j4) var(--j3) calc(var(--j4) + 4px); font-size: var(--h-xs); color: var(--tinta-3); line-height: 1.5; }
 .sb-titik { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin: 0 4px 0 2px; }
 .sb-titik.baik { background: var(--hadir); } .sb-titik.emas { background: var(--emas); } .sb-titik.buruk { background: var(--absen); }
-@media (max-width: 560px) { .sb-kepala { padding: var(--j3); } .sb-panel .gulir { padding: var(--j2) var(--j2) 0; } .sb-tabel td.sb-nama { min-width: 150px; } }
+@media (max-width: 560px) { .sb-kepala { padding: var(--j3); } .sb-panel .gulir { margin: var(--j2) var(--j2) 0; } .sb-tabel td.sb-nama { min-width: 150px; } }
 .massal .m-kepala { display: flex; align-items: center; gap: var(--j3); flex-wrap: wrap; }
 .massal .m-baris { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: var(--j3); align-items: start; }
 .massal .m-jarak { width: var(--j5); }
