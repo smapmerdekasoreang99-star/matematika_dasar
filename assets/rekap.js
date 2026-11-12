@@ -128,15 +128,21 @@
     if (!S.length || !J.length) { svg.outerHTML = `<p class="rk-ket">Belum ada siswa yang berlatih.</p>`; return; }
     // tampilkan hanya tingkat yang mencakup posisi siswa (± satu tingkat di kiri/kanan)
     const posTingkat = (p) => { let k = 0; J.forEach((t, i) => { if (p + 1 >= t.awal) k = i; }); return k; };
-    const lo = Math.max(0, posTingkat(Math.min(...S.map((s) => s.lewat))) - 1), hi = Math.min(J.length - 1, posTingkat(Math.min(total - 1, Math.max(...S.map((s) => s.lewat)))) + 1);
+    /* Siswa yang sudah tamat tidak ikut menentukan rentang peta (12 Nov 2026): dulu satu siswa tamat
+       merentangkan peta sampai ujung jalur, sehingga puluhan label tingkat bertumpuk. Mereka kini
+       mendapat kolom "Tamat" sendiri di ujung kanan. Bila semuanya tamat, perilaku lama dipakai. */
+    const jalan = S.filter((s) => !s.selesai), dasar = jalan.length ? jalan : S, nTamat = jalan.length ? S.length - jalan.length : 0;
+    const posS = (s) => (s.selesai ? total - 1 : s.lewat);
+    const lo = Math.max(0, posTingkat(Math.min(...dasar.map(posS))) - 1), hi = Math.min(J.length - 1, posTingkat(Math.min(total - 1, Math.max(...dasar.map(posS)))) + 1);
     let seg = J.slice(lo, hi + 1), awal = seg[0].awal - 1, akhir = seg[seg.length - 1].awal - 1 + seg[seg.length - 1].n_level;
     // siswa hanya menempati sebagian kecil jalur (mis. tahap ER berisi 35 level): perbesar ke rentang posisi siswa
-    const pMin = Math.min(...S.map((s) => (s.selesai ? total - 1 : s.lewat))), pMax = Math.max(...S.map((s) => (s.selesai ? total - 1 : s.lewat)));
+    const pMin = Math.min(...dasar.map(posS)), pMax = Math.max(...dasar.map(posS));
     const zoom = akhir - awal > 24 && akhir - awal > 3 * (pMax - pMin + 1);
     if (zoom) { awal = Math.max(0, pMin - 2); akhir = Math.min(total, pMax + 4); seg = J.filter((t) => t.awal - 1 < akhir && t.awal - 1 + t.n_level > awal); }
-    const rentang = akhir - awal;
-    const W = 1000, ml = 8, mr = 8, gap = 2, x = (p) => ml + ((Math.min(Math.max(p, awal), akhir - 1) - awal + 0.5) / rentang) * (W - ml - mr);
-    const kol = new Map(); S.slice().sort((a, b) => a.lewat - b.lewat).forEach((s) => { const k = s.selesai ? akhir - 1 : s.lewat; if (!kol.has(k)) kol.set(k, []); kol.get(k).push(s); });
+    const rentang = akhir - awal + (nTamat ? Math.max(1.5, (akhir - awal) * 0.07) : 0);   // + kolom Tamat
+    const W = 1000, ml = 8, mr = 8, gap = 2, x = (p) => p === "tamat" ? ml + (((akhir - awal) + rentang) / 2 / rentang) * (W - ml - mr)   // tengah kolom Tamat
+      : ml + ((Math.min(Math.max(p, awal), akhir - 1) - awal + 0.5) / rentang) * (W - ml - mr);
+    const kol = new Map(); S.slice().sort((a, b) => a.lewat - b.lewat).forEach((s) => { const k = s.selesai ? (nTamat ? "tamat" : akhir - 1) : s.lewat; if (!kol.has(k)) kol.set(k, []); kol.get(k).push(s); });
     const tumpuk = Math.max(...[...kol.values()].map((v) => v.length)), r = Math.max(3, Math.min(7, (230 / tumpuk - gap) / 2)), top = 14, base = top + tumpuk * (2 * r + gap);
     // Label tingkat: nama lengkap, dipecah per kata agar muat; label yang bertabrakan dengan tetangganya
     // turun ke baris berikutnya dan diberi garis penunjuk ke lintasannya (tingkat dengan sedikit level sempit).
@@ -150,16 +156,20 @@
       const cx = Math.min(Math.max(x0 + w / 2, ml + lebar / 2), W - mr - lebar / 2);
       return { t, x0, w, ket, baris, lebar, cx, tinggi: baris.length * fsN * 1.2 + fsK + 6 };
     });
+    if (nTamat) {   // kolom Tamat ikut diatur bersama label tingkat supaya tidak bertabrakan
+      const x0 = ml + ((akhir - awal) / rentang) * (W - ml - mr), w = W - mr - x0, ket = `${nTamat} siswa`, lebar = Math.max(ket.length * cwK, 5 * cwN);
+      lbl.push({ t: null, tamat: true, x0, w, ket, baris: ["Tamat"], lebar, cx: Math.min(x("tamat"), W - mr - lebar / 2), tinggi: fsN * 1.2 + fsK + 6 });
+    }
     const ujung = []; lbl.forEach((L) => { let b = 0; while (ujung[b] != null && ujung[b] + jarak > L.cx - L.lebar / 2) b++; L.baris_ke = b; ujung[b] = L.cx + L.lebar / 2; });
     const tBaris = Math.max(...lbl.map((L) => L.tinggi)) + 6, y0 = base + (zoom ? 30 : 24), H = y0 + ujung.length * tBaris + 4;
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
     lbl.forEach((L) => {
       const { t, x0, w } = L, yT = y0 + L.baris_ke * tBaris;
-      svg.append(el("rect", { x: x0 + 1, y: base + 6, width: Math.max(2, w - 2), height: 10, rx: 5, fill: "var(--rk-lintas)" }));
+      svg.append(el("rect", { x: x0 + 1, y: base + 6, width: Math.max(2, w - 2), height: 10, rx: 5, fill: L.tamat ? "var(--rk-t)" : "var(--rk-lintas)", ...(L.tamat ? { opacity: 0.35 } : {}) }));
       if (L.baris_ke > 0) svg.append(el("path", { d: `M${x0 + w / 2} ${base + 18} V${yT - 4} H${L.cx}`, fill: "none", stroke: "var(--garis-2)", "stroke-width": 1, "stroke-dasharray": "2 2" }));
       L.baris.forEach((b, i) => svg.append(el("text", { x: L.cx, y: yT + fsN * (i + 1) * 1.2 - fsN * 0.2, "font-size": fsN, "text-anchor": "middle", class: "rk-kuat" }, b)));
       svg.append(el("text", { x: L.cx, y: yT + L.baris.length * fsN * 1.2 + fsK + 2, "font-size": fsK, "text-anchor": "middle" }, L.ket));
-      const g = el("g"); g.append(el("rect", { class: "rk-hit", x: x0, y: base, width: w, height: H - base, "data-tip": `<b>${esc(t.nama)}</b> · ${t.n_level} level<br>${S.filter((s) => s.tingkat === t.kode && !s.selesai).length} siswa di tingkat ini` })); svg.append(g);
+      const g = el("g"); g.append(el("rect", { class: "rk-hit", x: x0, y: base, width: w, height: H - base, "data-tip": L.tamat ? `<b>Tamat</b><br>${nTamat} siswa sudah menyelesaikan jalurnya` : `<b>${esc(t.nama)}</b> · ${t.n_level} level<br>${S.filter((s) => s.tingkat === t.kode && !s.selesai).length} siswa di tingkat ini` })); svg.append(g);
     });
     if (zoom) for (let p = awal; p < akhir; p++) { const t = J.find((u) => p >= u.awal - 1 && p < u.awal - 1 + u.n_level); if (t) svg.append(el("text", { x: x(p), y: base + 24, "font-size": 10.5, "text-anchor": "middle" }, "L" + (p - t.awal + 2))); }
     const warna = (s) => s.naik >= 2 ? "var(--rk-t)" : s.naik === 1 ? "var(--rk-s)" : "var(--rk-r)";
