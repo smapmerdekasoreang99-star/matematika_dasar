@@ -2674,6 +2674,15 @@ function tipPasang(wadah) {
   };
 }
 
+/* Grafik batang digambar selebar wadahnya. Bila digambar saat wadahnya belum
+   tampil (lebar 0 → cadangan 720) atau lebarnya berubah (tab dibuka, layar
+   diputar, bilah gulir muncul), gambar ulang dengan lebar sebenarnya — supaya
+   ukuran huruf dan batang selalu sama, sebelum maupun sesudah batang diketuk
+   (12 Nov 2026). */
+const pantauLebarGrafik = "ResizeObserver" in window ? new ResizeObserver((es) => es.forEach((e) => {
+  const w = e.target, a = w._grafik;
+  if (a && w.clientWidth && Math.abs(Math.max(300, w.clientWidth) - a.W) > 2) batangMendatar(w, ...a.args);
+})) : null;
 function batangMendatar(wadah, data, satuan, catatan, opsi = {}) {
   // Digambar selebar wadahnya (1 satuan SVG = 1 px) supaya teks tetap 12–13 px di layar mana pun.
   const W = Math.max(300, wadah.clientWidth || 720), hp = W < 560, labelW = hp ? Math.round(W * 0.46) : Math.min(320, Math.round(W * 0.34)), fs = hp ? 11.5 : 13;
@@ -2681,6 +2690,8 @@ function batangMendatar(wadah, data, satuan, catatan, opsi = {}) {
   const muat = Math.floor((labelW - 14) / (fs * 0.52)), pendek = (t) => t.length > muat ? t.slice(0, muat - 1).trimEnd() + "…" : t;
   const tinggi = 26, jarak = 8, maks = Math.max(1, ...data.map((d) => d.n));
   const H = data.length * (tinggi + jarak) + 4, lebar = W - labelW - 50;
+  wadah._grafik = { W, args: [data, satuan, catatan, opsi] };
+  if (pantauLebarGrafik && !wadah._dipantau) { wadah._dipantau = true; pantauLebarGrafik.observe(wadah); }
   let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sebaran siswa per tingkat"><defs><linearGradient id="gb" x1="0" x2="1"><stop offset="0" stop-color="#2F5D7C"/><stop offset="1" stop-color="#3E7FA6"/></linearGradient></defs>`;
   data.forEach((d, i) => {
     const y = i * (tinggi + jarak), w = d.n ? Math.max(4, lebar * d.n / maks) : 0;
