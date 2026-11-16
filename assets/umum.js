@@ -151,6 +151,11 @@ function bankSoalHtml(u) {
   const data = u.g
     ? `<span class="bank-gambar"><img src="assets/${u.g.includes("/") ? esc(u.g) : "statistika/" + esc(u.g)}" alt="${esc(u.a || "Diagram")}" onerror="bankGambarGagal(this)"><span class="bank-cadangan">${u.t ? bankTabelHtml(u.t) : "Gambar belum termuat. Periksa sinyal, lalu tekan tombol di bawah."}<button type="button" class="bank-muat" onclick="bankGambarUlang(this)">Muat ulang gambar</button></span></span>`
     : u.t ? bankTabelHtml(u.t) : "";
+  // Soal berwacana (16 Nov 2026): naskah = wacana + baris kosong + pertanyaan; tabel/gambar diletakkan di antaranya.
+  const pisah = u.w ? String(u.q).lastIndexOf("\n\n") : -1;
+  if (pisah > 0) return `<span class="wacana-label">Wacana · soal ${esc(u.w[0])} dari ${esc(u.w[1])}</span>` +
+    `<span class="wacana-kotak"><span class="cerita bank-baris">${esc(u.q.slice(0, pisah))}</span>${data}</span>` +
+    `<span class="cerita bank-baris wacana-tanya">${esc(u.q.slice(pisah + 2))}</span>`;
   return `<span class="cerita bank-baris">${esc(u.q)}</span>${data}`;
 }
 /* Jawaban atau kunci soal bank → HTML: huruf + isi opsi, (1) Benar …, atau angka. */

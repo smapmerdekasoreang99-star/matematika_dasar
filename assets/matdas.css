@@ -201,6 +201,12 @@ table[data-beku] .fz-akhir { box-shadow: 4px 0 6px -4px rgba(29, 42, 58, .25); }
 /* Soal bank tetap (Statistika): tabel, diagram, jawaban banyak bagian */
 /* Baris baru naskah soal bank tetap terlihat, mis. premis 1, premis 2, lalu kalimat tanya. */
 .cerita.bank-baris { white-space: pre-line; }
+/* Soal berwacana: label urutan, kotak wacana (cerita + tabel/gambar), lalu pertanyaan. */
+.wacana-label { display: inline-block; margin-bottom: var(--j2); padding: 2px var(--j3); border-radius: 999px; background: var(--kertas-3);
+  color: var(--emas-teks); font-size: var(--h-xs); font-weight: 800; letter-spacing: .02em; }
+.wacana-kotak { display: block; padding: var(--j3); border: 1px solid var(--garis); border-left: 4px solid var(--emas); border-radius: var(--r1); background: var(--kertas-2); }
+.wacana-kotak .cerita { font-size: var(--h-m); }
+.cerita.wacana-tanya { margin-top: var(--j3); font-weight: 600; }
 /* Opsi berupa gambar (Pola Gambar). */
 .opsi-gbr { display: block; width: 100%; max-width: 110px; height: auto; background: #fff; }
 .opsi-statis-gambar { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: var(--j2); }
