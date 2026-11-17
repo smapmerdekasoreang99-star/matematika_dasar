@@ -404,6 +404,11 @@ td.posisi { min-width: 200px; } td.posisi .pos-nm { display: block; font-weight:
 .sb-tabel tbody tr:nth-child(even) td { background-color: var(--kertas); }
 .sb-tabel tbody tr:hover td { background-color: var(--sakit-muda); }
 .sb-tabel tr.sb-grup td { border-top: 2px solid var(--garis-2); }
+.sb-urut { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.sb-urut .panah { font-size: .85em; opacity: .3; }
+.sb-urut:hover .panah, th[aria-sort] .sb-urut .panah { opacity: 1; }
+th[aria-sort] .sb-urut { color: var(--sakit-tua); }
+.sb-urut:focus-visible { outline: 2px solid var(--sakit); outline-offset: 2px; border-radius: 4px; }
 .sb-tabel .sb-no { width: 1%; text-align: right; color: var(--tinta-3); font-variant-numeric: tabular-nums; }
 .sb-tag { display: inline-block; padding: 2px 8px; border-radius: 6px; background: var(--sakit-muda); color: var(--sakit-tua); font-size: var(--h-xs); font-weight: 700; letter-spacing: .02em; }
 .sb-rombel { color: var(--tinta-2); font-variant-numeric: tabular-nums; }
@@ -1501,17 +1506,34 @@ function gambarKelas() {
 }
 
 /* Daftar siswa pada batang sebaran yang dipilih (12 Nov 2026): Kelompok, Rombel,
-   Nama, NISN, Level terakhir, Akurasi; urut kelompok lalu nama. Kepala panel
+   Nama, NISN, Level terakhir, Akurasi; bawaan urut kelompok lalu nama, judul kolom
+   bisa diketuk untuk mengurutkan (17 Nov 2026). Kepala panel
    meringkas tingkat itu; tiap kelompok dipisah garis supaya mudah dipindai.
    Ketuk batang yang sama atau Tutup untuk menyembunyikan. */
 let SEBARAN_PILIH = null;
+let SEBARAN_URUT = { k: "kelompok", arah: 1 };
+/* Pembanding per kolom; nilai kosong (belum menjawab, tanpa level) selalu di bawah. */
+const kosongBawah = (f) => (a, b, arah) => { const x = f(a), y = f(b); return x == null ? (y == null ? 0 : 1) : y == null ? -1 : arah * (x - y); };
+const teksUrut = (f) => (a, b, arah) => arah * String(f(a) ?? "~").localeCompare(String(f(b) ?? "~"), "id", { numeric: true });
+const KOL_SEBARAN = [
+  { k: "kelompok", t: "Kelompok", md: true, cmp: teksUrut((r) => r.kelompok) },
+  { k: "rombel", t: "Rombel", cmp: teksUrut((r) => r.kelas) },
+  { k: "nama", t: "Nama siswa", cmp: teksUrut((r) => r.nama) },
+  { k: "nisn", t: "NISN", cmp: teksUrut((r) => r.nisn) },
+  { k: "level", t: "Level terakhir", turun: true, cmp: kosongBawah((r) => r.level) },
+  { k: "akurasi", t: "Akurasi", turun: true, cmp: kosongBawah((r) => akurasiSiswa(r)) },
+];
 const akurasiSiswa = (r) => r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : null;
 const kelasAkurasi = (p) => p == null ? "" : p >= 80 ? "baik" : p >= 60 ? "emas" : "buruk";
 function gambarDaftarSebaran(R, tampil) {
   const w = $("g-sebaran-daftar"), d = tampil.find((b) => b.kode === SEBARAN_PILIH);
   if (!d || !d.n) { SEBARAN_PILIH = null; w.innerHTML = ""; return; }
   const tamat = d.kode === "~tamat";
-  const sis = R.filter((r) => tamat ? r.selesai : r.tingkat === d.kode && !r.selesai).sort(urutKelompok);
+  const kolom = KOL_SEBARAN.filter((c) => MODE_MD || !c.md);
+  if (!kolom.some((c) => c.k === SEBARAN_URUT.k)) SEBARAN_URUT = { k: MODE_MD ? "kelompok" : "rombel", arah: 1 };
+  const U = kolom.find((c) => c.k === SEBARAN_URUT.k);
+  const sis = R.filter((r) => tamat ? r.selesai : r.tingkat === d.kode && !r.selesai)
+    .sort((a, b) => U.cmp(a, b, SEBARAN_URUT.arah) || urutKelompok(a, b));
   const jw = sis.reduce((a, r) => a + (r.n_jawab || 0), 0), bn = sis.reduce((a, r) => a + (r.n_benar || 0), 0);
   const rata = jw ? Math.round(100 * bn / jw) : null;
   const lv = sis.map((r) => r.level).filter((x) => x != null);
@@ -1521,7 +1543,8 @@ function gambarDaftarSebaran(R, tampil) {
   const lvMin = lv.length ? Math.min(...lv) : null, lvMaks = lv.length ? Math.max(...lv) : null;
   let lalu = null;
   const baris = sis.map((r, i) => {
-    const p = akurasiSiswa(r), awalGrup = i > 0 && grup(r) !== lalu; lalu = grup(r);
+    const kunciGrup = U.k === "kelompok" ? grup(r) : U.k === "rombel" ? r.kelas || "–" : null;
+    const p = akurasiSiswa(r), awalGrup = i > 0 && kunciGrup != null && kunciGrup !== lalu; lalu = kunciGrup;
     const level = tamat
       ? `<span class="sb-lv tamat">Tamat</span>${r.level ? `<small>${esc(r.nama_tingkat || "")} · Level ${r.level}</small>` : ""}`
       : `<span class="sb-lv">Level ${esc(r.level ?? "–")}</span>`;
@@ -1540,12 +1563,21 @@ function gambarDaftarSebaran(R, tampil) {
         lvMin != null && !tamat ? chip(`Level <b>${lvMin === lvMaks ? lvMin : `${lvMin}–${lvMaks}`}</b>`, "Rentang level siswa di tingkat ini") : ""}${
         rata != null ? chip(`Akurasi rata-rata <b>${rata}%</b>`, "Jawaban benar ÷ seluruh jawaban siswa di tingkat ini", kelasAkurasi(rata)) : ""}</div>
     </header>
-    <div class="gulir"><table class="tabel sb-tabel" data-beku="${MODE_MD ? 4 : 3}"><thead><tr><th class="sb-no">No</th>${MODE_MD ? "<th>Kelompok</th>" : ""}<th>Rombel</th><th>Nama siswa</th><th>NISN</th><th>Level terakhir</th><th>Akurasi</th></tr></thead>
+    <div class="gulir"><table class="tabel sb-tabel" data-beku="${MODE_MD ? 4 : 3}"><thead><tr><th class="sb-no">No</th>${kolom.map((c) => {
+      const aktif = c.k === SEBARAN_URUT.k, naik = SEBARAN_URUT.arah > 0;
+      return `<th${aktif ? ` aria-sort="${naik ? "ascending" : "descending"}"` : ""}><button type="button" class="sb-urut" data-k="${c.k}" title="Urutkan menurut ${c.t.toLowerCase()}">${c.t}<span class="panah" aria-hidden="true">${aktif ? (naik ? "▲" : "▼") : "↕"}</span></button></th>`;
+    }).join("")}</tr></thead>
     <tbody>${baris}</tbody></table></div>
-    <p class="sb-catatan">Urut ${MODE_MD ? "kelompok" : "rombel"} lalu nama · ketuk baris untuk membuka analisis siswa · Akurasi = jawaban benar ÷ seluruh jawaban sejak awal latihan
+    <p class="sb-catatan">Ketuk judul kolom untuk mengurutkan (bawaan: ${MODE_MD ? "kelompok" : "rombel"} lalu nama) · ketuk baris untuk membuka analisis siswa · Akurasi = jawaban benar ÷ seluruh jawaban sejak awal latihan
       (<span class="sb-titik baik"></span>≥ 80% · <span class="sb-titik emas"></span>60–79% · <span class="sb-titik buruk"></span>&lt; 60%).</p>
   </section>`;
   w.querySelectorAll("tr[data-n]").forEach((tr) => tr.onclick = () => bukaSiswa(tr.dataset.n));
+  w.querySelectorAll(".sb-urut").forEach((b) => b.onclick = () => {
+    const c = kolom.find((x) => x.k === b.dataset.k);
+    SEBARAN_URUT = SEBARAN_URUT.k === c.k ? { k: c.k, arah: -SEBARAN_URUT.arah } : { k: c.k, arah: c.turun ? -1 : 1 };
+    gambarDaftarSebaran(R, tampil);
+    const baru = w.querySelector(`.sb-urut[data-k="${c.k}"]`); if (baru) baru.focus();
+  });
   $("g-sebaran-tutup").onclick = () => { SEBARAN_PILIH = null; gambarKelas(); $("g-sebaran").scrollIntoView({ block: "nearest" }); };
 }
 
