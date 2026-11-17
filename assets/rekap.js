@@ -166,9 +166,17 @@
     lbl.forEach((L) => {
       const { t, x0, w } = L, yT = y0 + L.baris_ke * tBaris;
       svg.append(el("rect", { x: x0 + 1, y: base + 6, width: Math.max(2, w - 2), height: 10, rx: 5, fill: L.tamat ? "var(--rk-t)" : "var(--rk-lintas)", ...(L.tamat ? { opacity: 0.35 } : {}) }));
-      if (L.baris_ke > 0) svg.append(el("path", { d: `M${x0 + w / 2} ${base + 18} V${yT - 4} H${L.cx}`, fill: "none", stroke: "var(--garis-2)", "stroke-width": 1, "stroke-dasharray": "2 2" }));
-      L.baris.forEach((b, i) => svg.append(el("text", { x: L.cx, y: yT + fsN * (i + 1) * 1.2 - fsN * 0.2, "font-size": fsN, "text-anchor": "middle", class: "rk-kuat" }, b)));
-      svg.append(el("text", { x: L.cx, y: yT + L.baris.length * fsN * 1.2 + fsK + 2, "font-size": fsK, "text-anchor": "middle" }, L.ket));
+      // Garis penunjuk dari batang tingkat ke labelnya, untuk SEMUA tingkat (17 Nov 2026, permintaan user): baris pertama
+      // garis tegak pendek, baris berikutnya garis berbelok. Dulu hanya baris bawah dan berwarna --garis-2 yang nyaris tak terlihat.
+      if (!L.tamat) {
+        const xb = x0 + w / 2;
+        svg.append(el("circle", { cx: xb, cy: base + 11, r: 2.4, fill: "var(--tinta-3,#8B8173)" }));
+        svg.append(el("path", { d: `M${xb} ${base + 14} V${yT - 4}${Math.abs(L.cx - xb) > 1 ? ` H${L.cx}` : ""}`, fill: "none", stroke: "var(--tinta-3,#8B8173)", "stroke-width": 1.1, "stroke-dasharray": L.baris_ke > 0 ? "3 3" : "none", opacity: 0.85 }));
+      }
+      // Lapisan putih di sekeliling huruf: garis penunjuk label lain yang lewat di belakangnya tidak menimpa tulisan.
+      const halo = { stroke: "var(--kertas-2,#fff)", "stroke-width": 4, "stroke-linejoin": "round", "paint-order": "stroke" };
+      L.baris.forEach((b, i) => svg.append(el("text", { x: L.cx, y: yT + fsN * (i + 1) * 1.2 - fsN * 0.2, "font-size": fsN, "text-anchor": "middle", class: "rk-kuat", ...halo }, b)));
+      svg.append(el("text", { x: L.cx, y: yT + L.baris.length * fsN * 1.2 + fsK + 2, "font-size": fsK, "text-anchor": "middle", ...halo }, L.ket));
       const g = el("g"); g.append(el("rect", { class: "rk-hit", x: x0, y: base, width: w, height: H - base, "data-tip": L.tamat ? `<b>Tamat</b><br>${nTamat} siswa sudah menyelesaikan jalurnya` : `<b>${esc(t.nama)}</b> · ${t.n_level} level<br>${S.filter((s) => s.tingkat === t.kode && !s.selesai).length} siswa di tingkat ini` })); svg.append(g);
     });
     if (zoom) for (let p = awal; p < akhir; p++) { const t = J.find((u) => p >= u.awal - 1 && p < u.awal - 1 + u.n_level); if (t) svg.append(el("text", { x: x(p), y: base + 24, "font-size": 10.5, "text-anchor": "middle" }, "L" + (p - t.awal + 2))); }
