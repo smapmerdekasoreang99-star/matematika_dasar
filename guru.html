@@ -877,10 +877,12 @@ body.lihat .ubah { display: none !important; }
           <select id="pm-saring" style="max-width:220px" aria-label="Saring siswa">
             <option value="">Semua siswa</option>
             <option value="online">Sedang berlatih</option>
+            <option value="sudah">Sudah berlatih mandiri (dalam periode)</option>
             <option value="belum">Belum mulai tahapan khusus</option>
             <option value="jalan">Sedang di tahapan</option>
             <option value="selesai">Tahapan selesai</option>
             <option value="diam">Tidak berlatih dalam periode</option>
+            <option value="tidak_pernah">Belum pernah berlatih mandiri</option>
           </select>
           <span class="tumbuh"></span>
           <button class="btn-unduh utama" data-fmt="xlsx" id="pm-unduh" title="Pantauan latihan mandiri dalam buku kerja Excel berformat">Unduh pantauan</button>
@@ -1398,7 +1400,8 @@ const pmStatus = (r) => r.online ? { t: "Sedang berlatih", c: "baik" }
   : r.tahapan_nama ? { t: "Belum mulai tahapan", c: "emas" }
   : r.n_jawab ? { t: "Berlatih dalam periode", c: "biru" }
   : r.pernah ? { t: "Tidak berlatih dalam periode", c: "" } : { t: "Belum pernah berlatih", c: "" };
-const pmSaring = (r, v) => !v || (v === "online" ? r.online : v === "belum" ? r.tahapan_nama && !r.mulai_tahapan && !r.selesai_tahapan
+// 18 Nov 2026: + "sudah" (ada jawaban mandiri dalam periode) dan "tidak_pernah" (belum pernah masuk latihan mandiri).
+const pmSaring = (r, v) => !v || (v === "online" ? r.online : v === "sudah" ? r.n_jawab > 0 : v === "tidak_pernah" ? !r.pernah && !r.n_jawab : v === "belum" ? r.tahapan_nama && !r.mulai_tahapan && !r.selesai_tahapan
   : v === "jalan" ? r.mulai_tahapan && !r.selesai_tahapan : v === "selesai" ? r.selesai_tahapan : !r.n_jawab);
 const pmPosisi = (r) => !r.posisi ? "" : r.posisi.selesai ? `${r.posisi.nama_tingkat} · Level ${r.posisi.level} (selesai)` : `${r.posisi.nama_tingkat} · Level ${r.posisi.level}`;
 function gambarPantau() {
