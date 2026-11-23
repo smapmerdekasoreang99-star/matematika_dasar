@@ -1403,7 +1403,10 @@ const pmStatus = (r) => r.online ? { t: "Sedang berlatih", c: "baik" }
 // 18 Nov 2026: + "sudah" (ada jawaban mandiri dalam periode) dan "tidak_pernah" (belum pernah masuk latihan mandiri).
 const pmSaring = (r, v) => !v || (v === "online" ? r.online : v === "sudah" ? r.n_jawab > 0 : v === "tidak_pernah" ? !r.pernah && !r.n_jawab : v === "belum" ? r.tahapan_nama && !r.mulai_tahapan && !r.selesai_tahapan
   : v === "jalan" ? r.mulai_tahapan && !r.selesai_tahapan : v === "selesai" ? r.selesai_tahapan : !r.n_jawab);
-const pmPosisi = (r) => !r.posisi ? "" : r.posisi.selesai ? `${r.posisi.nama_tingkat} · Level ${r.posisi.level} (selesai)` : `${r.posisi.nama_tingkat} · Level ${r.posisi.level}`;
+/* 23 Nov 2026: siswa yang belum pernah menjawab soal mandiri tetap bisa punya posisi mandiri (salinan posisi resmi, dibuat saat ia
+   sekadar masuk mode mandiri). Posisi itu tidak ditampilkan, supaya tab ini tidak tampak tercampur dengan latihan resmi. */
+const pmPernah = (r) => !!r.pernah || r.n_jawab > 0;
+const pmPosisi = (r) => !r.posisi || !pmPernah(r) ? "" : r.posisi.selesai ? `${r.posisi.nama_tingkat} · Level ${r.posisi.level} (selesai)` : `${r.posisi.nama_tingkat} · Level ${r.posisi.level}`;
 function gambarPantau() {
   // Kotak ringkasan mengikuti saringan siswa (9 Nov 2026), sama seperti tabel di bawahnya.
   const D = PM, h = D.tahapan, ada = D.siswa.some((r) => r.tahapan_nama), sv = $("pm-saring").value;
@@ -1422,7 +1425,7 @@ function gambarPantau() {
   $("pm-tabel").innerHTML = `<thead><tr><th>No</th><th>Nama</th>${D.gabungan ? "<th>Kelompok</th>" : ""}<th>Status</th><th>Posisi mandiri</th><th>Jalur</th><th>Kegiatan</th><th class="angka">Akurasi</th><th class="angka">Level tuntas</th><th class="angka">Waktu</th><th>Terakhir</th></tr></thead><tbody>` +
     (L.length ? L.map((r, i) => { const st = pmStatus(r);
       return `<tr class="klik" data-n="${esc(r.nisn)}"><td>${i + 1}</td><td><b>${esc(r.nama)}</b></td>${D.gabungan ? `<td>${esc(r.kelompok)}</td>` : ""}<td><span class="lencana ringkas ${st.c}">${esc(st.t)}</span></td>
-        <td class="posisi">${r.posisi ? `<span class="pos-nm">${esc(r.posisi.nama_tingkat)}</span><span class="pos-lv">Level ${r.posisi.level}${r.posisi.selesai ? " · selesai" : ""}</span>` : '<span class="redup">–</span>'}</td>
+        <td class="posisi">${r.posisi && pmPernah(r) ? `<span class="pos-nm">${esc(r.posisi.nama_tingkat)}</span><span class="pos-lv">Level ${r.posisi.level}${r.posisi.selesai ? " · selesai" : ""}</span>` : '<span class="redup" title="Belum pernah menjawab soal latihan mandiri">–</span>'}</td>
         <td class="pm-tahap">${r.tahapan_nama ? `<div class="maju"><div class="batang"><i style="width:${100 * Math.min(r.n_tuntas, r.n_level) / Math.max(1, r.n_level)}%"></i></div><span>${r.n_tuntas}/${r.n_level}</span></div>${r.tahapan_nama !== (h && h.nama) ? `<small>${esc(r.tahapan_nama)}</small>` : ""}` : r.pilihan === "sesi" ? `Lanjut dari sesi${r.resmi ? `<small>resmi: ${esc(r.resmi.nama_tingkat)} · Level ${r.resmi.level}${r.resmi.selesai ? " (selesai)" : ""}</small>` : ""}` : r.saran ? `<small>Saran ${esc(r.saran.nama_tingkat)} · Level ${r.saran.level}</small>` : "Bebas memilih"}</td>
         <td class="pm-sel">${r.hari} hari · ${r.n_jawab} soal${r.pilih_soal ? `<small title="Jumlah soal per level yang biasa dipilih siswa">biasa memilih ${r.pilih_soal} soal per level</small>` : ""}</td>
         <td class="angka">${r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) + "%" : "–"}</td><td class="angka">${r.tuntas_periode}</td><td class="angka">${r.detik ? lamaTeks(r.detik) : "–"}</td><td>${r.terakhir ? sejakTeks(r.terakhir) : "–"}</td></tr>`; }).join("")
@@ -1448,13 +1451,13 @@ $("pm-tgl").onsubmit = (e) => {
 setInterval(() => { if (SUB === "mandiri" && PM && !PM.gabungan && !document.hidden && $("pk-mandiri").offsetParent) muatPantau(true); }, 60000);
 $("pm-unduh").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
   if (!PM) throw new Error("Pilih kelompok dulu.");
-  const D = PM, h = D.tahapan, nama = `Pantau_Mandiri_${potongNama(D.kelompok)}_${tglBerkas()}.xlsx`;
+  const D = PM, h = D.tahapan, sv = $("pm-saring").value, L = D.siswa.filter((r) => pmSaring(r, sv)), nama = `Pantau_Mandiri_${potongNama(D.kelompok)}_${tglBerkas()}.xlsx`;
   await unduhBukuXLSX({ namaBerkas: nama, judulBuku: "Pantau Latihan Mandiri", lembar: [{ nama: "Latihan Mandiri", judul: "Pantau Latihan Mandiri", sub: D.gabungan ? `${D.kelompok} (${D.n_kelompok} kelompok)` : `Kelompok ${D.kelompok}`,
-    info: [["Periode", `${D.dari} s.d. ${D.sampai}`], ["Latihan mandiri", h ? `Tahapan ${h.nama} (${h.n_level} level)` : D.pilihan === "campur" ? "Berbeda per kelompok" : D.pilihan === "bebas" ? "Bebas memilih materi" : D.pilihan === "lama" ? "Aturan lama" : "Lanjut dari sesi kegiatan"], ["Jumlah siswa", `${D.siswa.length} siswa`]],
+    info: [["Periode", `${D.dari} s.d. ${D.sampai}`], ["Latihan mandiri", h ? `Tahapan ${h.nama} (${h.n_level} level)` : D.pilihan === "campur" ? "Berbeda per kelompok" : D.pilihan === "bebas" ? "Bebas memilih materi" : D.pilihan === "lama" ? "Aturan lama" : "Lanjut dari sesi kegiatan"], ...(sv ? [["Saringan", $("pm-saring").selectedOptions[0].textContent]] : []), ["Jumlah siswa", sv ? `${L.length} dari ${D.siswa.length} siswa` : `${D.siswa.length} siswa`]],
     kolom: [{ t: "No", w: 5, rata: "center" }, { t: "Nama", w: 30, tebal: true }, { t: "NISN", w: 13, rata: "center" }, { t: "Rombel", w: 9, rata: "center" }, ...(D.gabungan ? [{ t: "Kelompok", w: 11, rata: "center" }] : []), { t: "Status", w: 24 }, { t: "Posisi mandiri", w: 30 },
       { t: "Jalur", w: 24 }, { t: "Tuntas tahapan", w: 10, rata: "center" }, { t: "Hari", w: 7, rata: "center" }, { t: "Soal", w: 8, rata: "center" }, { t: "Akurasi", w: 9, rata: "center", fmt: '0"%"', cf: CF_PERSEN },
       { t: "Level tuntas (periode)", w: 10, rata: "center" }, { t: "Menit", w: 8, rata: "center" }, { t: "Pilihan soal per level", w: 10, rata: "center" }, { t: "Terakhir aktif", w: 16, rata: "center", fmt: "dd/mm/yyyy hh:mm", size: 9 }],
-    baris: D.siswa.map((r, i) => [i + 1, r.nama, r.nisn, r.kelas, ...(D.gabungan ? [r.kelompok] : []), pmStatus(r).t, pmPosisi(r), r.tahapan_nama || (r.pilihan === "sesi" ? "Lanjut dari sesi" : "Bebas memilih"), r.tahapan_nama ? `${r.n_tuntas}/${r.n_level}` : "", r.hari, r.n_jawab, r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", r.tuntas_periode, Math.round(r.detik / 60), r.pilih_soal || "", waktuXL(r.terakhir)]),
+    baris: L.map((r, i) => [i + 1, r.nama, r.nisn, r.kelas, ...(D.gabungan ? [r.kelompok] : []), pmStatus(r).t, pmPosisi(r), r.tahapan_nama || (r.pilihan === "sesi" ? "Lanjut dari sesi" : "Bebas memilih"), r.tahapan_nama ? `${r.n_tuntas}/${r.n_level}` : "", r.hari, r.n_jawab, r.n_jawab ? Math.round(100 * r.n_benar / r.n_jawab) : "", r.tuntas_periode, Math.round(r.detik / 60), r.pilih_soal || "", waktuXL(r.terakhir)]),
     catatan: ["Latihan tanpa pengawasan guru, terpisah dari kemajuan resmi. Kemajuan tahapan dihitung sejak tahapan dipasang."] }] });
   return nama;
 });
