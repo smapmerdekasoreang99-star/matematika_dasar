@@ -157,6 +157,12 @@
 .ik-chip small { font-size: 10.5px; } .ik-chip b { font-size: var(--h-s); }
 .ik-ket { font-size: var(--h-s); line-height: 1.45; }
 .ik-lain { display: grid; gap: 4px; margin-top: var(--j2); padding: var(--j2) var(--j3); border-radius: 10px; background: var(--emas-kabut); border: 1px solid var(--emas-muda); }
+/* Tahapan yang benar-benar dipakai siswa (24 Nov 2026) */
+.ik-tahap { list-style: none; margin: 2px 0 0; padding: 0; display: grid; gap: 3px; }
+.ik-tahap li { display: flex; justify-content: space-between; gap: var(--j3); font-size: var(--h-s); line-height: 1.4; }
+.ik-tahap li span { flex: none; color: var(--tinta-2); font-variant-numeric: tabular-nums; }
+.tdk-dipakai { opacity: .6; }
+.lencana-tdk { display: inline-block; font-size: 11px; font-weight: 700; color: var(--tinta-2); background: var(--kertas-3); border: 1px solid var(--garis-2); border-radius: 999px; padding: 1px 8px; }
 .ik-lipat summary { cursor: pointer; padding: var(--j3) var(--j5); font-weight: 700; font-size: var(--h-m); }
 @media (max-width: 860px) { .ik-baris { grid-template-columns: 1fr; padding: var(--j3) var(--j4); } }
 /* Sesi latihan per kelompok (Sesi Kegiatan) */
@@ -2243,6 +2249,14 @@ setInterval(() => { if (BUKA && !document.hidden && !$("p-daftar").classList.con
 
 /* ---- Kotak "Aturan dan tahapan yang berlaku" di Sesi Kegiatan */
 let IK_BUKA = false;
+/* Tahapan yang benar-benar dipakai anggota kelompok (24 Nov 2026). Siswa bisa diberi tahapan sendiri, mis. MD12-6:
+   semua siswa di "Lanjutan A/B/C", sehingga tahapan kelompok "Sem 1" tidak dipakai siapa pun. L = baris mtd_rekap kelompok itu. */
+function pakaiTahapan(L) {
+  const ikut = L.filter((r) => !r.jalur_siswa).length, m = new Map();
+  L.filter((r) => r.jalur_siswa).forEach((r) => { const t = r.jalur || "Tahapan Level (dipilih guru)"; m.set(t, (m.get(t) || 0) + 1); });
+  return { n: L.length, ikut, sendiri: [...m].sort((a, b) => b[1] - a[1]) };
+}
+const daftarTahapanHtml = (u) => `<ul class="ik-tahap">${u.sendiri.map(([t, c]) => `<li><b>${esc(t)}</b><span>${c} siswa</span></li>`).join("")}</ul>`;
 function gambarInfoKelompok() {
   if (!G || !$("info-kel-isi") || typeof PROFIL === "undefined") return;
   const pilih = $("dl-kelompok").value, tk = $("dl-tingkat").value;
@@ -2255,20 +2269,24 @@ function gambarInfoKelompok() {
   const hitung = (L) => { const m = new Map(); L.forEach((v) => m.set(v, (m.get(v) || 0) + 1)); return [...m].map(([v, c]) => `${esc(v)} (${c})`).join(", "); };
   const baris = kel.map((k) => {
     const p = PROFIL.find((x) => x.id === profilDasarKel(k)), j = JALUR.find((x) => x.id === TAHAPAN_KEL[k]);
-    const A = DAFTAR.filter((r) => r.kelompok === k), n = A.length, sA = A.filter((r) => r.aturan), sT = A.filter((r) => r.jalur_siswa);
+    const A = DAFTAR.filter((r) => r.kelompok === k), n = A.length, sA = A.filter((r) => r.aturan);
     const jml = (c) => c === n && n > 0 ? `Semua siswa (${c})` : `${c} siswa`;
     const lainA = sA.length ? `<span class="ik-ket"><b>${jml(sA.length)}</b> memakai aturan sendiri: ${hitung(sA.map((r) => r.aturan))}</span>` : "";
-    const lainT = sT.length ? `<span class="ik-ket"><b>${jml(sT.length)}</b> memakai tahapan sendiri: ${hitung(sT.map((r) => r.jalur || "tahapan umum, Mulai dari pilihan guru"))}</span>` : "";
     return `<div class="ik-baris">
       <div class="ik-kel"><b>${esc(k)}</b><small>${n} siswa</small></div>
       <div class="ik-sel"><span class="ik-judul">${j ? "Aturan dasar (dari tahapan)" : "Aturan kelompok"}</span>${p
         ? `<b>Profil "${esc(p.nama)}"</b><span class="ik-chips">${SEMUA_KHUSUS.filter((x) => !x.ro && p.aturan[x.k] !== undefined).map((x) => chip(x, p.aturan[x.k], "khusus")).join("")}</span><small>Isian lain mengikuti Pengaturan Umum.</small>`
         : `<b>Pengaturan Umum</b><span class="ik-chips">${isianUmum.map((x) => chip(x, G.atur[x.k])).join("")}</span>`}
         ${lainA ? `<div class="ik-lain"><span class="ik-judul">Diatur per siswa</span>${lainA}</div>` : ""}</div>
-      <div class="ik-sel"><span class="ik-judul">Tahapan kelompok</span>${j
-        ? `<b>Tahapan "${esc(j.nama)}"</b><small>${j.langkah.map((l) => esc(langkahTeks(l)) + (profilLangkah(l) ? ` (${esc(profilLangkah(l))})` : "")).join(" → ")} → ${esc(ujungTeks(j).toLowerCase())}</small>`
-        : '<b>Tahapan Level</b><small>Urutan bawaan, dari tingkat pertama sampai terakhir.</small>'}
-        ${lainT ? `<div class="ik-lain"><span class="ik-judul">Diatur per siswa</span>${lainT}</div>` : ""}</div>
+      <div class="ik-sel">${(() => {
+        const u = pakaiTahapan(A), tdk = n > 0 && u.ikut === 0;
+        const kelHtml = `<div class="${tdk ? "tdk-dipakai" : ""}" style="display:grid;gap:4px"><span class="ik-judul">Tahapan kelompok${tdk ? ' <span class="lencana-tdk">tidak dipakai</span>' : ""}</span>${j
+          ? `<b>Tahapan "${esc(j.nama)}"</b><small>${j.langkah.map((l) => esc(langkahTeks(l)) + (profilLangkah(l) ? ` (${esc(profilLangkah(l))})` : "")).join(" → ")} → ${esc(ujungTeks(j).toLowerCase())}</small>`
+          : '<b>Tahapan Level</b><small>Urutan bawaan, dari tingkat pertama sampai terakhir.</small>'}
+          <small>${tdk ? "Semua siswa memakai tahapan sendiri. Tahapan kelompok berlaku lagi bagi siswa yang dikembalikan ke tahapan kelompok." : u.sendiri.length ? `Dipakai ${u.ikut} dari ${n} siswa.` : ""}</small></div>`;
+        const sendiriHtml = u.sendiri.length ? `<div class="ik-lain"><span class="ik-judul">${tdk ? "Tahapan yang dipakai siswa" : "Diatur per siswa"}</span>${daftarTahapanHtml(u)}</div>` : "";
+        return tdk ? sendiriHtml + kelHtml : kelHtml + sendiriHtml;
+      })()}</div>
     </div>`;
   });
   // Banyak kelompok sekaligus (admin, "Semua kelompok"): dilipat agar tabel siswa tetap dekat
@@ -2353,6 +2371,12 @@ function berlakuMandiri(m) {
   return "Latihan mandiri: <b>lanjut dari sesi kegiatan</b>, dengan tahapan dan aturan sesi. Kemajuannya terpisah.";
 }
 function berlakuKelompok(k) {
+  // 24 Nov 2026: tahapan per siswa ikut ditampilkan; tahapan kelompok yang tidak dipakai siapa pun ditandai.
+  const u = pakaiTahapan(SEMUA.filter((r) => r.kelompok === k)), tdk = u.n > 0 && u.ikut === 0;
+  const per = u.sendiri.length ? `<div class="ik-lain" style="margin:0 0 6px"><span class="ik-judul">${tdk ? "Tahapan yang dipakai siswa" : `Tahapan per siswa · kelompok dipakai ${u.ikut} dari ${u.n} siswa`}</span>${daftarTahapanHtml(u)}</div>` : "";
+  return per + (tdk ? `<div class="tdk-dipakai"><span class="lencana-tdk">Tahapan kelompok tidak dipakai</span><br>${berlakuKelompokAsli(k)}</div>` : berlakuKelompokAsli(k));
+}
+function berlakuKelompokAsli(k) {
   const j = JALUR.find((x) => x.id === TAHAPAN_KEL[k]), p = PROFIL.find((x) => x.id === PROFIL_KEL[k]);
   const isi = (q) => SEMUA_KHUSUS.filter((x) => q.aturan[x.k] !== undefined).map((x) => `${x.l}: <b>${esc(nilaiAturTeks(x, q.aturan[x.k]))}</b>`).join(" · ");
   if (j) return `Tahapan <b>"${esc(j.nama)}"</b> · aturan dasar <b>${esc(profilDasar(j) || "Pengaturan Umum")}</b>
