@@ -3058,7 +3058,7 @@ function gambarTingkat() {
   // Tingkat yang sedang dibuka (dilipat-buka) tetap terbuka setelah tombol Tutup/Buka ditekan
   const terbuka = new Set([...$("t-tingkat").querySelectorAll("details[open][data-kode]")].map((d) => d.dataset.kode));
   let modul = null, h = "";
-  const NAMA_MODUL = { 10: "Bilangan bulat, positif-negatif, dan pecahan", 11: "Desimal, persen, notasi baku, dan eksponen", 12: "Aljabar, pola bilangan, dan logika" };
+  const NAMA_MODUL = { 10: "Bilangan bulat, positif-negatif, dan pecahan", 11: "Desimal, persen, eksponen, persamaan linear, dan aljabar dasar", 12: "Fungsi, statistika, geometri, pola bilangan, dan logika" };
   G.tingkat.forEach((t) => {
     if (t.modul !== modul) {
       if (modul !== null) h += "</div>";
