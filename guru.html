@@ -829,6 +829,7 @@ body.lihat .ubah { display: none !important; }
         <button role="tab" data-sub="siswa" aria-selected="false">Per Siswa</button>
         <button role="tab" data-sub="peringkat" aria-selected="false">Peringkat</button>
         <button role="tab" data-sub="mandiri" aria-selected="false">Latihan Mandiri</button>
+        <button role="tab" data-sub="rekom" aria-selected="false">Rekomendasi Semester</button>
       </div>
       <!-- Rekapitulasi (22 Okt 2026): rapor kelompok terpilih, atau perbandingan bila "Semua kelompok" -->
       <div id="pk-rekap">
@@ -902,6 +903,29 @@ body.lihat .ubah { display: none !important; }
         <div class="ubin" id="pm-ubin"></div>
         <div class="gulir seksi-tabel"><table class="tabel" id="pm-tabel" data-beku="2"></table></div>
         <p class="redup kecil">Latihan tanpa pengawasan guru, terpisah dari kemajuan resmi. Kemajuan tahapan dihitung sejak tahapan dipasang. Ketuk nama untuk melihat analisisnya.</p>
+      </div>
+      <!-- Rekomendasi posisi semester depan dari tes klaster (25 Nov 2026) -->
+      <div id="pk-rekom" class="hidden">
+        <div class="baris">
+          <select id="rm-saring" style="max-width:260px" aria-label="Saring rekomendasi">
+            <option value="">Semua siswa</option>
+            <option value="kembali">Disarankan kembali ke level sebelumnya</option>
+            <option value="tetap">Tetap di posisi terakhir</option>
+            <option value="belum_tes">Belum ikut tes klaster</option>
+            <option value="luar">Level saran di luar tahapan</option>
+          </select>
+          <span class="tumbuh"></span>
+          <button class="garis kecil" id="rm-muat">Muat ulang</button>
+          <button class="btn-unduh utama" data-fmt="xlsx" id="rm-unduh" title="Rekomendasi posisi semua siswa sesuai saringan dalam buku kerja Excel">Unduh rekomendasi</button>
+        </div>
+        <div class="ubin" id="rm-ubin"></div>
+        <div class="kartu"><h2>Rekomendasi posisi semester depan</h2>
+          <p class="redup kecil" style="margin-top:0">Dari tes klaster Matdas: tiap level dianggap <b>dikuasai</b> bila benar paling sedikit 2/3 soalnya (level yang soalnya kurang dari 3 dinilai bergabung). Siswa disarankan <b>kembali</b> ke level pertama yang belum dikuasai bila posisinya sudah melewati level itu. Bila semua dikuasai, siswa <b>tetap</b> di posisi terakhirnya. Tes Umum hanya catatan. Periksa dan ubah pilihan bila perlu, lalu centang siswa dan tekan Terapkan.</p>
+          <div class="gulir"><table class="tabel" id="t-rekom" data-beku="2"></table></div>
+          <div class="baris" style="margin-top:var(--j3)"><label class="kecil"><input type="checkbox" id="rm-semua"> pilih semua yang tampil</label><span class="kecil redup" id="rm-n"></span><span class="tumbuh"></span>
+            <button id="rm-terapkan">Terapkan posisi terpilih</button></div>
+          <p class="redup kecil">Terapkan memindahkan posisi resmi siswa (sesi kelompok). Tahapan siswa tidak berubah. Bila level saran tidak ada di tahapan siswa, siswa berlatih menurut urutan umum sampai masuk lagi ke tahapannya. Sesi Matdas siswa yang sedang berjalan ditutup.</p>
+        </div>
       </div>
       <!-- Peringkat: sekolah / angkatan / kelompok, menurut periode -->
       <div id="pk-peringkat" class="hidden">
@@ -1294,7 +1318,7 @@ const tandaiKelompok = () => $("t-perkelompok").querySelectorAll("tr[data-kel]")
   tr.classList.toggle("dipilih", tr.dataset.kel === $("pil-kelas").value);
   tr.hidden = !!pilTingkat() && tingkatNama(tr.dataset.kel) !== pilTingkat();
 });
-$("pil-kelas").onchange = () => { tandaiKelompok(); muatKelas(); if (SUB === "rekap") muatRekap(); if (SUB === "mandiri") muatPantau(); };
+$("pil-kelas").onchange = () => { tandaiKelompok(); muatKelas(); if (SUB === "rekap") muatRekap(); if (SUB === "mandiri") muatPantau(); if (SUB === "rekom" && RM) gambarRekom(); };
 $("pil-urut").onchange = () => gambarKelas();
 $("btn-muat").onclick = () => { muatKelas(); if (SUB === "rekap") muatRekap(); if (SUB === "mandiri") muatPantau(); };
 
@@ -3360,6 +3384,8 @@ function bukaSub(v) {
   $("pk-siswa").classList.toggle("hidden", v !== "siswa");
   $("pk-mandiri").classList.toggle("hidden", v !== "mandiri");
   if (v === "mandiri") muatPantau();
+  $("pk-rekom").classList.toggle("hidden", v !== "rekom");
+  if (v === "rekom") { if (!RM) muatRekom(); else gambarRekom(); }
   $("pk-peringkat").classList.toggle("hidden", v !== "peringkat"); $("baris-kelas").classList.toggle("hidden", v === "peringkat");
   $("pil-urut").classList.toggle("hidden", v !== "siswa");
   // grafik sebaran digambar selebar wadahnya: gambar ulang setelah tab kelompok tampil
@@ -3368,6 +3394,88 @@ function bukaSub(v) {
   if (v === "peringkat") { if (!PR) muatPeringkat(); else { samakanCakupanPr(); gambarPeringkat(); } }
   if (v === "rekap") muatRekap(true);
 }
+// ---------- Rekomendasi posisi semester depan dari tes klaster (25 Nov 2026) ----------
+// Server (mtd_klaster_rekomendasi) menilai tes klaster per level; di sini guru meninjau, boleh mengubah
+// pilihan per siswa, lalu menerapkan siswa yang dicentang (mtd_klaster_terapkan).
+let RM = null;
+const RM_PILIH = {}, RM_CENTANG = {};
+const rmLv = (t, l) => `${t}|${l}`;
+const rmPosisiTeks = (p) => !p ? "belum mulai" : `${namaTingkat(p.tingkat)} · level ${p.level}${p.selesai ? " (tamat)" : ""}`;
+const rmSaranTeks = { kembali: "Kembali", mulai: "Mulai dari", tetap: "Tetap", belum_tes: "Belum ikut tes" };
+const rmLevelTeks = (g) => `${g.tingkat} L${g.dari}${g.sampai !== g.dari ? "–" + g.sampai : ""} ${g.benar}/${g.n}`;
+function rmTampil() {
+  const k = pilKel(), sv = $("rm-saring").value;
+  return (RM || []).filter((r) => (!k || r.kelompok === k)
+    && (!sv || (sv === "luar" ? r.luar_tahapan : sv === "kembali" ? ["kembali", "mulai"].includes(r.saran) : r.saran === sv)));
+}
+async function muatRekom() {
+  $("t-rekom").innerHTML = '<tr><td class="redup">Memuat…</td></tr>';
+  try { RM = await rpc("mtd_klaster_rekomendasi", { p_pin: PIN }); }
+  catch (e) { $("t-rekom").innerHTML = `<tr><td class="pesan buruk">${esc(e.message)}</td></tr>`; return; }
+  for (const r of RM) {
+    if (!(r.nisn in RM_PILIH)) RM_PILIH[r.nisn] = r.target ? rmLv(r.target.tingkat, r.target.level) : "tetap";
+    if (!(r.nisn in RM_CENTANG)) RM_CENTANG[r.nisn] = !!r.target && !r.luar_tahapan;
+  }
+  gambarRekom();
+}
+function gambarRekom() {
+  const L = rmTampil(), ikut = L.filter((r) => r.ikut);
+  $("rm-ubin").innerHTML = ubinHtml([
+    [L.length, "siswa", "siswa"], [ikut.length, "sudah ikut tes klaster", "aktif", "baik"],
+    [L.filter((r) => ["kembali", "mulai"].includes(r.saran)).length, "disarankan kembali", "ulang", "emas"],
+    [L.filter((r) => r.saran === "tetap").length, "tetap di posisi terakhir", "level"]]);
+  if (!L.length) { $("t-rekom").innerHTML = `<tr><td class="redup">${RM && RM.length ? "Tidak ada siswa untuk saringan ini." : "Belum ada siswa peserta tes klaster."}</td></tr>`; rmHitung(); return; }
+  $("t-rekom").innerHTML = `<thead><tr><th></th><th>Nama</th><th>Kelompok</th><th>Posisi sekarang</th><th>Hasil tes per level</th><th>Saran</th><th>Posisi semester depan</th><th>Tes Umum</th></tr></thead><tbody>${L.map((r) => {
+    const opsi = [`<option value="tetap">Tetap: ${esc(rmPosisiTeks(r.posisi))}</option>`].concat((r.level || []).map((g) =>
+      `<option value="${esc(rmLv(g.tingkat, g.dari))}">${esc(namaTingkat(g.tingkat))} · level ${g.dari}</option>`));
+    const lv = (r.level || []).map((g) => `<span class="lencana ${g.kuasai ? "baik" : "buruk"}" title="${esc(g.tingkat_nama)}: ${g.benar} dari ${g.n} benar">${esc(rmLevelTeks(g))}</span>`).join(" ");
+    const um = r.umum ? `<b>${r.umum.nilai}</b>${(r.umum.materi || []).filter((m) => m.benar * 3 < m.n * 2).length ? `<br><span class="kecil redup">lemah: ${esc(r.umum.materi.filter((m) => m.benar * 3 < m.n * 2).map((m) => m.materi).join(", "))}</span>` : ""}` : '<span class="redup">–</span>';
+    return `<tr><td><input type="checkbox" data-rmc="${esc(r.nisn)}" ${RM_CENTANG[r.nisn] ? "checked" : ""} ${r.ikut ? "" : "disabled"} aria-label="Pilih ${esc(r.nama)}"></td>
+      <td><b>${esc(r.nama)}</b><br><span class="kecil redup">${esc(r.kelas)} · ${esc(r.nisn)}</span></td><td>${esc(r.kelompok)}${r.tahapan ? `<br><span class="kecil redup">tahapan ${esc(r.tahapan)}</span>` : ""}</td>
+      <td>${esc(rmPosisiTeks(r.posisi))}</td><td>${lv || '<span class="redup">–</span>'}</td>
+      <td><b>${esc(rmSaranTeks[r.saran] || r.saran)}</b><br><span class="kecil redup">${esc(r.alasan)}</span>${r.luar_tahapan ? '<br><span class="lencana emas">di luar tahapan</span>' : ""}</td>
+      <td>${r.ikut ? `<select data-rmp="${esc(r.nisn)}" aria-label="Posisi semester depan ${esc(r.nama)}">${opsi.join("")}</select>` : '<span class="redup">–</span>'}</td><td>${um}</td></tr>`;
+  }).join("")}</tbody>`;
+  $("t-rekom").querySelectorAll("[data-rmp]").forEach((s) => { s.value = RM_PILIH[s.dataset.rmp]; s.onchange = () => { RM_PILIH[s.dataset.rmp] = s.value; RM_CENTANG[s.dataset.rmp] = s.value !== "tetap"; gambarRekom(); }; });
+  $("t-rekom").querySelectorAll("[data-rmc]").forEach((c) => c.onchange = () => { RM_CENTANG[c.dataset.rmc] = c.checked; rmHitung(); });
+  rmHitung();
+}
+function rmHitung() {
+  const L = rmTampil().filter((r) => r.ikut), n = L.filter((r) => RM_CENTANG[r.nisn]).length;
+  $("rm-n").textContent = n ? ` ${n} siswa dicentang` : "";
+  $("rm-semua").checked = L.length > 0 && n === L.length;
+}
+$("rm-saring").onchange = () => gambarRekom();
+$("rm-muat").onclick = () => muatRekom();
+$("rm-semua").onchange = (ev) => { rmTampil().filter((r) => r.ikut).forEach((r) => { RM_CENTANG[r.nisn] = ev.target.checked; }); gambarRekom(); };
+$("rm-terapkan").onclick = async () => {
+  // Hanya siswa yang tampil (kelompok & saringan sekarang) yang diterapkan.
+  const L = rmTampil().filter((r) => r.ikut && RM_CENTANG[r.nisn] && RM_PILIH[r.nisn] && RM_PILIH[r.nisn] !== "tetap");
+  const nTetap = rmTampil().filter((r) => r.ikut && RM_CENTANG[r.nisn] && RM_PILIH[r.nisn] === "tetap").length;
+  if (!L.length) return toast(nTetap ? "Siswa yang dicentang semuanya Tetap; tidak ada posisi yang perlu diubah." : "Centang siswa yang posisinya akan dipindah.");
+  const daftar = L.slice(0, 15).map((r) => { const [t, l] = RM_PILIH[r.nisn].split("|"); return `• ${r.nama}: ${rmPosisiTeks(r.posisi)} → ${namaTingkat(t)} level ${l}`; }).join("\n");
+  if (!confirm(`Pindahkan posisi ${L.length} siswa?\n\n${daftar}${L.length > 15 ? `\n… dan ${L.length - 15} siswa lain` : ""}${nTetap ? `\n\n${nTetap} siswa yang dicentang tetap di posisinya (tidak diubah).` : ""}\n\nTahapan siswa tidak berubah. Sesi Matdas siswa yang sedang berjalan ditutup.`)) return;
+  const b = $("rm-terapkan"); b.disabled = true;
+  try {
+    const r = await rpc("mtd_klaster_terapkan", { p_pin: PIN, p_pilih: L.map((x) => { const [t, l] = RM_PILIH[x.nisn].split("|"); return { nisn: x.nisn, tingkat: t, level: +l }; }) });
+    L.forEach((x) => { RM_CENTANG[x.nisn] = false; delete RM_PILIH[x.nisn]; });
+    toast(`Posisi ${r.diatur} siswa dipindah.`); await muatRekom();
+  } catch (e) { toast("Gagal menerapkan: " + e.message); }
+  finally { b.disabled = false; }
+};
+$("rm-unduh").onclick = (ev) => jalankanUnduh(ev.currentTarget, async () => {
+  if (!RM) throw new Error("Rekomendasi belum dimuat.");
+  const L = rmTampil(), k = pilKel(), nama = `Rekomendasi_Matdas_${potongNama(k || "Semua")}_${tglBerkas()}.xlsx`;
+  const pilihTeks = (r) => { const v = RM_PILIH[r.nisn]; if (!r.ikut) return ""; if (!v || v === "tetap") return "Tetap: " + rmPosisiTeks(r.posisi); const [t, l] = v.split("|"); return `${namaTingkat(t)} · level ${l}`; };
+  await unduhBukuXLSX({ namaBerkas: nama, judulBuku: "Rekomendasi Posisi Matdas", lembar: [{ nama: "Rekomendasi", judul: "Rekomendasi Posisi Semester Depan", sub: k ? `Kelompok ${k}` : "Semua kelompok",
+    info: [["Dasar", "Tes klaster Matdas; level dikuasai bila benar ≥ 2/3 soal"], ["Jumlah siswa", `${L.length}`]],
+    kolom: [{ t: "No", w: 5, rata: "center" }, { t: "Nama", w: 30, tebal: true }, { t: "NISN", w: 13, rata: "center" }, { t: "Rombel", w: 9, rata: "center" }, { t: "Kelompok", w: 11, rata: "center" },
+      { t: "Posisi sekarang", w: 30 }, { t: "Hasil tes per level", w: 50 }, { t: "Saran", w: 14 }, { t: "Posisi semester depan", w: 30 }, { t: "Alasan", w: 50 }, { t: "Di luar tahapan", w: 10, rata: "center" }, { t: "Tes Umum", w: 9, rata: "center" }],
+    baris: L.map((r, i) => [i + 1, r.nama, r.nisn, r.kelas, r.kelompok, rmPosisiTeks(r.posisi), (r.level || []).map(rmLevelTeks).join(", "), rmSaranTeks[r.saran] || r.saran, pilihTeks(r), r.alasan, r.luar_tahapan ? "ya" : "", r.umum ? r.umum.nilai : ""]),
+    catatan: ["Posisi semester depan = pilihan di layar saat diunduh (bisa sudah diubah guru)."] }] });
+  return nama;
+});
+
 // Sel posisi terendah/tertinggi kelompok (7 Oktober 2026): r = siswa di posisi itu, n = banyak siswa yang sama posisinya.
 const selPosisi = (r, n, L) => !r ? '<td class="posisi"><span class="redup">–</span></td>'
   : `<td class="posisi" title="${esc(L.map((x) => x.nama).join(", "))}"><span class="pos-nm">${esc(r.selesai ? selesaiTeks(r) : r.nama_tingkat)}</span>`
