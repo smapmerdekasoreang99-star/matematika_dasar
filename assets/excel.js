@@ -77,11 +77,17 @@ async function unduhBukuXLSX({ lembar, namaBerkas, judulBuku }) {
     // Kop: logo, nama sekolah, keterangan, judul lembar, garis emas.
     ws.getRow(1).height = 8; ws.getRow(2).height = 20; ws.getRow(3).height = 15; ws.getRow(4).height = 18; ws.getRow(5).height = 6;
     for (let r = 1; r <= 5; r++) for (let c = 1; c <= K; c++) ws.getCell(r, c).fill = isiWarna(XL.putih);
-    if (logoId !== null) { try { ws.addImage(logoId, { tl: { col: 0.1, row: 0.3 }, ext: { width: 34, height: 48 } }); } catch (e) { /* tanpa logo */ } }
+    // Logo di sisi KANAN kolom A, menempel ke tulisan di kolom B (27 Nov 2026: dulu di kiri kolom A, sehingga jaraknya
+    // ke tulisan = lebar kolom A, bisa beberapa cm). Posisi dalam piksel (1 px = 9525 EMU); lebar kolom Excel ≈ w×7+5 px.
+    // Jarak logo–tulisan ±6 px + tepi sel ≈ 2–3 mm (maks. 5 mm).
+    if (logoId !== null) {
+      const pxA = Math.floor((kolom[0].w || 12) * 7 + 5), x = Math.max(2, pxA - 34 - 6);
+      try { ws.addImage(logoId, { tl: { nativeCol: 0, nativeColOff: x * 9525, nativeRow: 0, nativeRowOff: 3 * 9525 }, ext: { width: 34, height: 48 } }); } catch (e) { /* tanpa logo */ }
+    }
     if (K > 2) { [2, 3, 4].forEach((r) => ws.mergeCells(r, 2, r, K)); }
-    sel(ws, 2, 2, SEKOLAH, { size: 14, bold: true, warna: XL.gelap, indent: 1 });
-    sel(ws, 3, 2, `${APLIKASI_XL}${L.sub ? "  ·  " + L.sub : ""}`, { size: 9, warna: XL.tinta2, indent: 1 });
-    sel(ws, 4, 2, String(L.judul || judulBuku).toUpperCase(), { size: 12, bold: true, warna: XL.emasTeks, indent: 1 });
+    sel(ws, 2, 2, SEKOLAH, { size: 14, bold: true, warna: XL.gelap });
+    sel(ws, 3, 2, `${APLIKASI_XL}${L.sub ? "  ·  " + L.sub : ""}`, { size: 9, warna: XL.tinta2 });
+    sel(ws, 4, 2, String(L.judul || judulBuku).toUpperCase(), { size: 12, bold: true, warna: XL.emasTeks });
     for (let c = 1; c <= K; c++) ws.getCell(5, c).border = { bottom: { style: "medium", color: { argb: XL.emas } } };
     ws.getRow(6).height = 8;
     let r = 7;
