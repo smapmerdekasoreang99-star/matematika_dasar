@@ -77,16 +77,20 @@ async function unduhBukuXLSX({ lembar, namaBerkas, judulBuku }) {
     // Kop: logo, nama sekolah, keterangan, judul lembar, garis emas.
     ws.getRow(1).height = 8; ws.getRow(2).height = 20; ws.getRow(3).height = 15; ws.getRow(4).height = 18; ws.getRow(5).height = 6;
     for (let r = 1; r <= 5; r++) for (let c = 1; c <= K; c++) ws.getCell(r, c).fill = isiWarna(XL.putih);
-    // Kop rata kiri (27 Nov 2026): logo di tepi kiri kolom A, tulisan mulai di kolom A juga, digeser ke kanan logo
-    // dengan SPASI (bukan indentasi — indentasi tampil beda di Excel/LibreOffice/Google Sheets; cara sama dengan
-    // kop-dokumen.js Data Induk). Logo 34 px di x = 4 px; tulisan mulai ±44 px → jarak logo–tulisan ±1,5–2 mm.
-    // Spasi Calibri ≈ 0,226 em (tebal ≈ 0,24 em; diuji lewat Excel → PDF); 1 px = 9525 EMU.
-    const depan = (pt, tebal) => " ".repeat(Math.ceil(41 / (pt * 96 / 72 * (tebal ? 0.24 : 0.226))));
-    if (logoId !== null) { try { ws.addImage(logoId, { tl: { nativeCol: 0, nativeColOff: 4 * 9525, nativeRow: 0, nativeRowOff: 3 * 9525 }, ext: { width: 34, height: 48 } }); } catch (e) { /* tanpa logo */ } }
+    // Kop rata kiri (27 Nov 2026): logo di tepi kiri kolom A, di tengah tinggi baris 2–4; tulisan mulai di kolom A juga,
+    // didorong ke kanan logo oleh 17 SPASI berukuran 10 pt yang sama di ketiga baris (rich text) — jadi ketiga baris
+    // sejajar di layar maupun cetakan, apa pun ukuran hurufnya. Spasi, bukan indentasi: indentasi tampil beda di
+    // Excel/LibreOffice/Google Sheets. Diuji lewat Excel (layar + PDF): jarak logo–tulisan ±2–3 mm. 1 px = 9525 EMU.
+    const DORONG = { text: " ".repeat(17), font: { name: XL.font, size: 10 } };
+    const kopTeks = (r, teks, o) => { const x = sel(ws, r, 1, teks, o); x.value = { richText: [DORONG, { text: teks, font: { ...x.font } }] }; };
+    if (logoId !== null) {
+      const atas = Math.round(((20 + 15 + 18) * 96 / 72 - 56) / 2);   // logo 40×56 px di tengah baris 2–4
+      try { ws.addImage(logoId, { tl: { nativeCol: 0, nativeColOff: 4 * 9525, nativeRow: 1, nativeRowOff: atas * 9525 }, ext: { width: 40, height: 56 } }); } catch (e) { /* tanpa logo */ }
+    }
     if (K > 1) { [2, 3, 4].forEach((r) => ws.mergeCells(r, 1, r, K)); }
-    sel(ws, 2, 1, depan(14, 1) + SEKOLAH, { size: 14, bold: true, warna: XL.gelap });
-    sel(ws, 3, 1, depan(9) + `${APLIKASI_XL}${L.sub ? "  ·  " + L.sub : ""}`, { size: 9, warna: XL.tinta2 });
-    sel(ws, 4, 1, depan(12, 1) + String(L.judul || judulBuku).toUpperCase(), { size: 12, bold: true, warna: XL.emasTeks });
+    kopTeks(2, SEKOLAH, { size: 14, bold: true, warna: XL.gelap });
+    kopTeks(3, `${APLIKASI_XL}${L.sub ? "  ·  " + L.sub : ""}`, { size: 9, warna: XL.tinta2 });
+    kopTeks(4, String(L.judul || judulBuku).toUpperCase(), { size: 12, bold: true, warna: XL.emasTeks });
     for (let c = 1; c <= K; c++) ws.getCell(5, c).border = { bottom: { style: "medium", color: { argb: XL.emas } } };
     ws.getRow(6).height = 8;
     let r = 7;
